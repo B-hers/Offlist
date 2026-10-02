@@ -1,0 +1,422 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>To Do</title>
+<meta name="theme-color" content="#f6f5f1" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#151514" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="To Do">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon-180.png">
+<style>
+:root{
+  --bg:#f6f5f1; --card:#ffffff; --ink:#1b1b19; --muted:#7a786f; --line:#e6e3da;
+  --accent:#1f7a4d; --accent-soft:#e3f1e9; --late:#b4532a; --danger:#b42a2a;
+  --radius:14px; --shadow:0 1px 2px rgba(0,0,0,.05);
+}
+@media (prefers-color-scheme:dark){:root{
+  --bg:#151514; --card:#1f1f1d; --ink:#efede6; --muted:#9a978d; --line:#2e2d2a;
+  --accent:#4cc38a; --accent-soft:#1d3428; --late:#e4885d; --danger:#e46b6b; --shadow:none;
+}}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--ink);
+  font:16px/1.4 -apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,sans-serif}
+body{min-height:100dvh;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}
+.wrap{max-width:640px;margin:0 auto;padding:16px 16px 120px}
+header{display:flex;align-items:baseline;justify-content:space-between;margin:8px 0 14px}
+h1{font-size:28px;letter-spacing:-.02em;margin:0;font-weight:700}
+.date{color:var(--muted);font-size:14px}
+.add{display:flex;gap:8px;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+  padding:6px 6px 6px 14px;box-shadow:var(--shadow);position:sticky;top:max(8px,env(safe-area-inset-top));z-index:5}
+.add input{flex:1;border:0;background:transparent;color:var(--ink);font:inherit;font-size:17px;outline:none;min-width:0}
+.add button{border:0;background:var(--accent);color:#fff;border-radius:10px;width:40px;height:40px;font-size:22px;cursor:pointer}
+.hint{color:var(--muted);font-size:12.5px;margin:6px 4px 0}
+.add .mic{background:var(--accent-soft);color:var(--accent)}
+.add .mic svg{width:20px;height:20px;vertical-align:middle}
+.add .mic.rec{background:#d64545;color:#fff;animation:pulse 1.4s infinite}
+.add .mic.busy{opacity:.6}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(214,69,69,.45)}70%{box-shadow:0 0 0 12px rgba(214,69,69,0)}100%{box-shadow:0 0 0 0 rgba(214,69,69,0)}}
+.hbtn{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;padding:6px 12px;font:inherit;font-size:13.5px;cursor:pointer}
+.hright{display:flex;align-items:center;gap:10px}
+.prop{display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--line)}
+.prop:last-child{border-bottom:0}
+.prop input[type=checkbox]{width:20px;height:20px;padding:0;margin-top:9px;accent-color:var(--accent);flex:none}
+.prop .pbody{flex:1;min-width:0}
+.prop .pt{margin:0}
+.prop .pmeta{font-size:12.5px;color:var(--muted);margin-top:4px}
+.prop .dup{color:var(--late)}
+.transcript{font-size:13px;color:var(--muted);background:var(--bg);border-radius:10px;padding:8px 10px;margin-bottom:6px;max-height:90px;overflow:auto}
+.summary{white-space:pre-wrap;line-height:1.5;font-size:15px}
+.pair{border:1px solid var(--line);border-radius:12px;padding:10px;margin-top:10px}
+.pair .pa{font-size:14px;margin-bottom:8px}
+.pair .chips button{font-size:13px}
+.panel{max-height:88dvh;overflow:auto}
+
+nav{display:flex;gap:6px;margin:18px 0 10px;overflow-x:auto}
+nav button{border:1px solid var(--line);background:transparent;color:var(--muted);border-radius:999px;
+  padding:7px 14px;font:inherit;font-size:14px;white-space:nowrap;cursor:pointer}
+nav button.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+nav .n{opacity:.7;margin-left:4px;font-variant-numeric:tabular-nums}
+.search{display:none;margin-bottom:10px}
+.search.on{display:block}
+.search input{width:100%;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:12px;padding:10px 12px;font:inherit}
+ul{list-style:none;margin:0;padding:0}
+li{position:relative;margin-bottom:8px;border-radius:var(--radius);overflow:hidden}
+.bgL,.bgR{opacity:0;position:absolute;inset:0;display:flex;align-items:center;padding:0 18px;font-weight:600;font-size:14px;color:#fff}
+.bgR{background:var(--accent)} .bgL{background:#5b6b8a;justify-content:flex-end}
+.row{position:relative;display:flex;gap:12px;align-items:flex-start;background:var(--card);border:1px solid var(--line);
+  border-radius:var(--radius);padding:13px 14px;box-shadow:var(--shadow);touch-action:pan-y;transition:transform .18s ease}
+.check{flex:none;width:22px;height:22px;border-radius:50%;border:2px solid var(--muted);background:transparent;margin-top:1px;cursor:pointer;padding:0}
+.check:hover{border-color:var(--accent);background:var(--accent-soft)}
+.done .check{background:var(--accent);border-color:var(--accent)}
+.body{flex:1;min-width:0}
+.title{word-wrap:break-word}
+.done .title{color:var(--muted);text-decoration:line-through}
+.meta{display:flex;flex-wrap:wrap;gap:6px 10px;margin-top:4px;font-size:12.5px;color:var(--muted)}
+.meta .late{color:var(--late);font-weight:600}
+.meta .auto{color:var(--accent)}
+.more{flex:none;border:0;background:transparent;color:var(--muted);font-size:18px;cursor:pointer;padding:0 2px}
+.empty{color:var(--muted);text-align:center;padding:48px 16px}
+.empty b{display:block;color:var(--ink);font-size:17px;margin-bottom:4px}
+.sheet{position:fixed;inset:0;background:rgba(0,0,0,.35);display:none;align-items:flex-end;justify-content:center;z-index:20}
+.sheet.on{display:flex}
+.panel{background:var(--card);width:100%;max-width:640px;border-radius:18px 18px 0 0;padding:18px 16px calc(18px + env(safe-area-inset-bottom))}
+.panel h3{margin:0 0 12px;font-size:16px}
+.panel label{display:block;font-size:13px;color:var(--muted);margin:10px 0 4px}
+.panel input,.panel textarea{width:100%;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:10px;padding:10px;font:inherit}
+.panel textarea{min-height:70px;resize:vertical}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.chips button,.actions button{border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:10px;padding:8px 12px;font:inherit;font-size:14px;cursor:pointer}
+.actions{display:flex;gap:8px;margin-top:16px;flex-wrap:wrap}
+.actions .primary{background:var(--accent);border-color:var(--accent);color:#fff;flex:1}
+.actions .danger{color:var(--danger)}
+.toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));transform:translateX(-50%);
+  background:var(--ink);color:var(--bg);border-radius:12px;padding:10px 14px;font-size:14px;display:none;gap:14px;align-items:center;z-index:30;max-width:92vw}
+.toast.on{display:flex}
+.toast button{border:0;background:transparent;color:var(--accent);font:inherit;font-weight:700;cursor:pointer;white-space:nowrap;flex:none}
+.toast{width:max-content;max-width:min(92vw,520px)} #toastMsg{flex:1;min-width:0}
+.setup{max-width:420px;margin:12vh auto 0;padding:0 16px}
+.setup p{color:var(--muted)}
+.setup input{width:100%;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:12px;padding:12px;font:inherit;margin:8px 0}
+.setup button{width:100%;border:0;background:var(--accent);color:#fff;border-radius:12px;padding:12px;font:inherit;font-weight:600}
+.err{color:var(--danger);font-size:14px;min-height:20px}
+.foot{color:var(--muted);font-size:12px;text-align:center;margin-top:24px}
+.foot button{border:0;background:transparent;color:var(--muted);text-decoration:underline;font:inherit;cursor:pointer}
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<div class="sheet" id="sheet"><div class="panel" id="panel"></div></div>
+<div class="toast" id="toast"><span id="toastMsg"></span><button id="toastUndo">Annuler</button></div>
+
+<script>
+const API = "https://rorwnacthttwxyqemkgv.supabase.co/functions/v1/todo-api";
+const store = {
+  get(k){ try{ return localStorage.getItem(k) }catch{ return null } },
+  set(k,v){ try{ localStorage.setItem(k,v) }catch{} },
+  del(k){ try{ localStorage.removeItem(k) }catch{} },
+};
+let view = store.get("todo_view") || "today";
+let tasks = [], counts = {today:0,later:0,done:0}, searching = false;
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+async function api(path, opts = {}){
+  const r = await fetch(API + path, { ...opts, headers: { "Content-Type": "application/json" } });
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok) throw Object.assign(new Error(data.error || "Erreur réseau"), { status: r.status, data });
+  return data;
+}
+
+// ---------- Dates ----------
+const todayISO = (o=0) => { const d = new Date(Date.now()+o*864e5); return d.toLocaleDateString("en-CA"); };
+function nextWeekday(target){ const w = new Date().getDay(); let d = (target - w + 7) % 7; return todayISO(d || 7); }
+function fmtDue(iso){
+  if (!iso) return "";
+  const t = todayISO(0);
+  if (iso < t) { const n = Math.round((Date.parse(t) - Date.parse(iso)) / 864e5); return `<span class="late">En retard de ${n} j</span>`; }
+  if (iso === t) return "Aujourd'hui";
+  if (iso === todayISO(1)) return "Demain";
+  const d = new Date(iso + "T12:00:00");
+  const diff = (Date.parse(iso) - Date.parse(t)) / 864e5;
+  const opt = diff < 7 ? { weekday:"long" } : { day:"numeric", month:"short" };
+  const s = d.toLocaleDateString("fr-BE", opt); return s.charAt(0).toUpperCase() + s.slice(1);
+}
+function fmtAgo(ts){
+  const m = Math.round((Date.now() - Date.parse(ts)) / 6e4);
+  if (m < 60) return `il y a ${Math.max(m,1)} min`;
+  const h = Math.round(m/60); if (h < 24) return `il y a ${h} h`;
+  return new Date(ts).toLocaleDateString("fr-BE", { day:"numeric", month:"short" });
+}
+
+// ---------- Rendu ----------
+function renderShell(){
+  const d = new Date().toLocaleDateString("fr-BE", { weekday:"long", day:"numeric", month:"long" });
+  $("#app").innerHTML = `<div class="wrap">
+    <header><h1>To Do</h1><div class="hright"><span class="date">${d}</span><button class="hbtn" id="sumBtn">Résumé</button></div></header>
+    <form class="add" id="add"><input id="new" placeholder="Nouvelle tâche…" enterkeyhint="done" autocomplete="off">
+      <button type="button" class="mic" id="mic" aria-label="Dicter des tâches"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></button>
+      <button type="submit" aria-label="Ajouter">+</button></form>
+    <div class="hint" id="hint">Échéance dans le texte : demain, vendredi, 15/10… · Micro : dicte plusieurs tâches d'un coup</div>
+    <nav id="nav"></nav>
+    <div class="search" id="searchBox"><input id="q" type="search" placeholder="Rechercher dans toutes les tâches"></div>
+    <ul id="list"></ul>
+    <div class="foot">Glisse à droite pour terminer, à gauche pour reporter</div>
+  </div>`;
+  $("#add").onsubmit = onAdd;
+  $("#q").oninput = debounce(onSearch, 250);
+  $("#mic").onclick = toggleMic;
+  $("#sumBtn").onclick = openSummary;
+}
+
+function renderNav(){
+  const tabs = [["today","Aujourd'hui",counts.today],["later","Plus tard",counts.later],["done","Fait récemment",counts.done],["search","Rechercher",null]];
+  $("#nav").innerHTML = tabs.map(([k,l,n]) => `<button data-v="${k}" class="${(searching ? k==="search" : k===view) ? "on":""}">${l}${n!=null?`<span class="n">${n}</span>`:""}</button>`).join("");
+  $("#nav").querySelectorAll("button").forEach(b => b.onclick = () => setView(b.dataset.v));
+}
+
+function renderList(){
+  const ul = $("#list");
+  if (!tasks.length){
+    const msg = searching ? ["Aucun résultat",""] :
+      view === "today" ? ["Rien pour aujourd'hui","Profite, ou avance sur Plus tard."] :
+      view === "later" ? ["Rien de prévu","Ajoute une tâche en haut."] : ["Rien de fermé récemment",""];
+    ul.innerHTML = `<div class="empty"><b>${msg[0]}</b>${msg[1]}</div>`; return;
+  }
+  ul.innerHTML = tasks.map(t => {
+    const meta = [];
+    if (t.status === "open"){
+      if (t.due_date) meta.push(fmtDue(t.due_date));
+      if (t.pinned_today && view !== "today") meta.push("Épinglée");
+      if (t.notes) meta.push(esc(t.notes.slice(0,80)));
+    } else {
+      meta.push(`Fermée ${fmtAgo(t.closed_at)}`);
+      if (t.closed_by && t.closed_by !== "ben") meta.push(`<span class="auto">par ${t.closed_by === "auto" ? "l'IA" : "un agent"}</span>`);
+      if (t.close_proof) meta.push(esc(t.close_proof));
+    }
+    return `<li data-id="${t.id}"><div class="bgR">✓ Fait</div><div class="bgL">Reporter →</div>
+      <div class="row ${t.status === "done" ? "done":""}">
+        <button class="check" aria-label="${t.status==="done"?"Rouvrir":"Terminer"}"></button>
+        <div class="body"><div class="title">${esc(t.title)}</div>${meta.length?`<div class="meta">${meta.map(m=>`<span>${m}</span>`).join("")}</div>`:""}</div>
+        <button class="more" aria-label="Options">⋯</button></div></li>`;
+  }).join("");
+  ul.querySelectorAll("li").forEach(li => {
+    const t = tasks.find(x => x.id === li.dataset.id);
+    li.querySelector(".check").onclick = () => t.status === "done" ? reopen(t) : complete(t);
+    li.querySelector(".more").onclick = () => openEdit(t);
+    li.querySelector(".body").onclick = () => openEdit(t);
+    if (t.status === "open") swipe(li, t);
+  });
+}
+
+// ---------- Actions ----------
+async function load(){
+  try {
+    const [list, c] = await Promise.all([api("/tasks?view=" + view), api("/counts")]);
+    tasks = list; counts = c; renderNav(); renderList();
+  } catch(e){ toast(e.message); }
+}
+function setView(v){
+  if (v === "search"){ searching = true; $("#searchBox").classList.add("on"); $("#q").focus(); tasks = []; renderNav(); renderList(); return; }
+  searching = false; $("#searchBox").classList.remove("on"); $("#q").value = "";
+  view = v; store.set("todo_view", v); load();
+}
+const hasDate = v => /\b(aujourd'hui|demain|lundi|mardi|mercredi|jeudi|vendredi|samedi|dimanche|semaine|\d{1,2}[\/.]\d{1,2})\b/i.test(v);
+async function onAdd(e){
+  e.preventDefault();
+  const v = $("#new").value.trim(); if (!v) return;
+  $("#new").value = "";
+  if (v.length > 50 && /[.;!?]\s|\n|\bet puis\b|\bensuite\b/i.test(v)) return runDictate(v);
+  await addTask(v, false);
+}
+async function addTask(v, force){
+  try { const t = await api("/tasks", { method:"POST", body: JSON.stringify({ title: v, force, pinned_today: view === "today" && !hasDate(v) }) });
+    toast(t.due_date ? `Ajoutée · ${fmtDue(t.due_date).replace(/<[^>]+>/g,"")}` : "Ajoutée"); load();
+  } catch(err){
+    if (err.status === 409) { const c = err.data.candidates[0]; toast(`Déjà dans ta liste : « ${c.title} »`, () => addTask(v, true), "Ajouter quand même"); }
+    else { toast(err.message); $("#new").value = v; }
+  }
+}
+
+// ---------- Dictée ----------
+const VOICE_ENDPOINT = "https://qdepdtwrokazceyecege.supabase.co/functions/v1/transcribe-audio";
+const VOICE_SECRET = "xh6y8dlA9-6x1ziYD9kmIP7kmFut6r4F";
+let rec = null, recChunks = [], recStream = null, recTimer = null, recSec = 0;
+async function toggleMic(){
+  const btn = $("#mic");
+  if (rec && rec.state === "recording") { rec.stop(); return; }
+  if (btn.classList.contains("busy")) return;
+  try { recStream = await navigator.mediaDevices.getUserMedia({ audio: true }); }
+  catch(e){ toast("Micro inaccessible : autorise-le dans les réglages du navigateur"); return; }
+  const mime = ["audio/webm","audio/mp4","audio/ogg"].find(m => window.MediaRecorder && MediaRecorder.isTypeSupported(m)) || "";
+  rec = new MediaRecorder(recStream, mime ? { mimeType: mime } : undefined); recChunks = [];
+  rec.ondataavailable = e => { if (e.data.size) recChunks.push(e.data); };
+  rec.onstop = onRecStop;
+  rec.start(); btn.classList.add("rec"); recSec = 0;
+  $("#hint").textContent = "Enregistrement 0:00 · touche à nouveau le micro pour terminer";
+  recTimer = setInterval(() => { recSec++; $("#hint").textContent = `Enregistrement ${Math.floor(recSec/60)}:${String(recSec%60).padStart(2,"0")} · touche à nouveau le micro pour terminer`; if (recSec >= 180) rec.stop(); }, 1000);
+}
+async function onRecStop(){
+  clearInterval(recTimer); recStream?.getTracks().forEach(t => t.stop());
+  const btn = $("#mic"); btn.classList.remove("rec"); btn.classList.add("busy");
+  $("#hint").textContent = "Transcription en cours…";
+  try {
+    const blob = new Blob(recChunks, { type: rec.mimeType || "audio/webm" });
+    const ext = (rec.mimeType || "").includes("mp4") ? "m4a" : (rec.mimeType || "").includes("ogg") ? "ogg" : "webm";
+    const form = new FormData(); form.append("audio", blob, "note." + ext);
+    const r = await fetch(VOICE_ENDPOINT, { method: "POST", headers: { "x-app-key": VOICE_SECRET }, body: form });
+    const j = await r.json();
+    if (!r.ok || !j.transcript) throw new Error("Transcription impossible");
+    await runDictate(j.transcript);
+  } catch(e){ toast(e.message); }
+  finally { btn.classList.remove("busy"); $("#hint").textContent = "Échéance dans le texte : demain, vendredi, 15/10… · Micro : dicte plusieurs tâches d'un coup"; }
+}
+async function runDictate(texte){
+  try {
+    const r = await api("/dictate", { method: "POST", body: JSON.stringify({ texte }) });
+    openProposals(texte, r.proposals);
+  } catch(e){ toast(e.message); }
+}
+function openProposals(texte, props){
+  if (!props.length) { toast("Aucune tâche reconnue dans la dictée"); return; }
+  $("#panel").innerHTML = `<h3>${props.length} tâche${props.length>1?"s":""} reconnue${props.length>1?"s":""}</h3>
+    <div class="transcript">${esc(texte)}</div>
+    <div id="props">${props.map((p,i) => `<div class="prop">
+      <input type="checkbox" data-i="${i}" ${p.duplicate_of ? "" : "checked"}>
+      <div class="pbody"><input class="pt" data-t="${i}" value="${esc(p.title)}">
+        <div class="pmeta">${p.due_date ? fmtDue(p.due_date) : "Sans échéance"}${p.duplicate_of ? ` · <span class="dup">Déjà dans ta liste : « ${esc(p.duplicate_of.title)} »</span>` : ""}</div></div></div>`).join("")}</div>
+    <div class="actions"><button id="cancel">Annuler</button><button class="primary" id="ok">Ajouter la sélection</button></div>`;
+  $("#cancel").onclick = closeSheet;
+  $("#ok").onclick = async () => {
+    const chosen = props.map((p,i) => ({ ...p, title: $(`[data-t="${i}"]`).value.trim(), on: $(`[data-i="${i}"]`).checked })).filter(p => p.on && p.title);
+    closeSheet(); let n = 0;
+    for (const p of chosen) {
+      try { await api("/tasks", { method:"POST", body: JSON.stringify({ title: p.title, due_date: p.due_date, force: true, pinned_today: view === "today" && !p.due_date }) }); n++; } catch(e){}
+    }
+    toast(`${n} tâche${n>1?"s":""} ajoutée${n>1?"s":""}`); load();
+  };
+  openSheet();
+}
+
+// ---------- Résumé ----------
+async function openSummary(){
+  $("#panel").innerHTML = `<h3>Résumé</h3><div class="summary">Analyse en cours…</div>`; openSheet();
+  try {
+    const s = await api("/summary");
+    $("#panel").innerHTML = `<h3>Résumé</h3><div class="summary">${esc(s.resume)}</div>
+      ${s.doublons.length ? `<h3 style="margin-top:18px">Doublons probables</h3>` + s.doublons.map((d,i) => `<div class="pair">
+        <div class="pa">« ${esc(d.a.title)} »<br>« ${esc(d.b.title)} »</div>
+        <div class="chips"><button data-k="${i}" data-w="a">Garder la 1re</button><button data-k="${i}" data-w="b">Garder la 2e</button><button data-k="${i}" data-w="x">Ce n'est pas un doublon</button></div></div>`).join("") : ""}
+      <div class="actions"><button class="primary" id="cancel">Fermer</button></div>`;
+    $("#cancel").onclick = closeSheet;
+    $("#panel").querySelectorAll(".pair button").forEach(b => b.onclick = async () => {
+      const d = s.doublons[+b.dataset.k], pair = b.closest(".pair");
+      if (b.dataset.w === "x") { pair.remove(); return; }
+      const drop = b.dataset.w === "a" ? d.b : d.a;
+      try { await api(`/tasks/${drop.id}`, { method:"DELETE" }); pair.remove(); toast(`Supprimée : « ${drop.title} »`); load(); } catch(e){ toast(e.message); }
+    });
+  } catch(e){ $("#panel").querySelector(".summary").textContent = e.message; }
+}
+async function onSearch(){
+  const q = $("#q").value.trim(); if (!q){ tasks = []; renderList(); return; }
+  try { tasks = await api("/search?q=" + encodeURIComponent(q)); renderList(); } catch(e){ toast(e.message); }
+}
+async function complete(t){
+  tasks = tasks.filter(x => x.id !== t.id); renderList();
+  try { await api(`/tasks/${t.id}/complete`, { method:"POST", body:"{}" }); toast("Terminée", () => reopen(t)); load(); }
+  catch(e){ toast(e.message); load(); }
+}
+async function reopen(t){
+  try { await api(`/tasks/${t.id}/reopen`, { method:"POST", body:"{}" }); toast("Rouverte"); load(); } catch(e){ toast(e.message); }
+}
+async function patch(t, body, msg){
+  try { await api(`/tasks/${t.id}`, { method:"PATCH", body: JSON.stringify(body) }); closeSheet(); if (msg) toast(msg); load(); } catch(e){ toast(e.message); }
+}
+async function remove(t){
+  if (!confirmDelete) { confirmDelete = true; $("#del").textContent = "Confirmer la suppression"; return; }
+  try { await api(`/tasks/${t.id}`, { method:"DELETE" }); closeSheet(); toast("Supprimée"); load(); } catch(e){ toast(e.message); }
+}
+let confirmDelete = false;
+
+// ---------- Report et édition ----------
+function postponeOptions(){
+  return [["Aujourd'hui", todayISO(0)],["Demain", todayISO(1)],["Lundi", nextWeekday(1)],["Dans 1 semaine", todayISO(7)],["Sans date", null]];
+}
+function openPostpone(t){
+  $("#panel").innerHTML = `<h3>Reporter « ${esc(t.title)} »</h3><div class="chips">${postponeOptions().map(([l,d],i)=>`<button data-i="${i}">${l}</button>`).join("")}</div>
+    <label>Date précise</label><input type="date" id="pd" value="${t.due_date||""}">
+    <div class="actions"><button id="cancel">Fermer</button><button class="primary" id="ok">Valider la date</button></div>`;
+  $("#panel").querySelectorAll(".chips button").forEach(b => b.onclick = () => {
+    const [l,d] = postponeOptions()[+b.dataset.i];
+    patch(t, { due_date: d, pinned_today: false }, `Reportée · ${l}`);
+  });
+  $("#ok").onclick = () => patch(t, { due_date: $("#pd").value || null, pinned_today:false }, "Date modifiée");
+  $("#cancel").onclick = closeSheet; openSheet();
+}
+function openEdit(t){
+  confirmDelete = false;
+  const open = t.status === "open";
+  $("#panel").innerHTML = `<h3>${open ? "Modifier" : "Tâche fermée"}</h3>
+    <label>Titre</label><input id="et" value="${esc(t.title)}">
+    <label>Notes</label><textarea id="en">${esc(t.notes||"")}</textarea>
+    <label>Échéance</label><input type="date" id="ed" value="${t.due_date||""}">
+    ${open ? `<div class="chips"><button id="pin">${t.pinned_today ? "Retirer d'Aujourd'hui" : "Épingler dans Aujourd'hui"}</button><button id="pp">Reporter…</button></div>` : ""}
+    <div class="actions">
+      <button class="danger" id="del">Supprimer</button>
+      ${open ? `<button id="cmp">Terminer</button>` : `<button id="rop">Rouvrir</button>`}
+      <button class="primary" id="save">Enregistrer</button></div>`;
+  $("#save").onclick = () => patch(t, { title: $("#et").value.trim() || t.title, notes: $("#en").value.trim() || null, due_date: $("#ed").value || null }, "Enregistrée");
+  $("#del").onclick = () => remove(t);
+  if (open){
+    $("#pin").onclick = () => patch(t, { pinned_today: !t.pinned_today }, t.pinned_today ? "Retirée d'Aujourd'hui" : "Épinglée");
+    $("#pp").onclick = () => openPostpone(t);
+    $("#cmp").onclick = () => { closeSheet(); complete(t); };
+  } else $("#rop").onclick = () => { closeSheet(); reopen(t); };
+  openSheet();
+}
+function openSheet(){ $("#toast").classList.remove("on"); $("#sheet").classList.add("on"); }
+function closeSheet(){ $("#sheet").classList.remove("on"); }
+$("#sheet").onclick = e => { if (e.target.id === "sheet") closeSheet(); };
+
+// ---------- Glisser ----------
+function swipe(li, t){
+  const row = li.querySelector(".row"); let x0=0, y0=0, dx=0, active=false, locked=false;
+  row.addEventListener("pointerdown", e => { if (e.pointerType === "mouse") return; x0=e.clientX; y0=e.clientY; dx=0; active=true; locked=false; row.style.transition="none"; });
+  row.addEventListener("pointermove", e => {
+    if (!active) return; const ddx = e.clientX-x0, ddy = e.clientY-y0;
+    if (!locked){ if (Math.abs(ddy) > 10 && Math.abs(ddy) > Math.abs(ddx)) { active=false; row.style.transition=""; return; } if (Math.abs(ddx) > 10) { locked=true; row.setPointerCapture(e.pointerId); } }
+    if (locked){ dx = ddx; row.style.transform = `translateX(${dx}px)`; li.querySelector(".bgR").style.opacity = dx>0?1:0; li.querySelector(".bgL").style.opacity = dx<0?1:0; }
+  });
+  const end = () => {
+    if (!active) return; active=false; row.style.transition="";
+    const w = row.offsetWidth * .3;
+    if (dx > w){ row.style.transform = `translateX(100%)`; setTimeout(() => complete(t), 150); }
+    else if (dx < -w){ row.style.transform = ""; openPostpone(t); }
+    else row.style.transform = "";
+  };
+  row.addEventListener("pointerup", end); row.addEventListener("pointercancel", end);
+}
+
+// ---------- Divers ----------
+let toastTimer;
+function toast(msg, undo, label){
+  $("#toastMsg").textContent = msg; const b = $("#toastUndo");
+  b.textContent = label || "Annuler";
+  b.style.display = undo ? "" : "none"; b.onclick = () => { $("#toast").classList.remove("on"); undo && undo(); };
+  $("#toast").classList.add("on"); clearTimeout(toastTimer); toastTimer = setTimeout(() => $("#toast").classList.remove("on"), undo ? 7000 : 4000);
+}
+function debounce(f, ms){ let t; return (...a) => { clearTimeout(t); t = setTimeout(() => f(...a), ms); }; }
+document.addEventListener("visibilitychange", () => { if (!document.hidden && !searching) load(); });
+document.addEventListener("keydown", e => { if (e.key === "Escape") closeSheet(); if (e.key === "n" && document.activeElement === document.body) { e.preventDefault(); $("#new")?.focus(); } });
+
+function boot(){ store.del("todo_key"); renderShell(); renderNav(); load(); }
+boot();
+if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js", { scope: "./" }).catch(()=>{});
+</script>
+</body>
+</html>
