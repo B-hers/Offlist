@@ -55,6 +55,21 @@ h1{font-size:28px;letter-spacing:-.02em;margin:0;font-weight:700}
 .pair .pa{font-size:14px;margin-bottom:8px}
 .pair .chips button{font-size:13px}
 .panel{max-height:88dvh;overflow:auto}
+.asksH{display:flex;align-items:center;gap:8px;margin:18px 4px 8px;font-size:13.5px;font-weight:600;color:var(--accent)}
+.asksH .n{background:var(--accent);color:var(--card);border-radius:999px;padding:1px 8px;font-size:12px;font-variant-numeric:tabular-nums}
+.asksH .sim{margin-left:auto;font-weight:400;color:var(--muted);font-size:12.5px}
+.ask{background:var(--accent-soft);border:1px solid var(--accent);border-radius:var(--radius);padding:12px 14px;margin-bottom:8px}
+.ask .at{font-weight:600;word-wrap:break-word}
+.ask .ap{font-size:13.5px;margin-top:4px;word-wrap:break-word}
+.ask .ap b{font-weight:600}
+.ask .ab{display:flex;align-items:center;gap:8px;margin-top:10px}
+.ask .ac{flex:1;font-size:12.5px;color:var(--muted)}
+.ask button{border:1px solid var(--accent);background:transparent;color:var(--accent);border-radius:10px;padding:8px 14px;font:inherit;font-size:14px;cursor:pointer}
+.ask button.yes{background:var(--accent);color:var(--card);font-weight:600}
+.ask.busy{opacity:.5;pointer-events:none}
+.autoinfo{margin-top:16px;padding-top:12px;border-top:1px solid var(--line);font-size:13.5px;color:var(--muted);line-height:1.5}
+.autoinfo b{color:var(--ink);font-weight:600}
+.autoinfo .warn{color:var(--late)}
 
 nav{display:flex;gap:6px;margin:18px 0 10px;overflow-x:auto}
 nav button{border:1px solid var(--line);background:transparent;color:var(--muted);border-radius:999px;
@@ -79,6 +94,11 @@ li{position:relative;margin-bottom:8px;border-radius:var(--radius);overflow:hidd
 .meta{display:flex;flex-wrap:wrap;gap:6px 10px;margin-top:4px;font-size:12.5px;color:var(--muted)}
 .meta .late{color:var(--late);font-weight:600}
 .meta .auto{color:var(--accent)}
+.tlink{display:block;margin-top:6px;font-size:13px;color:var(--accent);text-decoration:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tlink:hover{text-decoration:underline}
+.linkrow{display:flex;gap:10px;align-items:center;margin-top:4px}
+.linkrow a{flex:1;min-width:0;font-size:14px;color:var(--accent);text-decoration:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.linkrow button{flex:none;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:10px;padding:6px 10px;font:inherit;font-size:13px;cursor:pointer}
 .more{flex:none;border:0;background:transparent;color:var(--muted);font-size:18px;cursor:pointer;padding:0 2px}
 .empty{color:var(--muted);text-align:center;padding:48px 16px}
 .empty b{display:block;color:var(--ink);font-size:17px;margin-bottom:4px}
@@ -123,7 +143,9 @@ const store = {
 };
 let view = store.get("todo_view") || "today";
 let tasks = [], counts = {today:0,later:0,done:0}, searching = false;
+let overview = null; // clôtures proposées par l'IA (V2.0)
 const $ = s => document.querySelector(s);
+const safeUrl = u => typeof u === "string" && /^https:\/\//.test(u);
 const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 
 async function api(path, opts = {}){
@@ -163,6 +185,7 @@ function renderShell(){
       <button type="button" class="mic" id="mic" aria-label="Dicter des tâches"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></button>
       <button type="submit" aria-label="Ajouter">+</button></form>
     <div class="hint" id="hint">Échéance dans le texte : demain, vendredi, 15/10… · Micro : dicte plusieurs tâches d'un coup</div>
+    <div id="asks"></div>
     <nav id="nav"></nav>
     <div class="search" id="searchBox"><input id="q" type="search" placeholder="Rechercher dans toutes les tâches"></div>
     <ul id="list"></ul>
@@ -199,10 +222,12 @@ function renderList(){
       if (t.closed_by && t.closed_by !== "ben") meta.push(`<span class="auto">par ${t.closed_by === "auto" ? "l'IA" : "un agent"}</span>`);
       if (t.close_proof) meta.push(esc(t.close_proof));
     }
+    const link = t.status === "open" && safeUrl(t.link_url)
+      ? `<a class="tlink" href="${esc(t.link_url)}" target="_blank" rel="noopener">↗ ${esc(t.link_label || "Ouvrir le mail")}</a>` : "";
     return `<li data-id="${t.id}"><div class="bgR">✓ Fait</div><div class="bgL">Reporter →</div>
       <div class="row ${t.status === "done" ? "done":""}">
         <button class="check" aria-label="${t.status==="done"?"Rouvrir":"Terminer"}"></button>
-        <div class="body"><div class="title">${esc(t.title)}</div>${meta.length?`<div class="meta">${meta.map(m=>`<span>${m}</span>`).join("")}</div>`:""}</div>
+        <div class="body"><div class="title">${esc(t.title)}</div>${meta.length?`<div class="meta">${meta.map(m=>`<span>${m}</span>`).join("")}</div>`:""}${link}</div>
         <button class="more" aria-label="Options">⋯</button></div></li>`;
   }).join("");
   ul.querySelectorAll("li").forEach(li => {
@@ -210,15 +235,59 @@ function renderList(){
     li.querySelector(".check").onclick = () => t.status === "done" ? reopen(t) : complete(t);
     li.querySelector(".more").onclick = () => openEdit(t);
     li.querySelector(".body").onclick = () => openEdit(t);
+    li.querySelectorAll(".tlink").forEach(a => a.onclick = e => e.stopPropagation());
     if (t.status === "open") swipe(li, t);
   });
+}
+
+// ---------- Clôtures proposées (V2.0) ----------
+const SRC = { mail: "Mail", agenda: "Agenda", autre: "Preuve" };
+function renderAsks(){
+  const box = $("#asks"); if (!box) return;
+  const ps = overview?.pending || [];
+  if (!ps.length){ box.innerHTML = ""; return; }
+  box.innerHTML = `<div class="asksH">C'est fait ?<span class="n">${ps.length}</span>${overview.mode === "simulation" ? `<span class="sim">Rien ne se ferme sans toi</span>` : ""}</div>` +
+    ps.map(p => `<div class="ask" data-id="${p.id}">
+      <div class="at">${esc(p.task_title)}</div>
+      <div class="ap"><b>${SRC[p.source] || "Preuve"}</b> · ${esc(p.proof)}</div>
+      <div class="ab"><span class="ac">Certitude ${Math.round(p.confidence * 100)} %</span>
+        <button class="no">Non</button><button class="yes">Oui, fermer</button></div></div>`).join("");
+  box.querySelectorAll(".ask").forEach(el => {
+    const p = ps.find(x => x.id === el.dataset.id);
+    el.querySelector(".yes").onclick = () => decide(p, true, el);
+    el.querySelector(".no").onclick = () => decide(p, false, el);
+  });
+}
+async function decide(p, accept, el){
+  el.classList.add("busy");
+  try {
+    await api(`/proposals/${p.id}/${accept ? "accept" : "reject"}`, { method:"POST", body:"{}" });
+    if (accept) toast("Fermée sur preuve", () => reopen({ id: p.task_id }));
+    else toast("Gardée ouverte");
+    load();
+  } catch(e){ el.classList.remove("busy"); toast(e.message); load(); }
+}
+function autoInfo(o){
+  if (!o) return "";
+  const mode = o.mode === "live" ? "active" : o.mode === "off" ? "désactivée" : "en simulation (tu valides chaque proposition)";
+  const r = o.last_run, st = o.stats || {};
+  let last = "Aucune vérification pour l'instant.";
+  if (r){
+    const when = fmtAgo(r.ran_at);
+    last = r.status === "ok" ? `Dernière vérification ${when} : ${r.mails} mail${r.mails>1?"s":""} envoyé${r.mails>1?"s":""} et ${r.events} rendez-vous examinés.`
+      : r.status === "rien_a_verifier" ? `Dernière vérification ${when} : aucune tâche ouverte à vérifier.`
+      : `<span class="warn">Dernière vérification ${when} : ${esc(r.note || "source inaccessible")}</span>`;
+  }
+  const decided = (st.acceptees || 0) + (st.refusees || 0);
+  const bilan = decided ? `<br>Bilan : ${st.acceptees} validée${st.acceptees>1?"s":""}, ${st.refusees} refusée${st.refusees>1?"s":""}${st.rouvertes ? `, ${st.rouvertes} rouverte${st.rouvertes>1?"s":""}` : ""}.` : "";
+  return `<div class="autoinfo"><b>Clôture automatique</b> ${mode}.<br>${last}${bilan}</div>`;
 }
 
 // ---------- Actions ----------
 async function load(){
   try {
-    const [list, c] = await Promise.all([api("/tasks?view=" + view), api("/counts")]);
-    tasks = list; counts = c; renderNav(); renderList();
+    const [list, c, o] = await Promise.all([api("/tasks?view=" + view), api("/counts"), api("/proposals").catch(() => null)]);
+    tasks = list; counts = c; overview = o; renderNav(); renderList(); renderAsks();
   } catch(e){ toast(e.message); }
 }
 function setView(v){
@@ -307,8 +376,8 @@ function openProposals(texte, props){
 async function openSummary(){
   $("#panel").innerHTML = `<h3>Résumé</h3><div class="summary">Analyse en cours…</div>`; openSheet();
   try {
-    const s = await api("/summary");
-    $("#panel").innerHTML = `<h3>Résumé</h3><div class="summary">${esc(s.resume)}</div>
+    const [s, o] = await Promise.all([api("/summary"), api("/proposals").catch(() => null)]);
+    $("#panel").innerHTML = `<h3>Résumé</h3><div class="summary">${esc(s.resume)}</div>${autoInfo(o)}
       ${s.doublons.length ? `<h3 style="margin-top:18px">Doublons probables</h3>` + s.doublons.map((d,i) => `<div class="pair">
         <div class="pa">« ${esc(d.a.title)} »<br>« ${esc(d.b.title)} »</div>
         <div class="chips"><button data-k="${i}" data-w="a">Garder la 1re</button><button data-k="${i}" data-w="b">Garder la 2e</button><button data-k="${i}" data-w="x">Ce n'est pas un doublon</button></div></div>`).join("") : ""}
@@ -365,6 +434,7 @@ function openEdit(t){
     <label>Titre</label><input id="et" value="${esc(t.title)}">
     <label>Notes</label><textarea id="en">${esc(t.notes||"")}</textarea>
     <label>Échéance</label><input type="date" id="ed" value="${t.due_date||""}">
+    ${safeUrl(t.link_url) ? `<label>Mail lié</label><div class="linkrow"><a href="${esc(t.link_url)}" target="_blank" rel="noopener">↗ ${esc(t.link_label || "Ouvrir le mail")}</a><button id="unlink">Retirer</button></div>` : ""}
     ${open ? `<div class="chips"><button id="pin">${t.pinned_today ? "Retirer d'Aujourd'hui" : "Épingler dans Aujourd'hui"}</button><button id="pp">Reporter…</button></div>` : ""}
     <div class="actions">
       <button class="danger" id="del">Supprimer</button>
@@ -372,6 +442,7 @@ function openEdit(t){
       <button class="primary" id="save">Enregistrer</button></div>`;
   $("#save").onclick = () => patch(t, { title: $("#et").value.trim() || t.title, notes: $("#en").value.trim() || null, due_date: $("#ed").value || null }, "Enregistrée");
   $("#del").onclick = () => remove(t);
+  if ($("#unlink")) $("#unlink").onclick = () => patch(t, { link_url: null }, "Lien retiré");
   if (open){
     $("#pin").onclick = () => patch(t, { pinned_today: !t.pinned_today }, t.pinned_today ? "Retirée d'Aujourd'hui" : "Épinglée");
     $("#pp").onclick = () => openPostpone(t);
