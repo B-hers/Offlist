@@ -16,11 +16,11 @@
 :root{
   --bg:#f6f5f1; --card:#ffffff; --ink:#1b1b19; --muted:#7a786f; --line:#e6e3da;
   --accent:#1f7a4d; --accent-soft:#e3f1e9; --late:#b4532a; --danger:#b42a2a;
-  --radius:14px; --shadow:0 1px 2px rgba(0,0,0,.05);
+  --radius:14px; --shadow:0 1px 2px rgba(0,0,0,.05); --agent:#5b3fd1; --agent-soft:#ece8fb;
 }
 @media (prefers-color-scheme:dark){:root{
   --bg:#151514; --card:#1f1f1d; --ink:#efede6; --muted:#9a978d; --line:#2e2d2a;
-  --accent:#4cc38a; --accent-soft:#1d3428; --late:#e4885d; --danger:#e46b6b; --shadow:none;
+  --accent:#4cc38a; --accent-soft:#1d3428; --late:#e4885d; --danger:#e46b6b; --shadow:none; --agent:#ab9cff; --agent-soft:#2a2540;
 }}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;background:var(--bg);color:var(--ink);
@@ -99,6 +99,33 @@ li{position:relative;margin-bottom:8px;border-radius:var(--radius);overflow:hidd
 .linkrow{display:flex;gap:10px;align-items:center;margin-top:4px}
 .linkrow a{flex:1;min-width:0;font-size:14px;color:var(--accent);text-decoration:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .linkrow button{flex:none;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:10px;padding:6px 10px;font:inherit;font-size:13px;cursor:pointer}
+.opts{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:8px 0 0}
+.opt{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;padding:0 10px;min-height:34px;font-size:13.5px;max-width:100%}
+.opt select,.opt input{border:0;background:transparent;color:inherit;font:inherit;font-size:13.5px;outline:none;padding:0;min-width:0;max-width:170px}
+.opt input[type=date]{max-width:132px}
+.opt .lbl{color:var(--muted)}
+.seg{display:inline-flex;flex:none;border:1px solid var(--line);border-radius:999px;overflow:hidden;background:var(--card)}
+.seg button{border:0;background:transparent;color:var(--muted);font:inherit;font-size:13.5px;padding:0 12px;min-height:32px;cursor:pointer;white-space:nowrap}
+.seg button.on{background:var(--ink);color:var(--bg)}
+.seg button.on.ag{background:var(--agent);color:#fff}
+.dot{width:9px;height:9px;border-radius:50%;flex:none;display:inline-block}
+.pfilter{display:flex;gap:6px;overflow-x:auto;margin:0 0 10px;padding-bottom:2px;scrollbar-width:none;align-items:center}
+.pfilter::-webkit-scrollbar{display:none}
+.pfilter .pf{flex:none;display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:transparent;color:var(--muted);border-radius:10px;padding:0 10px;min-height:32px;font:inherit;font-size:13px;cursor:pointer;white-space:nowrap}
+.pfilter .pf.on{border-color:var(--ink);color:var(--ink);background:var(--card);font-weight:600}
+.pfilter .n{opacity:.7;font-variant-numeric:tabular-nums}
+.pfilter .sep{flex:none;width:1px;height:20px;background:var(--line);margin:0 2px}
+.ptag{display:inline-flex;align-items:center;gap:5px}
+.agtag{display:inline-flex;align-items:center;gap:4px;color:var(--agent);background:var(--agent-soft);border-radius:6px;padding:0 6px;font-weight:600}
+.prow{display:flex;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line)}
+.prow:last-child{border-bottom:0}
+.prow .sw{width:26px;height:26px;border-radius:50%;border:0;flex:none;cursor:pointer}
+.prow input{flex:1;min-width:0}
+.prow .pc{color:var(--muted);font-size:12.5px;flex:none;font-variant-numeric:tabular-nums}
+.prow button.x{flex:none;border:1px solid var(--line);background:var(--bg);color:var(--danger);border-radius:10px;padding:8px 10px;font:inherit;font-size:13px;cursor:pointer}
+.newp{display:flex;gap:8px;margin-top:12px}
+.newp input{flex:1;min-width:0}
+.newp button{flex:none;border:0;background:var(--accent);color:#fff;border-radius:10px;padding:0 14px;font:inherit;font-weight:600;cursor:pointer}
 .more{flex:none;border:0;background:transparent;color:var(--muted);font-size:18px;cursor:pointer;padding:0 2px}
 .empty{color:var(--muted);text-align:center;padding:48px 16px}
 .empty b{display:block;color:var(--ink);font-size:17px;margin-bottom:4px}
@@ -107,6 +134,8 @@ li{position:relative;margin-bottom:8px;border-radius:var(--radius);overflow:hidd
 .panel{background:var(--card);width:100%;max-width:640px;border-radius:18px 18px 0 0;padding:18px 16px calc(18px + env(safe-area-inset-bottom))}
 .panel h3{margin:0 0 12px;font-size:16px}
 .panel label{display:block;font-size:13px;color:var(--muted);margin:10px 0 4px}
+.panel select{width:100%;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:10px;padding:10px;font:inherit;-webkit-appearance:none;appearance:none}
+.panel .seg{margin-top:2px}
 .panel input,.panel textarea{width:100%;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:10px;padding:10px;font:inherit}
 .panel textarea{min-height:70px;resize:vertical}
 .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
@@ -144,6 +173,15 @@ const store = {
 let view = store.get("todo_view") || "today";
 let tasks = [], counts = {today:0,later:0,done:0}, searching = false;
 let overview = null; // clôtures proposées par l'IA (V2.0)
+let projects = [];
+let fProject = store.get("todo_fproject") || "";   // "" = tous, "aucun", ou id
+let fWho = store.get("todo_fwho") || "";           // "" = tous, "moi", "agent"
+let newWho = "moi";
+const PALETTE = ["#1f8a9a","#2f8f5b","#6a4fd6","#c2417a","#c27a1f","#3b6fd1","#8a5a2b","#5b6b8a"];
+const projById = id => projects.find(p => p.id === id);
+const qs = () => { const q = new URLSearchParams(); if (fProject) q.set("project", fProject); if (fWho) q.set("assignee", fWho); return q.toString(); };
+const AGENT_LABEL = n => n === "claude" ? "Claude" : n === "chatgpt" ? "ChatGPT" : "Agent IA";
+const HINT = "Astuces : demain, vendredi, 15/10 · #projet · @agent pour confier à l'IA";
 const $ = s => document.querySelector(s);
 const safeUrl = u => typeof u === "string" && /^https:\/\//.test(u);
 const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
@@ -184,9 +222,15 @@ function renderShell(){
     <form class="add" id="add"><input id="new" placeholder="Nouvelle tâche…" enterkeyhint="done" autocomplete="off">
       <button type="button" class="mic" id="mic" aria-label="Dicter des tâches"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></button>
       <button type="submit" aria-label="Ajouter">+</button></form>
-    <div class="hint" id="hint">Échéance dans le texte : demain, vendredi, 15/10… · Micro : dicte plusieurs tâches d'un coup</div>
+    <div class="opts" id="opts">
+      <label class="opt" id="nProjBox"><span class="dot" id="nProjDot" style="background:var(--line)"></span><select id="nProj" aria-label="Projet de la nouvelle tâche"></select></label>
+      <div class="seg" id="nWho" role="group" aria-label="Qui fait la tâche"><button type="button" data-w="moi" class="on">Moi</button><button type="button" data-w="agent" class="ag">Agent IA</button></div>
+      <label class="opt"><span class="lbl">Échéance</span><input type="date" id="nDue" aria-label="Échéance"></label>
+    </div>
+    <div class="hint" id="hint">${HINT}</div>
     <div id="asks"></div>
     <nav id="nav"></nav>
+    <div class="pfilter" id="pfilter"></div>
     <div class="search" id="searchBox"><input id="q" type="search" placeholder="Rechercher dans toutes les tâches"></div>
     <ul id="list"></ul>
     <div class="foot">Glisse à droite pour terminer, à gauche pour reporter</div>
@@ -195,6 +239,27 @@ function renderShell(){
   $("#q").oninput = debounce(onSearch, 250);
   $("#mic").onclick = toggleMic;
   $("#sumBtn").onclick = openSummary;
+  $("#nProj").onchange = () => { if ($("#nProj").value === "__new") { $("#nProj").value = ""; openProjects(true); } renderNewProj(); };
+  $("#nWho").querySelectorAll("button").forEach(b => b.onclick = () => { newWho = b.dataset.w; renderNewWho(); });
+}
+function renderNewWho(){ $("#nWho").querySelectorAll("button").forEach(b => b.classList.toggle("on", b.dataset.w === newWho)); }
+function renderNewProj(){
+  const sel = $("#nProj"); if (!sel) return;
+  const cur = sel.value || (fProject && fProject !== "aucun" ? fProject : "");
+  sel.innerHTML = `<option value="">Sans projet</option>` + projects.map(p => `<option value="${p.id}">${esc(p.name)}</option>`).join("") + `<option value="__new">+ Nouveau projet…</option>`;
+  sel.value = projById(cur) ? cur : "";
+  const p = projById(sel.value); $("#nProjDot").style.background = p ? p.color : "var(--line)";
+}
+function renderFilters(){
+  const box = $("#pfilter"); if (!box) return;
+  const who = [["","Tous"],["moi","Moi"],["agent",`Agents IA${counts.agent ? ` <span class="n">${counts.agent}</span>` : ""}`]];
+  box.innerHTML = `<div class="seg">${who.map(([k,l]) => `<button type="button" data-w="${k}" class="${fWho===k?"on":""} ${k==="agent"?"ag":""}">${l}</button>`).join("")}</div><span class="sep"></span>` +
+    `<button class="pf ${!fProject?"on":""}" data-p="">Tous les projets</button>` +
+    projects.map(p => `<button class="pf ${fProject===p.id?"on":""}" data-p="${p.id}"><span class="dot" style="background:${p.color}"></span>${esc(p.name)}${p.open_count?` <span class="n">${p.open_count}</span>`:""}</button>`).join("") +
+    `<button class="pf ${fProject==="aucun"?"on":""}" data-p="aucun">Sans projet</button><button class="pf" id="manageP">Projets…</button>`;
+  box.querySelectorAll(".seg button").forEach(b => b.onclick = () => { fWho = b.dataset.w; store.set("todo_fwho", fWho); load(); });
+  box.querySelectorAll(".pf[data-p]").forEach(b => b.onclick = () => { fProject = b.dataset.p; store.set("todo_fproject", fProject); $("#nProj").value = ""; load(); });
+  $("#manageP").onclick = () => openProjects(false);
 }
 
 function renderNav(){
@@ -209,6 +274,7 @@ function renderList(){
     const msg = searching ? ["Aucun résultat",""] :
       view === "today" ? ["Rien pour aujourd'hui","Profite, ou avance sur Plus tard."] :
       view === "later" ? ["Rien de prévu","Ajoute une tâche en haut."] : ["Rien de fermé récemment",""];
+    if (!searching && (fProject || fWho)) msg[1] = "Aucune tâche avec ce filtre.";
     ul.innerHTML = `<div class="empty"><b>${msg[0]}</b>${msg[1]}</div>`; return;
   }
   ul.innerHTML = tasks.map(t => {
@@ -216,12 +282,15 @@ function renderList(){
     if (t.status === "open"){
       if (t.due_date) meta.push(fmtDue(t.due_date));
       if (t.pinned_today && view !== "today") meta.push("Épinglée");
+      if (t.assignee === "agent") meta.push(`<span class="agtag">✦ ${AGENT_LABEL(t.agent_name)}</span>`);
       if (t.notes) meta.push(esc(t.notes.slice(0,80)));
     } else {
       meta.push(`Fermée ${fmtAgo(t.closed_at)}`);
       if (t.closed_by && t.closed_by !== "ben") meta.push(`<span class="auto">par ${t.closed_by === "auto" ? "l'IA" : "un agent"}</span>`);
       if (t.close_proof) meta.push(esc(t.close_proof));
     }
+    const pr = projById(t.project_id);
+    if (pr && fProject !== pr.id) meta.unshift(`<span class="ptag"><span class="dot" style="background:${pr.color}"></span>${esc(pr.name)}</span>`);
     const link = t.status === "open" && safeUrl(t.link_url)
       ? `<a class="tlink" href="${esc(t.link_url)}" target="_blank" rel="noopener">↗ ${esc(t.link_label || "Ouvrir le mail")}</a>` : "";
     return `<li data-id="${t.id}"><div class="bgR">✓ Fait</div><div class="bgL">Reporter →</div>
@@ -286,8 +355,12 @@ function autoInfo(o){
 // ---------- Actions ----------
 async function load(){
   try {
-    const [list, c, o] = await Promise.all([api("/tasks?view=" + view), api("/counts"), api("/proposals").catch(() => null)]);
-    tasks = list; counts = c; overview = o; renderNav(); renderList(); renderAsks();
+    const q = qs();
+    const [list, c, o, ps] = await Promise.all([api("/tasks?view=" + view + (q ? "&" + q : "")), api("/counts" + (q ? "?" + q : "")),
+      api("/proposals").catch(() => null), api("/projects").catch(() => projects)]);
+    projects = ps;
+    if (fProject && fProject !== "aucun" && !projById(fProject)) { fProject = ""; store.set("todo_fproject", ""); return load(); }
+    tasks = list; counts = c; overview = o; renderNav(); renderFilters(); renderNewProj(); renderList(); renderAsks();
   } catch(e){ toast(e.message); }
 }
 function setView(v){
@@ -303,9 +376,19 @@ async function onAdd(e){
   if (v.length > 50 && /[.;!?]\s|\n|\bet puis\b|\bensuite\b/i.test(v)) return runDictate(v);
   await addTask(v, false);
 }
+function newOpts(){
+  const o = {}; const pid = $("#nProj").value; const due = $("#nDue").value;
+  if (pid) o.project_id = pid; else if (fProject && fProject !== "aucun") o.project_id = fProject;
+  if (newWho === "agent") o.assignee = "agent";
+  if (due) o.due_date = due;
+  return o;
+}
+function resetNewOpts(){ $("#nDue").value = ""; newWho = "moi"; renderNewWho(); }
 async function addTask(v, force){
-  try { const t = await api("/tasks", { method:"POST", body: JSON.stringify({ title: v, force, pinned_today: view === "today" && !hasDate(v) }) });
-    toast(t.due_date ? `Ajoutée · ${fmtDue(t.due_date).replace(/<[^>]+>/g,"")}` : "Ajoutée"); load();
+  try { const o = newOpts();
+    const t = await api("/tasks", { method:"POST", body: JSON.stringify({ title: v, force, ...o, pinned_today: view === "today" && !o.due_date && !hasDate(v) }) });
+    const bits = [t.due_date ? fmtDue(t.due_date).replace(/<[^>]+>/g,"") : "", t.project_name || "", t.assignee === "agent" ? "confiée à l'IA" : ""].filter(Boolean);
+    toast(bits.length ? `Ajoutée · ${bits.join(" · ")}` : "Ajoutée"); resetNewOpts(); load();
   } catch(err){
     if (err.status === 409) { const c = err.data.candidates[0]; toast(`Déjà dans ta liste : « ${c.title} »`, () => addTask(v, true), "Ajouter quand même"); }
     else { toast(err.message); $("#new").value = v; }
@@ -343,7 +426,7 @@ async function onRecStop(){
     if (!r.ok || !j.transcript) throw new Error("Transcription impossible");
     await runDictate(j.transcript);
   } catch(e){ toast(e.message); }
-  finally { btn.classList.remove("busy"); $("#hint").textContent = "Échéance dans le texte : demain, vendredi, 15/10… · Micro : dicte plusieurs tâches d'un coup"; }
+  finally { btn.classList.remove("busy"); $("#hint").textContent = HINT; }
 }
 async function runDictate(texte){
   try {
@@ -365,9 +448,10 @@ function openProposals(texte, props){
     const chosen = props.map((p,i) => ({ ...p, title: $(`[data-t="${i}"]`).value.trim(), on: $(`[data-i="${i}"]`).checked })).filter(p => p.on && p.title);
     closeSheet(); let n = 0;
     for (const p of chosen) {
-      try { await api("/tasks", { method:"POST", body: JSON.stringify({ title: p.title, due_date: p.due_date, force: true, pinned_today: view === "today" && !p.due_date }) }); n++; } catch(e){}
+      try { const o = newOpts(); delete o.due_date;
+        await api("/tasks", { method:"POST", body: JSON.stringify({ title: p.title, due_date: p.due_date, force: true, ...o, pinned_today: view === "today" && !p.due_date }) }); n++; } catch(e){}
     }
-    toast(`${n} tâche${n>1?"s":""} ajoutée${n>1?"s":""}`); load();
+    toast(`${n} tâche${n>1?"s":""} ajoutée${n>1?"s":""}`); resetNewOpts(); load();
   };
   openSheet();
 }
@@ -434,13 +518,18 @@ function openEdit(t){
     <label>Titre</label><input id="et" value="${esc(t.title)}">
     <label>Notes</label><textarea id="en">${esc(t.notes||"")}</textarea>
     <label>Échéance</label><input type="date" id="ed" value="${t.due_date||""}">
+    <label>Projet</label><select id="eproj"><option value="">Sans projet</option>${projects.map(p => `<option value="${p.id}" ${p.id===t.project_id?"selected":""}>${esc(p.name)}</option>`).join("")}</select>
+    <label>Qui fait la tâche</label><div class="seg" id="ewho"><button type="button" data-w="moi" class="${t.assignee!=="agent"?"on":""}">Moi</button><button type="button" data-w="agent" class="ag ${t.assignee==="agent"?"on":""}">Agent IA</button></div>
     ${safeUrl(t.link_url) ? `<label>Mail lié</label><div class="linkrow"><a href="${esc(t.link_url)}" target="_blank" rel="noopener">↗ ${esc(t.link_label || "Ouvrir le mail")}</a><button id="unlink">Retirer</button></div>` : ""}
     ${open ? `<div class="chips"><button id="pin">${t.pinned_today ? "Retirer d'Aujourd'hui" : "Épingler dans Aujourd'hui"}</button><button id="pp">Reporter…</button></div>` : ""}
     <div class="actions">
       <button class="danger" id="del">Supprimer</button>
       ${open ? `<button id="cmp">Terminer</button>` : `<button id="rop">Rouvrir</button>`}
       <button class="primary" id="save">Enregistrer</button></div>`;
-  $("#save").onclick = () => patch(t, { title: $("#et").value.trim() || t.title, notes: $("#en").value.trim() || null, due_date: $("#ed").value || null }, "Enregistrée");
+  let ewho = t.assignee === "agent" ? "agent" : "moi";
+  $("#ewho").querySelectorAll("button").forEach(b => b.onclick = () => { ewho = b.dataset.w; $("#ewho").querySelectorAll("button").forEach(x => x.classList.toggle("on", x === b)); });
+  $("#save").onclick = () => patch(t, { title: $("#et").value.trim() || t.title, notes: $("#en").value.trim() || null, due_date: $("#ed").value || null,
+    project_id: $("#eproj").value || null, assignee: ewho }, "Enregistrée");
   $("#del").onclick = () => remove(t);
   if ($("#unlink")) $("#unlink").onclick = () => patch(t, { link_url: null }, "Lien retiré");
   if (open){
@@ -450,9 +539,49 @@ function openEdit(t){
   } else $("#rop").onclick = () => { closeSheet(); reopen(t); };
   openSheet();
 }
+// ---------- Projets ----------
+let delArm = null;
+function openProjects(focusNew){
+  delArm = null;
+  $("#panel").innerHTML = `<h3>Projets</h3>
+    <div id="plist">${projects.length ? projects.map(p => `<div class="prow" data-id="${p.id}">
+      <button class="sw" style="background:${p.color}" aria-label="Changer la couleur"></button>
+      <input value="${esc(p.name)}" aria-label="Nom du projet" maxlength="60">
+      <span class="pc">${p.open_count || 0}</span>
+      <button class="x">Supprimer</button></div>`).join("") : `<div class="empty" style="padding:16px">Aucun projet pour l'instant.</div>`}</div>
+    <form class="newp" id="newp"><input id="np" placeholder="Nouveau projet" maxlength="60" autocomplete="off"><button>Créer</button></form>
+    <div class="hint">Supprimer un projet garde ses tâches, sans projet.</div>
+    <div class="actions"><button class="primary" id="cancel">Fermer</button></div>`;
+  $("#cancel").onclick = () => { closeSheet(); load(); };
+  $("#newp").onsubmit = async e => {
+    e.preventDefault(); const name = $("#np").value.trim(); if (!name) return;
+    try { const p = await api("/projects", { method:"POST", body: JSON.stringify({ name }) }); projects.push(p); toast(`Projet créé : ${p.name}`); renderNewProj(); $("#nProj").value = p.id; renderNewProj(); openProjects(false); }
+    catch(err){ toast(err.message); }
+  };
+  $("#plist").querySelectorAll(".prow").forEach(row => {
+    const p = projById(row.dataset.id);
+    row.querySelector(".sw").onclick = async () => {
+      const color = PALETTE[(PALETTE.indexOf(p.color) + 1) % PALETTE.length];
+      try { await api(`/projects/${p.id}`, { method:"PATCH", body: JSON.stringify({ color }) }); p.color = color; row.querySelector(".sw").style.background = color; } catch(err){ toast(err.message); }
+    };
+    const inp = row.querySelector("input");
+    inp.onchange = async () => {
+      const name = inp.value.trim(); if (!name || name === p.name) { inp.value = p.name; return; }
+      try { await api(`/projects/${p.id}`, { method:"PATCH", body: JSON.stringify({ name }) }); p.name = name; toast("Projet renommé"); } catch(err){ toast(err.message); inp.value = p.name; }
+    };
+    const x = row.querySelector(".x");
+    x.onclick = async () => {
+      if (delArm !== p.id) { delArm = p.id; x.textContent = "Confirmer"; return; }
+      try { await api(`/projects/${p.id}`, { method:"DELETE" }); projects = projects.filter(q => q.id !== p.id); if (fProject === p.id) { fProject = ""; store.set("todo_fproject", ""); } toast(`Projet supprimé : ${p.name}`); openProjects(false); }
+      catch(err){ toast(err.message); }
+    };
+  });
+  openSheet();
+  if (focusNew) setTimeout(() => $("#np")?.focus(), 50);
+}
 function openSheet(){ $("#toast").classList.remove("on"); $("#sheet").classList.add("on"); }
 function closeSheet(){ $("#sheet").classList.remove("on"); }
-$("#sheet").onclick = e => { if (e.target.id === "sheet") closeSheet(); };
+$("#sheet").onclick = e => { if (e.target.id === "sheet") { closeSheet(); if ($("#plist")) load(); } };
 
 // ---------- Glisser ----------
 function swipe(li, t){
