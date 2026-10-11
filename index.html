@@ -14,235 +14,404 @@
 <link rel="apple-touch-icon" href="icon-180.png">
 <style>
 :root{
-  --bg:#f6f5f1; --card:#ffffff; --ink:#1b1b19; --muted:#7a786f; --line:#e6e3da;
-  --accent:#1f7a4d; --accent-soft:#e3f1e9; --late:#b4532a; --danger:#b42a2a;
-  --radius:14px; --shadow:0 1px 2px rgba(0,0,0,.05); --agent:#5b3fd1; --agent-soft:#ece8fb;
+  --bg:#f6f5f1; --card:#ffffff; --side:#fbfaf7; --ink:#1b1b19; --muted:#7a786f; --line:#e6e3da; --hover:#f0eee8;
+  --accent:#1f7a4d; --accent-soft:#e3f1e9; --late:#b4532a; --late-soft:#f8e9e1; --danger:#b42a2a;
+  --agent:#5b3fd1; --agent-soft:#ece8fb; --warn:#9a6a00; --warn-soft:#fbf1d6;
+  --radius:14px; --shadow:0 1px 2px rgba(0,0,0,.05);
 }
 @media (prefers-color-scheme:dark){:root{
-  --bg:#151514; --card:#1f1f1d; --ink:#efede6; --muted:#9a978d; --line:#2e2d2a;
-  --accent:#4cc38a; --accent-soft:#1d3428; --late:#e4885d; --danger:#e46b6b; --shadow:none; --agent:#ab9cff; --agent-soft:#2a2540;
+  --bg:#151514; --card:#1f1f1d; --side:#191918; --ink:#efede6; --muted:#9a978d; --line:#2e2d2a; --hover:#262624;
+  --accent:#4cc38a; --accent-soft:#1d3428; --late:#e4885d; --late-soft:#3a261c; --danger:#e46b6b;
+  --agent:#ab9cff; --agent-soft:#2a2540; --warn:#e2b54f; --warn-soft:#3a3020; --shadow:none;
 }}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{margin:0;background:var(--bg);color:var(--ink);
-  font:16px/1.4 -apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,sans-serif}
+html,body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.4 -apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,sans-serif}
 body{min-height:100dvh;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}
-.wrap{max-width:640px;margin:0 auto;padding:16px 16px 120px}
-header{display:flex;align-items:baseline;justify-content:space-between;margin:8px 0 14px}
-h1{font-size:28px;letter-spacing:-.02em;margin:0;font-weight:700}
-.date{color:var(--muted);font-size:14px}
-.add{display:flex;gap:8px;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
-  padding:6px 6px 6px 14px;box-shadow:var(--shadow);position:sticky;top:max(8px,env(safe-area-inset-top));z-index:5}
+button{font:inherit}
+.dot{width:9px;height:9px;border-radius:50%;flex:none;display:inline-block}
+
+/* ---------- Mise en page ---------- */
+.app{min-height:100dvh}
+.side,.aside{display:none}
+.main{max-width:680px;margin:0 auto;padding:16px 16px 120px}
+header.top{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:8px 0 14px}
+header.top h1{font-size:28px;letter-spacing:-.02em;margin:0;font-weight:700}
+.sub{color:var(--muted);font-size:14px}
+.hright{display:flex;align-items:center;gap:8px}
+.hbtn{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;padding:6px 12px;font-size:13.5px;cursor:pointer}
+.avatar{width:34px;height:34px;border-radius:50%;border:1px solid var(--line);background:var(--card);color:var(--ink);font-weight:700;font-size:13px;cursor:pointer;flex:none}
+@media (min-width:980px){
+  .app{display:grid;grid-template-columns:252px minmax(0,1fr);}
+  .side{display:flex;flex-direction:column;position:sticky;top:0;height:100dvh;overflow:auto;background:var(--side);border-right:1px solid var(--line);padding:18px 12px 14px}
+  .main{max-width:760px;width:100%;padding:28px 32px 80px}
+  .mob{display:none !important}
+  header.top h1{font-size:26px}
+}
+@media (min-width:1280px){
+  .app{grid-template-columns:252px minmax(0,1fr) 340px}
+  .aside{display:block;position:sticky;top:0;height:100dvh;overflow:auto;border-left:1px solid var(--line);padding:28px 20px}
+  .main .asksWrap{display:none}
+}
+.brand{display:flex;align-items:center;gap:10px;padding:2px 8px 16px}
+.brand b{font-size:19px;letter-spacing:-.01em}
+.brand .lg{width:28px;height:28px;border-radius:8px;background:var(--accent);color:#fff;display:grid;place-items:center;font-weight:800}
+.snav{display:flex;flex-direction:column;gap:2px}
+.snav button,.sproj button{display:flex;align-items:center;gap:10px;width:100%;border:0;background:transparent;color:var(--ink);text-align:left;border-radius:9px;padding:8px 10px;font-size:14.5px;cursor:pointer}
+.snav button:hover,.sproj button:hover{background:var(--hover)}
+.snav button.on,.sproj button.on{background:var(--card);box-shadow:0 0 0 1px var(--line);font-weight:600}
+.snav .ic{width:18px;text-align:center;color:var(--muted)}
+.snav .n,.sproj .n{margin-left:auto;color:var(--muted);font-size:12.5px;font-variant-numeric:tabular-nums}
+.snav .n.hot{color:#fff;background:var(--late);border-radius:999px;padding:0 7px;font-weight:600}
+.stitle{display:flex;align-items:center;justify-content:space-between;margin:20px 10px 6px;font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.stitle button{border:0;background:transparent;color:var(--muted);cursor:pointer;font-size:16px;line-height:1;padding:0 2px}
+.sproj{display:flex;flex-direction:column;gap:1px}
+.sproj .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.swho{display:flex;gap:4px;margin:0 6px}
+.swho button{flex:1;border:1px solid var(--line);background:transparent;color:var(--muted);border-radius:8px;padding:6px 4px;font-size:13px;cursor:pointer}
+.swho button.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.swho button.on.ag{background:var(--agent);border-color:var(--agent);color:#fff}
+.sfoot{margin-top:auto;padding-top:14px;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:6px}
+.acct{display:flex;align-items:center;gap:10px;border:0;background:transparent;color:var(--ink);border-radius:10px;padding:8px;cursor:pointer;text-align:left;width:100%}
+.acct:hover{background:var(--hover)}
+.acct .em{font-size:12.5px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* ---------- Bandeau, ajout ---------- */
+.banner{display:flex;gap:10px;align-items:center;background:var(--warn-soft);color:var(--ink);border:1px solid var(--line);border-radius:12px;padding:10px 12px;font-size:13.5px;margin-bottom:12px}
+.banner b{color:var(--warn)}
+.banner button{margin-left:auto;flex:none;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:9px;padding:6px 10px;font-size:13px;cursor:pointer}
+.add{display:flex;gap:8px;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:6px 6px 6px 14px;box-shadow:var(--shadow)}
 .add input{flex:1;border:0;background:transparent;color:var(--ink);font:inherit;font-size:17px;outline:none;min-width:0}
-.add button{border:0;background:var(--accent);color:#fff;border-radius:10px;width:40px;height:40px;font-size:22px;cursor:pointer}
-.hint{color:var(--muted);font-size:12.5px;margin:6px 4px 0}
+.add button{border:0;background:var(--accent);color:#fff;border-radius:10px;width:40px;height:40px;font-size:22px;cursor:pointer;flex:none}
 .add .mic{background:var(--accent-soft);color:var(--accent)}
 .add .mic svg{width:20px;height:20px;vertical-align:middle}
 .add .mic.rec{background:#d64545;color:#fff;animation:pulse 1.4s infinite}
 .add .mic.busy{opacity:.6}
 @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(214,69,69,.45)}70%{box-shadow:0 0 0 12px rgba(214,69,69,0)}100%{box-shadow:0 0 0 0 rgba(214,69,69,0)}}
-.hbtn{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;padding:6px 12px;font:inherit;font-size:13.5px;cursor:pointer}
-.hright{display:flex;align-items:center;gap:10px}
-.prop{display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--line)}
-.prop:last-child{border-bottom:0}
-.prop input[type=checkbox]{width:20px;height:20px;padding:0;margin-top:9px;accent-color:var(--accent);flex:none}
-.prop .pbody{flex:1;min-width:0}
-.prop .pt{margin:0}
-.prop .pmeta{font-size:12.5px;color:var(--muted);margin-top:4px}
-.prop .dup{color:var(--late)}
-.transcript{font-size:13px;color:var(--muted);background:var(--bg);border-radius:10px;padding:8px 10px;margin-bottom:6px;max-height:90px;overflow:auto}
-.summary{white-space:pre-wrap;line-height:1.5;font-size:15px}
-.pair{border:1px solid var(--line);border-radius:12px;padding:10px;margin-top:10px}
-.pair .pa{font-size:14px;margin-bottom:8px}
-.pair .chips button{font-size:13px}
-.panel{max-height:88dvh;overflow:auto}
-.asksH{display:flex;align-items:center;gap:8px;margin:18px 4px 8px;font-size:13.5px;font-weight:600;color:var(--accent)}
-.asksH .n{background:var(--accent);color:var(--card);border-radius:999px;padding:1px 8px;font-size:12px;font-variant-numeric:tabular-nums}
-.asksH .sim{margin-left:auto;font-weight:400;color:var(--muted);font-size:12.5px}
-.ask{background:var(--accent-soft);border:1px solid var(--accent);border-radius:var(--radius);padding:12px 14px;margin-bottom:8px}
-.ask .at{font-weight:600;word-wrap:break-word}
-.ask .ap{font-size:13.5px;margin-top:4px;word-wrap:break-word}
-.ask .ap b{font-weight:600}
-.ask .ab{display:flex;align-items:center;gap:8px;margin-top:10px}
-.ask .ac{flex:1;font-size:12.5px;color:var(--muted)}
-.ask button{border:1px solid var(--accent);background:transparent;color:var(--accent);border-radius:10px;padding:8px 14px;font:inherit;font-size:14px;cursor:pointer}
-.ask button.yes{background:var(--accent);color:var(--card);font-weight:600}
-.ask.busy{opacity:.5;pointer-events:none}
-.autoinfo{margin-top:16px;padding-top:12px;border-top:1px solid var(--line);font-size:13.5px;color:var(--muted);line-height:1.5}
-.autoinfo b{color:var(--ink);font-weight:600}
-.autoinfo .warn{color:var(--late)}
-
-nav{display:flex;gap:6px;margin:18px 0 10px;overflow-x:auto}
-nav button{border:1px solid var(--line);background:transparent;color:var(--muted);border-radius:999px;
-  padding:7px 14px;font:inherit;font-size:14px;white-space:nowrap;cursor:pointer}
-nav button.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
-nav .n{opacity:.7;margin-left:4px;font-variant-numeric:tabular-nums}
-.search{display:none;margin-bottom:10px}
-.search.on{display:block}
-.search input{width:100%;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:12px;padding:10px 12px;font:inherit}
-ul{list-style:none;margin:0;padding:0}
-li{position:relative;margin-bottom:8px;border-radius:var(--radius);overflow:hidden}
-.bgL,.bgR{opacity:0;position:absolute;inset:0;display:flex;align-items:center;padding:0 18px;font-weight:600;font-size:14px;color:#fff}
-.bgR{background:var(--accent)} .bgL{background:#5b6b8a;justify-content:flex-end}
-.row{position:relative;display:flex;gap:12px;align-items:flex-start;background:var(--card);border:1px solid var(--line);
-  border-radius:var(--radius);padding:13px 14px;box-shadow:var(--shadow);touch-action:pan-y;transition:transform .18s ease}
-.check{flex:none;width:22px;height:22px;border-radius:50%;border:2px solid var(--muted);background:transparent;margin-top:1px;cursor:pointer;padding:0}
-.check:hover{border-color:var(--accent);background:var(--accent-soft)}
-.done .check{background:var(--accent);border-color:var(--accent)}
-.body{flex:1;min-width:0}
-.title{word-wrap:break-word}
-.done .title{color:var(--muted);text-decoration:line-through}
-.meta{display:flex;flex-wrap:wrap;gap:6px 10px;margin-top:4px;font-size:12.5px;color:var(--muted)}
-.meta .late{color:var(--late);font-weight:600}
-.meta .auto{color:var(--accent)}
-.tlink{display:block;margin-top:6px;font-size:13px;color:var(--accent);text-decoration:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.tlink:hover{text-decoration:underline}
-.linkrow{display:flex;gap:10px;align-items:center;margin-top:4px}
-.linkrow a{flex:1;min-width:0;font-size:14px;color:var(--accent);text-decoration:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.linkrow button{flex:none;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:10px;padding:6px 10px;font:inherit;font-size:13px;cursor:pointer}
+@media (max-width:979px){.add{position:sticky;top:max(8px,env(safe-area-inset-top));z-index:5}}
 .opts{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:8px 0 0}
 .opt{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;padding:0 10px;min-height:34px;font-size:13.5px;max-width:100%}
 .opt select,.opt input{border:0;background:transparent;color:inherit;font:inherit;font-size:13.5px;outline:none;padding:0;min-width:0;max-width:170px}
 .opt input[type=date]{max-width:132px}
 .opt .lbl{color:var(--muted)}
 .seg{display:inline-flex;flex:none;border:1px solid var(--line);border-radius:999px;overflow:hidden;background:var(--card)}
-.seg button{border:0;background:transparent;color:var(--muted);font:inherit;font-size:13.5px;padding:0 12px;min-height:32px;cursor:pointer;white-space:nowrap}
+.seg button{border:0;background:transparent;color:var(--muted);font-size:13.5px;padding:0 12px;min-height:32px;cursor:pointer;white-space:nowrap}
 .seg button.on{background:var(--ink);color:var(--bg)}
 .seg button.on.ag{background:var(--agent);color:#fff}
-.dot{width:9px;height:9px;border-radius:50%;flex:none;display:inline-block}
+.hint{color:var(--muted);font-size:12.5px;margin:6px 4px 0}
+
+/* ---------- Navigation mobile ---------- */
+nav.tabs{display:flex;gap:6px;margin:18px 0 10px;overflow-x:auto;scrollbar-width:none}
+nav.tabs::-webkit-scrollbar{display:none}
+nav.tabs button{border:1px solid var(--line);background:transparent;color:var(--muted);border-radius:999px;padding:7px 14px;font-size:14px;white-space:nowrap;cursor:pointer;flex:none}
+nav.tabs button.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+nav.tabs .n{opacity:.7;margin-left:4px;font-variant-numeric:tabular-nums}
+nav.tabs .n.hot{opacity:1;color:#fff;background:var(--late);border-radius:999px;padding:0 6px}
 .pfilter{display:flex;gap:6px;overflow-x:auto;margin:0 0 10px;padding-bottom:2px;scrollbar-width:none;align-items:center}
 .pfilter::-webkit-scrollbar{display:none}
-.pfilter .pf{flex:none;display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:transparent;color:var(--muted);border-radius:10px;padding:0 10px;min-height:32px;font:inherit;font-size:13px;cursor:pointer;white-space:nowrap}
+.pfilter .pf{flex:none;display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:transparent;color:var(--muted);border-radius:10px;padding:0 10px;min-height:32px;font-size:13px;cursor:pointer;white-space:nowrap}
 .pfilter .pf.on{border-color:var(--ink);color:var(--ink);background:var(--card);font-weight:600}
 .pfilter .n{opacity:.7;font-variant-numeric:tabular-nums}
 .pfilter .sep{flex:none;width:1px;height:20px;background:var(--line);margin:0 2px}
+.vhead{display:none}
+@media (min-width:980px){.vhead{display:flex;align-items:baseline;gap:10px;margin:26px 0 12px}.vhead h2{margin:0;font-size:18px}.vhead .sub{font-size:13.5px}}
+
+/* ---------- Liste ---------- */
+.search{display:none;margin:12px 0 10px}
+.search.on{display:block}
+.search input{width:100%;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:12px;padding:10px 12px;font:inherit}
+ul{list-style:none;margin:0;padding:0}
+li{position:relative;margin-bottom:8px;border-radius:var(--radius);overflow:hidden}
+.bgL,.bgR{opacity:0;position:absolute;inset:0;display:flex;align-items:center;padding:0 18px;font-weight:600;font-size:14px;color:#fff}
+.bgR{background:var(--accent)} .bgL{background:#5b6b8a;justify-content:flex-end}
+.row{position:relative;display:flex;gap:12px;align-items:flex-start;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:13px 14px;box-shadow:var(--shadow);touch-action:pan-y;transition:transform .18s ease}
+@media (min-width:980px){.row{padding:12px 14px}.row:hover{border-color:var(--muted)}}
+.check{flex:none;width:22px;height:22px;border-radius:50%;border:2px solid var(--muted);background:transparent;margin-top:1px;cursor:pointer;padding:0}
+.check:hover{border-color:var(--accent);background:var(--accent-soft)}
+.done .check{background:var(--accent);border-color:var(--accent)}
+.body{flex:1;min-width:0;cursor:pointer}
+.title{word-wrap:break-word}
+.done .title{color:var(--muted);text-decoration:line-through}
+.meta{display:flex;flex-wrap:wrap;gap:6px 10px;margin-top:4px;font-size:12.5px;color:var(--muted)}
+.meta .late{color:var(--late);font-weight:600}
+.meta .auto{color:var(--accent)}
 .ptag{display:inline-flex;align-items:center;gap:5px}
 .agtag{display:inline-flex;align-items:center;gap:4px;color:var(--agent);background:var(--agent-soft);border-radius:6px;padding:0 6px;font-weight:600}
+.tlink{display:block;margin-top:6px;font-size:13px;color:var(--accent);text-decoration:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tlink:hover{text-decoration:underline}
+.more{flex:none;border:0;background:transparent;color:var(--muted);font-size:18px;cursor:pointer;padding:0 2px}
+.empty{color:var(--muted);text-align:center;padding:48px 16px}
+.empty b{display:block;color:var(--ink);font-size:17px;margin-bottom:4px}
+.foot{color:var(--muted);font-size:12px;text-align:center;margin-top:24px}
+
+/* ---------- C'est fait ? ---------- */
+.asksH{display:flex;align-items:center;gap:8px;margin:18px 4px 8px;font-size:13.5px;font-weight:600;color:var(--accent)}
+.aside .asksH{margin-top:0}
+.asksH .n{background:var(--accent);color:var(--card);border-radius:999px;padding:1px 8px;font-size:12px;font-variant-numeric:tabular-nums}
+.asksH .sim{margin-left:auto;font-weight:400;color:var(--muted);font-size:12.5px}
+.ask{background:var(--accent-soft);border:1px solid var(--accent);border-radius:var(--radius);padding:12px 14px;margin-bottom:8px}
+.ask .at{font-weight:600;word-wrap:break-word}
+.ask .ap{font-size:13.5px;margin-top:4px;word-wrap:break-word}
+.ask .ap b{font-weight:600}
+.ask .ab{display:flex;align-items:center;gap:8px;margin-top:10px;flex-wrap:wrap}
+.ask .ac{flex:1;font-size:12.5px;color:var(--muted)}
+.ask button{border:1px solid var(--accent);background:transparent;color:var(--accent);border-radius:10px;padding:7px 12px;font-size:14px;cursor:pointer}
+.ask button.yes{background:var(--accent);color:var(--card);font-weight:600}
+.ask.busy{opacity:.5;pointer-events:none}
+.aside h3{font-size:13.5px;margin:22px 4px 8px;color:var(--muted);font-weight:600}
+.mini{display:block;width:100%;text-align:left;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:12px;padding:10px 12px;margin-bottom:6px;cursor:pointer}
+.mini .ms{font-size:13.5px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mini .mf{font-size:12.5px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.calm{color:var(--muted);font-size:13.5px;padding:4px}
+
+/* ---------- Section Mail ---------- */
+.mailbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:4px 0 10px}
+.mailbar .grow{flex:1}
+.btn{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:10px;padding:8px 12px;font-size:14px;cursor:pointer;white-space:nowrap}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
+.btn[disabled]{opacity:.5;cursor:not-allowed}
+.accts{display:flex;flex-direction:column;gap:6px;margin-bottom:10px}
+.acc{display:flex;align-items:center;gap:10px;border:1px solid var(--line);background:var(--card);border-radius:12px;padding:9px 12px;font-size:13.5px}
+.acc .ai{width:26px;height:26px;border-radius:7px;display:grid;place-items:center;font-weight:700;font-size:12px;color:#fff;flex:none}
+.acc .at{flex:1;min-width:0}
+.acc .at div{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.acc .as{color:var(--muted);font-size:12.5px}
+.acc .as.err{color:var(--danger)}
+.acc button{border:0;background:transparent;color:var(--muted);cursor:pointer;font-size:13px}
+.msub{display:flex;gap:6px;margin:6px 0 12px;flex-wrap:wrap}
+.msub button{border:1px solid var(--line);background:transparent;color:var(--muted);border-radius:999px;padding:6px 12px;font-size:13.5px;cursor:pointer}
+.msub button.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.mail{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:12px 14px;margin-bottom:8px;box-shadow:var(--shadow)}
+.mail .mh{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted)}
+.mail .from{color:var(--ink);font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.mail .age{margin-left:auto;flex:none}
+.prio{flex:none;border-radius:6px;padding:1px 7px;font-size:12px;font-weight:700}
+.prio.h{background:var(--late-soft);color:var(--late)}
+.prio.m{background:var(--warn-soft);color:var(--warn)}
+.prio.l{background:var(--hover);color:var(--muted)}
+.mail .msj{font-weight:600;margin-top:4px;word-wrap:break-word}
+.mail .msn{font-size:13.5px;color:var(--muted);margin-top:2px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.mail .mwhy{font-size:12px;color:var(--muted);margin-top:6px}
+.mail .ma{display:flex;gap:8px;align-items:center;margin-top:10px;flex-wrap:wrap}
+.mail .ma a{color:var(--accent);text-decoration:none;font-size:14px;margin-right:auto}
+.mail .ma .ok{color:var(--accent);font-size:13.5px;font-weight:600}
+@media (max-width:600px){
+  .mailbar{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .mailbar .opt{grid-column:1/-1}
+  .mailbar .grow{display:none}
+  .mailbar #mRefresh{grid-column:1/-1}
+  .mail .ma{flex-wrap:nowrap}
+  .mail .ma a{font-size:13.5px;white-space:nowrap}
+  .mail .ma .btn{padding:8px 11px;font-size:13.5px;white-space:nowrap}
+}
+
+/* ---------- Feuilles ---------- */
+.sheet{position:fixed;inset:0;background:rgba(0,0,0,.35);display:none;align-items:flex-end;justify-content:center;z-index:20}
+.sheet.on{display:flex}
+.panel{background:var(--card);width:100%;max-width:640px;border-radius:18px 18px 0 0;padding:18px 16px calc(18px + env(safe-area-inset-bottom));max-height:88dvh;overflow:auto}
+@media (min-width:980px){.sheet{align-items:center}.panel{border-radius:18px;max-width:560px}}
+.panel h3{margin:0 0 12px;font-size:16px}
+.panel h4{margin:18px 0 6px;font-size:14px}
+.panel label{display:block;font-size:13px;color:var(--muted);margin:10px 0 4px}
+.panel input,.panel textarea,.panel select{width:100%;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:10px;padding:10px;font:inherit}
+.panel select{-webkit-appearance:none;appearance:none}
+.panel textarea{min-height:70px;resize:vertical}
+.panel .seg{margin-top:2px}
+.panel p{font-size:14px;color:var(--muted);margin:6px 0}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.chips button,.actions button{border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:10px;padding:8px 12px;font-size:14px;cursor:pointer}
+.actions{display:flex;gap:8px;margin-top:16px;flex-wrap:wrap}
+.actions .primary{background:var(--accent);border-color:var(--accent);color:#fff;flex:1}
+.actions .danger{color:var(--danger)}
+.linkrow{display:flex;gap:10px;align-items:center;margin-top:4px}
+.linkrow a{flex:1;min-width:0;font-size:14px;color:var(--accent);text-decoration:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.linkrow button{flex:none;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:10px;padding:6px 10px;font-size:13px;cursor:pointer}
+.prop{display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--line)}
+.prop:last-child{border-bottom:0}
+.prop input[type=checkbox]{width:20px;height:20px;padding:0;margin-top:9px;accent-color:var(--accent);flex:none}
+.prop .pbody{flex:1;min-width:0}
+.prop .pmeta{font-size:12.5px;color:var(--muted);margin-top:4px}
+.prop .dup{color:var(--late)}
+.transcript{font-size:13px;color:var(--muted);background:var(--bg);border-radius:10px;padding:8px 10px;margin-bottom:6px;max-height:90px;overflow:auto}
+.summary{white-space:pre-wrap;line-height:1.5;font-size:15px}
+.pair{border:1px solid var(--line);border-radius:12px;padding:10px;margin-top:10px}
+.pair .pa{font-size:14px;margin-bottom:8px}
+.autoinfo{margin-top:16px;padding-top:12px;border-top:1px solid var(--line);font-size:13.5px;color:var(--muted);line-height:1.5}
+.autoinfo b{color:var(--ink);font-weight:600}
+.autoinfo .warn{color:var(--late)}
 .prow{display:flex;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line)}
 .prow:last-child{border-bottom:0}
 .prow .sw{width:26px;height:26px;border-radius:50%;border:0;flex:none;cursor:pointer}
 .prow input{flex:1;min-width:0}
-.prow .pc{color:var(--muted);font-size:12.5px;flex:none;font-variant-numeric:tabular-nums}
-.prow button.x{flex:none;border:1px solid var(--line);background:var(--bg);color:var(--danger);border-radius:10px;padding:8px 10px;font:inherit;font-size:13px;cursor:pointer}
+.prow .pc{color:var(--muted);font-size:12.5px;flex:none}
+.prow button.x{flex:none;border:1px solid var(--line);background:var(--bg);color:var(--danger);border-radius:10px;padding:8px 10px;font-size:13px;cursor:pointer}
 .newp{display:flex;gap:8px;margin-top:12px}
 .newp input{flex:1;min-width:0}
-.newp button{flex:none;border:0;background:var(--accent);color:#fff;border-radius:10px;padding:0 14px;font:inherit;font-weight:600;cursor:pointer}
-.more{flex:none;border:0;background:transparent;color:var(--muted);font-size:18px;cursor:pointer;padding:0 2px}
-.empty{color:var(--muted);text-align:center;padding:48px 16px}
-.empty b{display:block;color:var(--ink);font-size:17px;margin-bottom:4px}
-.sheet{position:fixed;inset:0;background:rgba(0,0,0,.35);display:none;align-items:flex-end;justify-content:center;z-index:20}
-.sheet.on{display:flex}
-.panel{background:var(--card);width:100%;max-width:640px;border-radius:18px 18px 0 0;padding:18px 16px calc(18px + env(safe-area-inset-bottom))}
-.panel h3{margin:0 0 12px;font-size:16px}
-.panel label{display:block;font-size:13px;color:var(--muted);margin:10px 0 4px}
-.panel select{width:100%;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:10px;padding:10px;font:inherit;-webkit-appearance:none;appearance:none}
-.panel .seg{margin-top:2px}
-.panel input,.panel textarea{width:100%;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:10px;padding:10px;font:inherit}
-.panel textarea{min-height:70px;resize:vertical}
-.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
-.chips button,.actions button{border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:10px;padding:8px 12px;font:inherit;font-size:14px;cursor:pointer}
-.actions{display:flex;gap:8px;margin-top:16px;flex-wrap:wrap}
-.actions .primary{background:var(--accent);border-color:var(--accent);color:#fff;flex:1}
-.actions .danger{color:var(--danger)}
-.toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));transform:translateX(-50%);
-  background:var(--ink);color:var(--bg);border-radius:12px;padding:10px 14px;font-size:14px;display:none;gap:14px;align-items:center;z-index:30;max-width:92vw}
+.newp button{flex:none;border:0;background:var(--accent);color:#fff;border-radius:10px;padding:0 14px;font-weight:600;cursor:pointer}
+.krow{display:flex;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line);font-size:14px}
+.krow .kl{flex:1;min-width:0}
+.krow .kd{color:var(--muted);font-size:12.5px}
+.krow button{flex:none;border:1px solid var(--line);background:var(--bg);color:var(--danger);border-radius:10px;padding:6px 10px;font-size:13px;cursor:pointer}
+.secret{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12.5px;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px;word-break:break-all;margin:6px 0}
+.cbtn{border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:8px;padding:4px 8px;font-size:12.5px;cursor:pointer}
+.toggle{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 0}
+
+/* ---------- Connexion ---------- */
+.login{max-width:400px;margin:12vh auto 0;padding:0 16px}
+.login h1{font-size:30px;margin:0 0 6px;letter-spacing:-.02em}
+.login p{color:var(--muted);margin:0 0 22px}
+.login .lbtn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:12px;padding:12px;font-weight:600;cursor:pointer;margin-bottom:10px}
+.login .or{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:13px;margin:16px 0}
+.login .or::before,.login .or::after{content:"";flex:1;height:1px;background:var(--line)}
+.login input{width:100%;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:12px;padding:12px;font:inherit;margin-bottom:8px}
+.login .go{width:100%;border:0;background:var(--accent);color:#fff;border-radius:12px;padding:12px;font-weight:600;cursor:pointer}
+.login .err{color:var(--danger);font-size:14px;min-height:20px;margin-top:8px}
+.login .note{font-size:12.5px;color:var(--muted);margin-top:18px}
+
+.toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));transform:translateX(-50%);background:var(--ink);color:var(--bg);border-radius:12px;padding:10px 14px;font-size:14px;display:none;gap:14px;align-items:center;z-index:30;width:max-content;max-width:min(92vw,520px)}
 .toast.on{display:flex}
-.toast button{border:0;background:transparent;color:var(--accent);font:inherit;font-weight:700;cursor:pointer;white-space:nowrap;flex:none}
-.toast{width:max-content;max-width:min(92vw,520px)} #toastMsg{flex:1;min-width:0}
-.setup{max-width:420px;margin:12vh auto 0;padding:0 16px}
-.setup p{color:var(--muted)}
-.setup input{width:100%;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:12px;padding:12px;font:inherit;margin:8px 0}
-.setup button{width:100%;border:0;background:var(--accent);color:#fff;border-radius:12px;padding:12px;font:inherit;font-weight:600}
-.err{color:var(--danger);font-size:14px;min-height:20px}
-.foot{color:var(--muted);font-size:12px;text-align:center;margin-top:24px}
-.foot button{border:0;background:transparent;color:var(--muted);text-decoration:underline;font:inherit;cursor:pointer}
+.toast button{border:0;background:transparent;color:var(--accent);font-weight:700;cursor:pointer;white-space:nowrap;flex:none}
+#toastMsg{flex:1;min-width:0}
 </style>
 </head>
 <body>
 <div id="app"></div>
-
 <div class="sheet" id="sheet"><div class="panel" id="panel"></div></div>
 <div class="toast" id="toast"><span id="toastMsg"></span><button id="toastUndo">Annuler</button></div>
 
 <script>
 const API = "https://rorwnacthttwxyqemkgv.supabase.co/functions/v1/todo-api";
+const APP = location.href.split("#")[0].split("?")[0];
 const store = {
   get(k){ try{ return localStorage.getItem(k) }catch{ return null } },
   set(k,v){ try{ localStorage.setItem(k,v) }catch{} },
   del(k){ try{ localStorage.removeItem(k) }catch{} },
 };
+let token = store.get("todo_token");
+let meInfo = null;
 let view = store.get("todo_view") || "today";
-let tasks = [], counts = {today:0,later:0,done:0}, searching = false;
-let overview = null; // clôtures proposées par l'IA (V2.0)
-let projects = [];
-let fProject = store.get("todo_fproject") || "";   // "" = tous, "aucun", ou id
-let fWho = store.get("todo_fwho") || "";           // "" = tous, "moi", "agent"
-let newWho = "moi";
+let tasks = [], counts = {today:0,later:0,done:0,mail:0}, searching = false, overview = null, projects = [];
+let fProject = store.get("todo_fproject") || "", fWho = store.get("todo_fwho") || "", newWho = "moi";
+let mailData = null, mailTab = "nouveau";
 const PALETTE = ["#1f8a9a","#2f8f5b","#6a4fd6","#c2417a","#c27a1f","#3b6fd1","#8a5a2b","#5b6b8a"];
-const projById = id => projects.find(p => p.id === id);
-const qs = () => { const q = new URLSearchParams(); if (fProject) q.set("project", fProject); if (fWho) q.set("assignee", fWho); return q.toString(); };
-const AGENT_LABEL = n => n === "claude" ? "Claude" : n === "chatgpt" ? "ChatGPT" : "Agent IA";
 const HINT = "Astuces : demain, vendredi, 15/10 · #projet · @agent pour confier à l'IA";
 const $ = s => document.querySelector(s);
-const safeUrl = u => typeof u === "string" && /^https:\/\//.test(u);
+const $$ = s => [...document.querySelectorAll(s)];
 const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const safeUrl = u => typeof u === "string" && /^https:\/\//.test(u);
+const projById = id => projects.find(p => p.id === id);
+const AGENT_LABEL = n => n === "claude" ? "Claude" : n === "chatgpt" ? "ChatGPT" : "Agent IA";
+const isWide = () => matchMedia("(min-width:980px)").matches;
+const legacy = () => !!meInfo?.legacy;
 
 async function api(path, opts = {}){
-  const r = await fetch(API + path, { ...opts, headers: { "Content-Type": "application/json" } });
+  const headers = { "Content-Type": "application/json" };
+  if (token) headers.Authorization = "Bearer " + token;
+  const r = await fetch(API + path, { ...opts, headers });
   const data = await r.json().catch(() => ({}));
+  if (r.status === 401 && token && !path.startsWith("/auth/")) { token = null; store.del("todo_token"); meInfo = null; showLogin("Session expirée, reconnecte-toi."); }
   if (!r.ok) throw Object.assign(new Error(data.error || "Erreur réseau"), { status: r.status, data });
   return data;
 }
 
 // ---------- Dates ----------
-const todayISO = (o=0) => { const d = new Date(Date.now()+o*864e5); return d.toLocaleDateString("en-CA"); };
-function nextWeekday(target){ const w = new Date().getDay(); let d = (target - w + 7) % 7; return todayISO(d || 7); }
+const todayISO = (o=0) => new Date(Date.now()+o*864e5).toLocaleDateString("en-CA");
+function nextWeekday(target){ const w = new Date().getDay(); const d = (target - w + 7) % 7; return todayISO(d || 7); }
 function fmtDue(iso){
   if (!iso) return "";
   const t = todayISO(0);
   if (iso < t) { const n = Math.round((Date.parse(t) - Date.parse(iso)) / 864e5); return `<span class="late">En retard de ${n} j</span>`; }
   if (iso === t) return "Aujourd'hui";
   if (iso === todayISO(1)) return "Demain";
-  const d = new Date(iso + "T12:00:00");
   const diff = (Date.parse(iso) - Date.parse(t)) / 864e5;
-  const opt = diff < 7 ? { weekday:"long" } : { day:"numeric", month:"short" };
-  const s = d.toLocaleDateString("fr-BE", opt); return s.charAt(0).toUpperCase() + s.slice(1);
+  const s = new Date(iso + "T12:00:00").toLocaleDateString("fr-BE", diff < 7 ? { weekday:"long" } : { day:"numeric", month:"short" });
+  return s.charAt(0).toUpperCase() + s.slice(1);
 }
 function fmtAgo(ts){
   const m = Math.round((Date.now() - Date.parse(ts)) / 6e4);
   if (m < 60) return `il y a ${Math.max(m,1)} min`;
   const h = Math.round(m/60); if (h < 24) return `il y a ${h} h`;
+  const d = Math.round(h/24); if (d < 7) return `il y a ${d} j`;
   return new Date(ts).toLocaleDateString("fr-BE", { day:"numeric", month:"short" });
 }
 
-// ---------- Rendu ----------
+// ---------- Connexion ----------
+function readHash(){
+  const h = new URLSearchParams(location.hash.slice(1));
+  const msg = {};
+  if (h.get("session")) { token = h.get("session"); store.set("todo_token", token); }
+  if (h.get("auth_error")) msg.auth = h.get("auth_error");
+  if (h.get("mail") === "connected") msg.mail = "Boîte mail connectée";
+  if (h.get("mail_error")) msg.mailErr = h.get("mail_error");
+  if (location.hash) history.replaceState(null, "", APP);
+  return msg;
+}
+async function showLogin(err){
+  let prov = { google:false, microsoft:false };
+  try { prov = await (await fetch(API + "/auth/providers")).json(); } catch {}
+  const red = encodeURIComponent(APP);
+  closeSheet();
+  $("#app").innerHTML = `<div class="login">
+    <h1>To Do</h1><p>Ta liste qui se vide toute seule quand c'est fait.</p>
+    ${prov.google ? `<button class="lbtn" id="lg">Continuer avec Google</button>` : ""}
+    ${prov.microsoft ? `<button class="lbtn" id="lm">Continuer avec Microsoft</button>` : ""}
+    ${prov.google || prov.microsoft ? `<div class="or">ou</div>` : ""}
+    <form id="kf"><input id="k" placeholder="Clé d'accès (todo_…)" autocomplete="off" autocapitalize="off" spellcheck="false">
+    <button class="go">Se connecter avec ma clé</button></form>
+    <div class="err" id="lerr">${esc(err || "")}</div>
+    <div class="note">${prov.google || prov.microsoft ? "" : "La connexion avec Google et Microsoft arrive bientôt. En attendant, utilise ta clé d'accès personnelle."}</div>
+  </div>`;
+  if ($("#lg")) $("#lg").onclick = () => location.href = `${API}/auth/google/start?redirect=${red}`;
+  if ($("#lm")) $("#lm").onclick = () => location.href = `${API}/auth/microsoft/start?redirect=${red}`;
+  $("#kf").onsubmit = async e => {
+    e.preventDefault(); const key = $("#k").value.trim(); if (!key) return;
+    try { const r = await api("/auth/key", { method:"POST", body: JSON.stringify({ key }) }); token = r.session; store.set("todo_token", token); boot(); }
+    catch(x){ $("#lerr").textContent = x.status === 401 ? "Clé non reconnue." : x.message; }
+  };
+}
+async function logout(){
+  try { await api("/auth/logout", { method:"POST", body:"{}" }); } catch {}
+  token = null; store.del("todo_token"); meInfo = null; closeSheet(); showLogin();
+}
+
+// ---------- Squelette ----------
+function initials(){ return (meInfo?.user?.name || meInfo?.user?.email || "?").split(/[\s@.]+/).filter(Boolean).slice(0,2).map(s => s[0].toUpperCase()).join(""); }
 function renderShell(){
   const d = new Date().toLocaleDateString("fr-BE", { weekday:"long", day:"numeric", month:"long" });
-  $("#app").innerHTML = `<div class="wrap">
-    <header><h1>To Do</h1><div class="hright"><span class="date">${d}</span><button class="hbtn" id="sumBtn">Résumé</button></div></header>
-    <form class="add" id="add"><input id="new" placeholder="Nouvelle tâche…" enterkeyhint="done" autocomplete="off">
-      <button type="button" class="mic" id="mic" aria-label="Dicter des tâches"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></button>
-      <button type="submit" aria-label="Ajouter">+</button></form>
-    <div class="opts" id="opts">
-      <label class="opt" id="nProjBox"><span class="dot" id="nProjDot" style="background:var(--line)"></span><select id="nProj" aria-label="Projet de la nouvelle tâche"></select></label>
-      <div class="seg" id="nWho" role="group" aria-label="Qui fait la tâche"><button type="button" data-w="moi" class="on">Moi</button><button type="button" data-w="agent" class="ag">Agent IA</button></div>
-      <label class="opt"><span class="lbl">Échéance</span><input type="date" id="nDue" aria-label="Échéance"></label>
-    </div>
-    <div class="hint" id="hint">${HINT}</div>
-    <div id="asks"></div>
-    <nav id="nav"></nav>
-    <div class="pfilter" id="pfilter"></div>
-    <div class="search" id="searchBox"><input id="q" type="search" placeholder="Rechercher dans toutes les tâches"></div>
-    <ul id="list"></ul>
-    <div class="foot">Glisse à droite pour terminer, à gauche pour reporter</div>
+  $("#app").innerHTML = `<div class="app">
+    <aside class="side" id="side"></aside>
+    <main class="main">
+      <header class="top"><div><h1>To Do</h1><div class="sub">${d}</div></div>
+        <div class="hright"><button class="hbtn" id="sumBtn">Résumé</button><button class="avatar mob" id="acctBtn" aria-label="Compte">${legacy() ? "?" : esc(initials())}</button></div></header>
+      <div id="banner"></div>
+      <div id="addZone">
+        <form class="add" id="add"><input id="new" placeholder="Nouvelle tâche…" enterkeyhint="done" autocomplete="off">
+          <button type="button" class="mic" id="mic" aria-label="Dicter des tâches"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></button>
+          <button type="submit" aria-label="Ajouter">+</button></form>
+        <div class="opts">
+          <label class="opt"><span class="dot" id="nProjDot" style="background:var(--line)"></span><select id="nProj" aria-label="Projet de la nouvelle tâche"></select></label>
+          <div class="seg" id="nWho" role="group" aria-label="Qui fait la tâche"><button type="button" data-w="moi" class="on">Moi</button><button type="button" data-w="agent" class="ag">Agent IA</button></div>
+          <label class="opt"><span class="lbl">Échéance</span><input type="date" id="nDue" aria-label="Échéance"></label>
+        </div>
+        <div class="hint" id="hint">${HINT}</div>
+      </div>
+      <div class="asksWrap" id="asks"></div>
+      <nav class="tabs mob" id="tabs"></nav>
+      <div class="pfilter mob" id="pfilter"></div>
+      <div class="vhead" id="vhead"></div>
+      <div class="search" id="searchBox"><input id="q" type="search" placeholder="Rechercher dans toutes les tâches"></div>
+      <div id="content"></div>
+    </main>
+    <aside class="aside" id="aside"></aside>
   </div>`;
   $("#add").onsubmit = onAdd;
   $("#q").oninput = debounce(onSearch, 250);
   $("#mic").onclick = toggleMic;
   $("#sumBtn").onclick = openSummary;
+  $("#acctBtn").onclick = () => legacy() ? showLogin() : openAccount();
   $("#nProj").onchange = () => { if ($("#nProj").value === "__new") { $("#nProj").value = ""; openProjects(true); } renderNewProj(); };
-  $("#nWho").querySelectorAll("button").forEach(b => b.onclick = () => { newWho = b.dataset.w; renderNewWho(); });
+  $$("#nWho button").forEach(b => b.onclick = () => { newWho = b.dataset.w; renderNewWho(); });
 }
-function renderNewWho(){ $("#nWho").querySelectorAll("button").forEach(b => b.classList.toggle("on", b.dataset.w === newWho)); }
+function renderNewWho(){ $$("#nWho button").forEach(b => b.classList.toggle("on", b.dataset.w === newWho)); }
 function renderNewProj(){
   const sel = $("#nProj"); if (!sel) return;
   const cur = sel.value || (fProject && fProject !== "aucun" ? fProject : "");
@@ -250,26 +419,79 @@ function renderNewProj(){
   sel.value = projById(cur) ? cur : "";
   const p = projById(sel.value); $("#nProjDot").style.background = p ? p.color : "var(--line)";
 }
-function renderFilters(){
-  const box = $("#pfilter"); if (!box) return;
+function renderBanner(){
+  const b = $("#banner");
+  if (!legacy()) { b.innerHTML = ""; return; }
+  b.innerHTML = `<div class="banner"><span><b>Mode ouvert.</b> Connecte-toi avec ta clé pour activer la section Mail et protéger tes tâches.</span><button id="bLogin">Se connecter</button></div>`;
+  $("#bLogin").onclick = () => showLogin();
+}
+
+// ---------- Navigation ----------
+const VIEWS = { today:"Aujourd'hui", later:"Plus tard", mail:"Mail", done:"Fait récemment", search:"Rechercher" };
+const ICONS = { today:"☀", later:"→", mail:"✉", done:"✓", search:"⌕" };
+function viewBadge(k){
+  if (k === "mail") return counts.mail ? `<span class="n hot">${counts.mail}</span>` : "";
+  const n = counts[k]; return n != null && k !== "search" ? `<span class="n">${n}</span>` : "";
+}
+function renderSide(){
+  const s = $("#side"); if (!s) return;
+  const cur = searching ? "search" : view;
+  const who = [["","Tous"],["moi","Moi"],["agent","Agents IA"]];
+  s.innerHTML = `<div class="brand"><span class="lg">✓</span><b>To Do</b></div>
+    <div class="snav">${["today","later","mail","done","search"].map(k => `<button data-v="${k}" class="${cur===k?"on":""}"><span class="ic">${ICONS[k]}</span>${VIEWS[k]}${viewBadge(k)}</button>`).join("")}</div>
+    <div class="stitle">Qui fait</div>
+    <div class="swho">${who.map(([k,l]) => `<button data-w="${k}" class="${fWho===k?"on":""} ${k==="agent"?"ag":""}">${l}${k==="agent" && counts.agent ? ` ${counts.agent}`:""}</button>`).join("")}</div>
+    <div class="stitle">Projets<button id="sManage" title="Gérer les projets">+</button></div>
+    <div class="sproj">
+      <button data-p="" class="${!fProject?"on":""}"><span class="dot" style="background:var(--muted)"></span><span class="nm">Tous les projets</span></button>
+      ${projects.map(p => `<button data-p="${p.id}" class="${fProject===p.id?"on":""}"><span class="dot" style="background:${p.color}"></span><span class="nm">${esc(p.name)}</span>${p.open_count?`<span class="n">${p.open_count}</span>`:""}</button>`).join("")}
+      <button data-p="aucun" class="${fProject==="aucun"?"on":""}"><span class="dot" style="background:var(--line)"></span><span class="nm">Sans projet</span></button>
+    </div>
+    <div class="sfoot">
+      <button class="acct" id="sAcct"><span class="avatar" style="display:grid;place-items:center">${legacy() ? "?" : esc(initials())}</span>
+        <span style="min-width:0"><div style="font-size:14px;font-weight:600">${legacy() ? "Mode ouvert" : esc(meInfo?.user?.name || "Mon compte")}</div><div class="em">${legacy() ? "Se connecter" : esc(meInfo?.user?.email || "")}</div></span></button>
+    </div>`;
+  $$("#side .snav button").forEach(b => b.onclick = () => setView(b.dataset.v));
+  $$("#side .swho button").forEach(b => b.onclick = () => setWho(b.dataset.w));
+  $$("#side .sproj button").forEach(b => b.onclick = () => setProject(b.dataset.p));
+  $("#sManage").onclick = () => openProjects(false);
+  $("#sAcct").onclick = () => legacy() ? showLogin() : openAccount();
+}
+function renderTabs(){
+  const cur = searching ? "search" : view;
+  $("#tabs").innerHTML = ["today","later","mail","done","search"].map(k => `<button data-v="${k}" class="${cur===k?"on":""}">${VIEWS[k]}${viewBadge(k)}</button>`).join("");
+  $$("#tabs button").forEach(b => b.onclick = () => setView(b.dataset.v));
+  const box = $("#pfilter");
+  if (view === "mail" && !searching) { box.innerHTML = ""; return; }
   const who = [["","Tous"],["moi","Moi"],["agent",`Agents IA${counts.agent ? ` <span class="n">${counts.agent}</span>` : ""}`]];
   box.innerHTML = `<div class="seg">${who.map(([k,l]) => `<button type="button" data-w="${k}" class="${fWho===k?"on":""} ${k==="agent"?"ag":""}">${l}</button>`).join("")}</div><span class="sep"></span>` +
     `<button class="pf ${!fProject?"on":""}" data-p="">Tous les projets</button>` +
     projects.map(p => `<button class="pf ${fProject===p.id?"on":""}" data-p="${p.id}"><span class="dot" style="background:${p.color}"></span>${esc(p.name)}${p.open_count?` <span class="n">${p.open_count}</span>`:""}</button>`).join("") +
     `<button class="pf ${fProject==="aucun"?"on":""}" data-p="aucun">Sans projet</button><button class="pf" id="manageP">Projets…</button>`;
-  box.querySelectorAll(".seg button").forEach(b => b.onclick = () => { fWho = b.dataset.w; store.set("todo_fwho", fWho); load(); });
-  box.querySelectorAll(".pf[data-p]").forEach(b => b.onclick = () => { fProject = b.dataset.p; store.set("todo_fproject", fProject); $("#nProj").value = ""; load(); });
+  $$("#pfilter .seg button").forEach(b => b.onclick = () => setWho(b.dataset.w));
+  $$("#pfilter .pf[data-p]").forEach(b => b.onclick = () => setProject(b.dataset.p));
   $("#manageP").onclick = () => openProjects(false);
 }
-
-function renderNav(){
-  const tabs = [["today","Aujourd'hui",counts.today],["later","Plus tard",counts.later],["done","Fait récemment",counts.done],["search","Rechercher",null]];
-  $("#nav").innerHTML = tabs.map(([k,l,n]) => `<button data-v="${k}" class="${(searching ? k==="search" : k===view) ? "on":""}">${l}${n!=null?`<span class="n">${n}</span>`:""}</button>`).join("");
-  $("#nav").querySelectorAll("button").forEach(b => b.onclick = () => setView(b.dataset.v));
+function renderHead(){
+  const cur = searching ? "search" : view;
+  const p = projById(fProject);
+  const scope = [p ? p.name : fProject === "aucun" ? "Sans projet" : "", fWho === "agent" ? "Agents IA" : fWho === "moi" ? "Moi" : ""].filter(Boolean).join(" · ");
+  $("#vhead").innerHTML = `<h2>${VIEWS[cur]}</h2>${cur !== "mail" && scope ? `<span class="sub">${esc(scope)}</span>` : ""}`;
+  $("#addZone").style.display = cur === "mail" ? "none" : "";
 }
+function renderNav(){ renderSide(); renderTabs(); renderHead(); }
+function setView(v){
+  if (v === "search"){ searching = true; $("#searchBox").classList.add("on"); $("#q").focus(); tasks = []; renderNav(); renderList(); return; }
+  searching = false; $("#searchBox").classList.remove("on"); $("#q").value = "";
+  view = v; store.set("todo_view", v); load();
+}
+function setWho(w){ fWho = w; store.set("todo_fwho", w); if (view === "mail") { view = "today"; store.set("todo_view", view); } load(); }
+function setProject(p){ fProject = p; store.set("todo_fproject", p); if ($("#nProj")) $("#nProj").value = ""; if (view === "mail") { view = "today"; store.set("todo_view", view); } load(); }
 
+// ---------- Liste des tâches ----------
 function renderList(){
-  const ul = $("#list");
+  const ul = document.createElement("ul"); ul.id = "list";
+  $("#content").replaceChildren(ul);
   if (!tasks.length){
     const msg = searching ? ["Aucun résultat",""] :
       view === "today" ? ["Rien pour aujourd'hui","Profite, ou avance sur Plus tard."] :
@@ -291,14 +513,13 @@ function renderList(){
     }
     const pr = projById(t.project_id);
     if (pr && fProject !== pr.id) meta.unshift(`<span class="ptag"><span class="dot" style="background:${pr.color}"></span>${esc(pr.name)}</span>`);
-    const link = t.status === "open" && safeUrl(t.link_url)
-      ? `<a class="tlink" href="${esc(t.link_url)}" target="_blank" rel="noopener">↗ ${esc(t.link_label || "Ouvrir le mail")}</a>` : "";
+    const link = t.status === "open" && safeUrl(t.link_url) ? `<a class="tlink" href="${esc(t.link_url)}" target="_blank" rel="noopener">↗ ${esc(t.link_label || "Ouvrir le mail")}</a>` : "";
     return `<li data-id="${t.id}"><div class="bgR">✓ Fait</div><div class="bgL">Reporter →</div>
       <div class="row ${t.status === "done" ? "done":""}">
         <button class="check" aria-label="${t.status==="done"?"Rouvrir":"Terminer"}"></button>
         <div class="body"><div class="title">${esc(t.title)}</div>${meta.length?`<div class="meta">${meta.map(m=>`<span>${m}</span>`).join("")}</div>`:""}${link}</div>
         <button class="more" aria-label="Options">⋯</button></div></li>`;
-  }).join("");
+  }).join("") + `<div class="foot mob">Glisse à droite pour terminer, à gauche pour reporter</div>`;
   ul.querySelectorAll("li").forEach(li => {
     const t = tasks.find(x => x.id === li.dataset.id);
     li.querySelector(".check").onclick = () => t.status === "done" ? reopen(t) : complete(t);
@@ -309,30 +530,38 @@ function renderList(){
   });
 }
 
-// ---------- Clôtures proposées (V2.0) ----------
+// ---------- C'est fait ? ----------
 const SRC = { mail: "Mail", agenda: "Agenda", autre: "Preuve" };
-function renderAsks(){
-  const box = $("#asks"); if (!box) return;
-  const ps = overview?.pending || [];
-  if (!ps.length){ box.innerHTML = ""; return; }
-  box.innerHTML = `<div class="asksH">C'est fait ?<span class="n">${ps.length}</span>${overview.mode === "simulation" ? `<span class="sim">Rien ne se ferme sans toi</span>` : ""}</div>` +
-    ps.map(p => `<div class="ask" data-id="${p.id}">
-      <div class="at">${esc(p.task_title)}</div>
+function asksHtml(ps){
+  if (!ps.length) return "";
+  return `<div class="asksH">C'est fait ?<span class="n">${ps.length}</span>${overview?.mode === "simulation" ? `<span class="sim">Rien ne se ferme sans toi</span>` : ""}</div>` +
+    ps.map(p => `<div class="ask" data-id="${p.id}"><div class="at">${esc(p.task_title)}</div>
       <div class="ap"><b>${SRC[p.source] || "Preuve"}</b> · ${esc(p.proof)}</div>
-      <div class="ab"><span class="ac">Certitude ${Math.round(p.confidence * 100)} %</span>
-        <button class="no">Non</button><button class="yes">Oui, fermer</button></div></div>`).join("");
-  box.querySelectorAll(".ask").forEach(el => {
+      <div class="ab"><span class="ac">Certitude ${Math.round(p.confidence * 100)} %</span><button class="no">Non</button><button class="yes">Oui, fermer</button></div></div>`).join("");
+}
+function bindAsks(root, ps){
+  root.querySelectorAll(".ask").forEach(el => {
     const p = ps.find(x => x.id === el.dataset.id);
     el.querySelector(".yes").onclick = () => decide(p, true, el);
     el.querySelector(".no").onclick = () => decide(p, false, el);
   });
 }
+function renderAsks(){
+  const ps = overview?.pending || [];
+  const box = $("#asks"); box.innerHTML = view === "mail" ? "" : asksHtml(ps); bindAsks(box, ps);
+  const a = $("#aside"); if (!a) return;
+  const top = view === "mail" && mailTab !== "nouveau" ? [] : (mailData?.items || []).filter(m => m.status === "nouveau" && m.priority >= 70).slice(0, 5);
+  a.innerHTML = (ps.length ? asksHtml(ps) : `<div class="asksH">C'est fait ?</div><div class="calm">Aucune clôture à valider. La vérification passe chaque heure.</div>`) +
+    (legacy() ? "" : `<h3>Mails prioritaires sans réponse</h3>` + (top.length ? top.map(m => `<button class="mini" data-m="${m.id}"><div class="ms">${esc(m.subject || "(sans objet)")}</div><div class="mf">${esc(m.from_name || m.from_email)} · ${fmtAgo(m.received_at)}</div></button>`).join("")
+      : `<div class="calm">Rien d'urgent.</div>`));
+  bindAsks(a, ps);
+  a.querySelectorAll(".mini").forEach(b => b.onclick = () => setView("mail"));
+}
 async function decide(p, accept, el){
   el.classList.add("busy");
   try {
     await api(`/proposals/${p.id}/${accept ? "accept" : "reject"}`, { method:"POST", body:"{}" });
-    if (accept) toast("Fermée sur preuve", () => reopen({ id: p.task_id }));
-    else toast("Gardée ouverte");
+    if (accept) toast("Fermée sur preuve", () => reopen({ id: p.task_id })); else toast("Gardée ouverte");
     load();
   } catch(e){ el.classList.remove("busy"); toast(e.message); load(); }
 }
@@ -352,21 +581,127 @@ function autoInfo(o){
   return `<div class="autoinfo"><b>Clôture automatique</b> ${mode}.<br>${last}${bilan}</div>`;
 }
 
-// ---------- Actions ----------
+// ---------- Section Mail ----------
+const PROVNAME = { gmail:"Gmail", outlook:"Outlook", claude:"Gmail via Claude" };
+const PROVCOLOR = { gmail:"#d14836", outlook:"#2f6fd1", claude:"#c27a1f" };
+const prioCls = p => p >= 70 ? ["h","Haute"] : p >= 45 ? ["m","Moyenne"] : ["l","Basse"];
+async function loadMail(){
+  if (legacy()) { mailData = null; return; }
+  try { mailData = await api("/mail?status=" + mailTab); } catch(e){ mailData = null; }
+}
+function renderMail(){
+  const c = $("#content");
+  if (legacy()) {
+    c.innerHTML = `<div class="empty"><b>Connecte-toi pour la section Mail</b>Tes mails restent privés : la section Mail demande une connexion.<br><br><button class="btn primary" id="mLogin">Se connecter</button></div>`;
+    $("#mLogin").onclick = () => showLogin(); return;
+  }
+  if (!mailData) { c.innerHTML = `<div class="empty"><b>Chargement…</b></div>`; return; }
+  const d = mailData, cnt = d.counts || {};
+  const days = d.settings?.lookback_days || 14;
+  const accts = d.accounts.map(a => {
+    const st = a.provider === "claude" ? (a.last_sync_at ? `mis à jour ${fmtAgo(a.last_sync_at)} · vérifié chaque heure` : "première mise à jour au prochain passage")
+      : a.status === "reconnect" ? `<span class="as err">à reconnecter</span>` : a.status === "error" ? `<span class="as err">${esc(a.last_error || "erreur")}</span>`
+      : a.last_sync_at ? `mis à jour ${fmtAgo(a.last_sync_at)}` : "jamais mis à jour";
+    return `<div class="acc"><span class="ai" style="background:${PROVCOLOR[a.provider]}">${a.provider === "outlook" ? "O" : "G"}</span>
+      <div class="at"><div>${esc(a.email)}</div><div class="as">${PROVNAME[a.provider]} · ${st}</div></div>
+      ${a.provider !== "claude" ? `<button data-del="${a.id}">Retirer</button>` : ""}</div>`;
+  }).join("");
+  const noProv = !d.providers.gmail && !d.providers.outlook;
+  c.innerHTML = `<div class="mailbar">
+      <label class="opt"><span class="lbl">Remonter</span><select id="mDays">${[7,14,21,28].map(n => `<option value="${n}" ${n===days?"selected":""}>${n/7} semaine${n>7?"s":""}</option>`).join("")}</select></label>
+      <span class="grow"></span>
+      <button class="btn" id="mGmail" ${d.providers.gmail ? "" : "disabled title=\"Connexion directe pas encore configurée\""}>+ Gmail</button>
+      <button class="btn" id="mOutlook" ${d.providers.outlook ? "" : "disabled title=\"Connexion directe pas encore configurée\""}>+ Outlook</button>
+      <button class="btn primary" id="mRefresh">Mettre à jour</button></div>
+    ${accts ? `<div class="accts">${accts}</div>` : `<div class="calm" style="margin-bottom:10px">Aucune boîte connectée pour l'instant.</div>`}
+    ${noProv ? `<div class="hint" style="margin:-4px 4px 10px">Connexion directe de Gmail et Outlook : en cours de configuration.</div>` : ""}
+    <div class="msub">${[["nouveau","À traiter",cnt.nouveau],["ajoute","Dans la To Do",cnt.ajoute],["ignore","Ignorés",cnt.ignore]].map(([k,l,n]) => `<button data-t="${k}" class="${mailTab===k?"on":""}">${l}${n?` ${n}`:""}</button>`).join("")}</div>
+    <div id="mlist">${d.items.length ? d.items.map(mailCard).join("") : `<div class="empty"><b>${mailTab === "nouveau" ? "Aucun mail en attente de réponse" : "Rien ici"}</b>${mailTab === "nouveau" ? `Sur les ${days} derniers jours.` : ""}</div>`}</div>`;
+  $("#mDays").onchange = async () => { try { await api("/mail/settings", { method:"PATCH", body: JSON.stringify({ lookback_days: +$("#mDays").value }) }); toast("Période enregistrée, appliquée à la prochaine mise à jour"); } catch(e){ toast(e.message); } };
+  $("#mRefresh").onclick = refreshMail;
+  $("#mGmail").onclick = () => connectMail("gmail");
+  $("#mOutlook").onclick = () => connectMail("outlook");
+  c.querySelectorAll("[data-del]").forEach(b => b.onclick = async () => { if (b.textContent !== "Confirmer") { b.textContent = "Confirmer"; return; } try { await api(`/mail/accounts/${b.dataset.del}`, { method:"DELETE" }); toast("Boîte retirée"); await loadMail(); renderMail(); } catch(e){ toast(e.message); } });
+  c.querySelectorAll(".msub button").forEach(b => b.onclick = async () => { mailTab = b.dataset.t; await loadMail(); renderMail(); renderAsks(); });
+  c.querySelectorAll(".mail").forEach(el => {
+    const m = d.items.find(x => x.id === el.dataset.id);
+    el.querySelector(".madd")?.addEventListener("click", () => openAddMail(m));
+    el.querySelector(".mign")?.addEventListener("click", () => mailStatus(m, "ignore"));
+    el.querySelector(".mres")?.addEventListener("click", () => mailStatus(m, "restore"));
+  });
+}
+function mailCard(m){
+  const [cls, lab] = prioCls(m.priority);
+  return `<div class="mail" data-id="${m.id}">
+    <div class="mh">${mailTab === "nouveau" ? `<span class="prio ${cls}">${lab}</span>` : ""}<span class="from">${esc(m.from_name || m.from_email)}</span><span class="age">${fmtAgo(m.received_at)}</span></div>
+    <div class="msj">${esc(m.subject || "(sans objet)")}</div>
+    ${m.snippet ? `<div class="msn">${esc(m.snippet)}</div>` : ""}
+    ${m.priority_reason && mailTab === "nouveau" ? `<div class="mwhy">${esc(m.priority_reason)}</div>` : ""}
+    <div class="ma">${safeUrl(m.url) ? `<a href="${esc(m.url)}" target="_blank" rel="noopener">Ouvrir le mail ↗</a>` : `<span style="margin-right:auto"></span>`}
+      ${mailTab === "nouveau" ? `<button class="btn mign">Ignorer</button><button class="btn primary madd">Ajouter à la To Do</button>`
+        : mailTab === "ignore" ? `<button class="btn mres">Remettre à traiter</button>` : `<span class="ok">✓ Dans la To Do</span>`}</div></div>`;
+}
+async function refreshMail(){
+  const b = $("#mRefresh"); b.disabled = true; b.textContent = "Mise à jour…";
+  try {
+    const r = await api("/mail/refresh", { method:"POST", body:"{}" });
+    const parts = r.accounts.map(a => a.via_claude ? "Gmail via Claude : mise à jour demandée, faite au prochain passage horaire"
+      : a.error ? `${a.email} : ${a.error}` : a.skipped ? `${a.email} : ${a.skipped}` : `${a.email} : ${a.found} sans réponse`);
+    toast(parts.join(" · ") || "Aucune boîte connectée");
+    await loadMail(); renderMail(); refreshCounts();
+  } catch(e){ toast(e.message); }
+  finally { const x = $("#mRefresh"); if (x) { x.disabled = false; x.textContent = "Mettre à jour"; } }
+}
+async function connectMail(p){
+  try { const r = await api(`/mail/connect/${p}`, { method:"POST", body: JSON.stringify({ redirect: APP }) }); location.href = r.url; }
+  catch(e){ toast(e.message); }
+}
+async function mailStatus(m, action){
+  try { await api(`/mail/${m.id}/${action}`, { method:"POST", body:"{}" }); toast(action === "ignore" ? "Ignoré" : "Remis à traiter", action === "ignore" ? () => mailStatus(m, "restore") : null); await loadMail(); renderMail(); refreshCounts(); }
+  catch(e){ toast(e.message); }
+}
+function openAddMail(m){
+  const who = m.from_name || m.from_email;
+  $("#panel").innerHTML = `<h3>Ajouter à la To Do</h3>
+    <p>${esc(who)} · « ${esc(m.subject || "(sans objet)")} »</p>
+    <label>Titre</label><input id="amt" value="${esc(`Répondre à ${who} : ${m.subject || "(sans objet)"}`)}">
+    <label>Projet</label><select id="amp"><option value="">Sans projet</option>${projects.map(p => `<option value="${p.id}" ${fProject===p.id?"selected":""}>${esc(p.name)}</option>`).join("")}</select>
+    <label>Échéance</label><input type="date" id="amd" value="${m.priority >= 70 ? todayISO(0) : ""}">
+    <label>Qui fait la tâche</label><div class="seg" id="amw"><button type="button" data-w="moi" class="on">Moi</button><button type="button" data-w="agent" class="ag">Agent IA</button></div>
+    <p>La tâche se fermera sur preuve quand ta réponse partira dans ce fil.</p>
+    <div class="actions"><button id="cancel">Annuler</button><button class="primary" id="ok">Ajouter</button></div>`;
+  let w = "moi";
+  $$("#amw button").forEach(b => b.onclick = () => { w = b.dataset.w; $$("#amw button").forEach(x => x.classList.toggle("on", x === b)); });
+  $("#cancel").onclick = closeSheet;
+  $("#ok").onclick = async () => {
+    try {
+      await api(`/mail/${m.id}/add`, { method:"POST", body: JSON.stringify({ title: $("#amt").value.trim(), project_id: $("#amp").value || null, due_date: $("#amd").value || null, assignee: w }) });
+      closeSheet(); toast("Ajouté à la To Do"); await loadMail(); renderMail(); refreshCounts();
+    } catch(e){ toast(e.message); }
+  };
+  openSheet();
+}
+
+// ---------- Chargement ----------
+function qs(){ const q = new URLSearchParams(); if (fProject) q.set("project", fProject); if (fWho) q.set("assignee", fWho); return q.toString(); }
+async function refreshCounts(){ try { counts = await api("/counts" + (qs() ? "?" + qs() : "")); renderNav(); renderAsks(); } catch {} }
 async function load(){
   try {
     const q = qs();
-    const [list, c, o, ps] = await Promise.all([api("/tasks?view=" + view + (q ? "&" + q : "")), api("/counts" + (q ? "?" + q : "")),
-      api("/proposals").catch(() => null), api("/projects").catch(() => projects)]);
+    const isMail = view === "mail";
+    const [list, c, o, ps] = await Promise.all([
+      isMail ? Promise.resolve([]) : api("/tasks?view=" + view + (q ? "&" + q : "")),
+      api("/counts" + (q ? "?" + q : "")), api("/proposals").catch(() => null), api("/projects").catch(() => projects),
+    ]);
     projects = ps;
     if (fProject && fProject !== "aucun" && !projById(fProject)) { fProject = ""; store.set("todo_fproject", ""); return load(); }
-    tasks = list; counts = c; overview = o; renderNav(); renderFilters(); renderNewProj(); renderList(); renderAsks();
-  } catch(e){ toast(e.message); }
-}
-function setView(v){
-  if (v === "search"){ searching = true; $("#searchBox").classList.add("on"); $("#q").focus(); tasks = []; renderNav(); renderList(); return; }
-  searching = false; $("#searchBox").classList.remove("on"); $("#q").value = "";
-  view = v; store.set("todo_view", v); load();
+    tasks = list; counts = c; overview = o;
+    if (!isMail) mailTab = "nouveau";
+    if (isMail || isWide()) await loadMail();
+    renderNav(); renderNewProj();
+    if (isMail) renderMail(); else renderList();
+    renderAsks();
+  } catch(e){ if (e.status !== 401) toast(e.message); }
 }
 const hasDate = v => /\b(aujourd'hui|demain|lundi|mardi|mercredi|jeudi|vendredi|samedi|dimanche|semaine|\d{1,2}[\/.]\d{1,2})\b/i.test(v);
 async function onAdd(e){
@@ -429,17 +764,14 @@ async function onRecStop(){
   finally { btn.classList.remove("busy"); $("#hint").textContent = HINT; }
 }
 async function runDictate(texte){
-  try {
-    const r = await api("/dictate", { method: "POST", body: JSON.stringify({ texte }) });
-    openProposals(texte, r.proposals);
-  } catch(e){ toast(e.message); }
+  try { const r = await api("/dictate", { method: "POST", body: JSON.stringify({ texte }) }); openProposals(texte, r.proposals); }
+  catch(e){ toast(e.message); }
 }
 function openProposals(texte, props){
   if (!props.length) { toast("Aucune tâche reconnue dans la dictée"); return; }
   $("#panel").innerHTML = `<h3>${props.length} tâche${props.length>1?"s":""} reconnue${props.length>1?"s":""}</h3>
     <div class="transcript">${esc(texte)}</div>
-    <div id="props">${props.map((p,i) => `<div class="prop">
-      <input type="checkbox" data-i="${i}" ${p.duplicate_of ? "" : "checked"}>
+    <div id="props">${props.map((p,i) => `<div class="prop"><input type="checkbox" data-i="${i}" ${p.duplicate_of ? "" : "checked"}>
       <div class="pbody"><input class="pt" data-t="${i}" value="${esc(p.title)}">
         <div class="pmeta">${p.due_date ? fmtDue(p.due_date) : "Sans échéance"}${p.duplicate_of ? ` · <span class="dup">Déjà dans ta liste : « ${esc(p.duplicate_of.title)} »</span>` : ""}</div></div></div>`).join("")}</div>
     <div class="actions"><button id="cancel">Annuler</button><button class="primary" id="ok">Ajouter la sélection</button></div>`;
@@ -484,30 +816,21 @@ async function complete(t){
   try { await api(`/tasks/${t.id}/complete`, { method:"POST", body:"{}" }); toast("Terminée", () => reopen(t)); load(); }
   catch(e){ toast(e.message); load(); }
 }
-async function reopen(t){
-  try { await api(`/tasks/${t.id}/reopen`, { method:"POST", body:"{}" }); toast("Rouverte"); load(); } catch(e){ toast(e.message); }
-}
-async function patch(t, body, msg){
-  try { await api(`/tasks/${t.id}`, { method:"PATCH", body: JSON.stringify(body) }); closeSheet(); if (msg) toast(msg); load(); } catch(e){ toast(e.message); }
-}
+async function reopen(t){ try { await api(`/tasks/${t.id}/reopen`, { method:"POST", body:"{}" }); toast("Rouverte"); load(); } catch(e){ toast(e.message); } }
+async function patch(t, body, msg){ try { await api(`/tasks/${t.id}`, { method:"PATCH", body: JSON.stringify(body) }); closeSheet(); if (msg) toast(msg); load(); } catch(e){ toast(e.message); } }
+let confirmDelete = false;
 async function remove(t){
   if (!confirmDelete) { confirmDelete = true; $("#del").textContent = "Confirmer la suppression"; return; }
   try { await api(`/tasks/${t.id}`, { method:"DELETE" }); closeSheet(); toast("Supprimée"); load(); } catch(e){ toast(e.message); }
 }
-let confirmDelete = false;
 
 // ---------- Report et édition ----------
-function postponeOptions(){
-  return [["Aujourd'hui", todayISO(0)],["Demain", todayISO(1)],["Lundi", nextWeekday(1)],["Dans 1 semaine", todayISO(7)],["Sans date", null]];
-}
+function postponeOptions(){ return [["Aujourd'hui", todayISO(0)],["Demain", todayISO(1)],["Lundi", nextWeekday(1)],["Dans 1 semaine", todayISO(7)],["Sans date", null]]; }
 function openPostpone(t){
-  $("#panel").innerHTML = `<h3>Reporter « ${esc(t.title)} »</h3><div class="chips">${postponeOptions().map(([l,d],i)=>`<button data-i="${i}">${l}</button>`).join("")}</div>
+  $("#panel").innerHTML = `<h3>Reporter « ${esc(t.title)} »</h3><div class="chips">${postponeOptions().map(([l],i)=>`<button data-i="${i}">${l}</button>`).join("")}</div>
     <label>Date précise</label><input type="date" id="pd" value="${t.due_date||""}">
     <div class="actions"><button id="cancel">Fermer</button><button class="primary" id="ok">Valider la date</button></div>`;
-  $("#panel").querySelectorAll(".chips button").forEach(b => b.onclick = () => {
-    const [l,d] = postponeOptions()[+b.dataset.i];
-    patch(t, { due_date: d, pinned_today: false }, `Reportée · ${l}`);
-  });
+  $("#panel").querySelectorAll(".chips button").forEach(b => b.onclick = () => { const [l,d] = postponeOptions()[+b.dataset.i]; patch(t, { due_date: d, pinned_today: false }, `Reportée · ${l}`); });
   $("#ok").onclick = () => patch(t, { due_date: $("#pd").value || null, pinned_today:false }, "Date modifiée");
   $("#cancel").onclick = closeSheet; openSheet();
 }
@@ -521,15 +844,11 @@ function openEdit(t){
     <label>Projet</label><select id="eproj"><option value="">Sans projet</option>${projects.map(p => `<option value="${p.id}" ${p.id===t.project_id?"selected":""}>${esc(p.name)}</option>`).join("")}</select>
     <label>Qui fait la tâche</label><div class="seg" id="ewho"><button type="button" data-w="moi" class="${t.assignee!=="agent"?"on":""}">Moi</button><button type="button" data-w="agent" class="ag ${t.assignee==="agent"?"on":""}">Agent IA</button></div>
     ${safeUrl(t.link_url) ? `<label>Mail lié</label><div class="linkrow"><a href="${esc(t.link_url)}" target="_blank" rel="noopener">↗ ${esc(t.link_label || "Ouvrir le mail")}</a><button id="unlink">Retirer</button></div>` : ""}
-    ${open ? `<div class="chips"><button id="pin">${t.pinned_today ? "Retirer d'Aujourd'hui" : "Épingler dans Aujourd'hui"}</button><button id="pp">Reporter…</button></div>` : ""}
-    <div class="actions">
-      <button class="danger" id="del">Supprimer</button>
-      ${open ? `<button id="cmp">Terminer</button>` : `<button id="rop">Rouvrir</button>`}
-      <button class="primary" id="save">Enregistrer</button></div>`;
+    ${open ? `<div class="chips" style="margin-top:12px"><button id="pin">${t.pinned_today ? "Retirer d'Aujourd'hui" : "Épingler dans Aujourd'hui"}</button><button id="pp">Reporter…</button></div>` : ""}
+    <div class="actions"><button class="danger" id="del">Supprimer</button>${open ? `<button id="cmp">Terminer</button>` : `<button id="rop">Rouvrir</button>`}<button class="primary" id="save">Enregistrer</button></div>`;
   let ewho = t.assignee === "agent" ? "agent" : "moi";
-  $("#ewho").querySelectorAll("button").forEach(b => b.onclick = () => { ewho = b.dataset.w; $("#ewho").querySelectorAll("button").forEach(x => x.classList.toggle("on", x === b)); });
-  $("#save").onclick = () => patch(t, { title: $("#et").value.trim() || t.title, notes: $("#en").value.trim() || null, due_date: $("#ed").value || null,
-    project_id: $("#eproj").value || null, assignee: ewho }, "Enregistrée");
+  $$("#ewho button").forEach(b => b.onclick = () => { ewho = b.dataset.w; $$("#ewho button").forEach(x => x.classList.toggle("on", x === b)); });
+  $("#save").onclick = () => patch(t, { title: $("#et").value.trim() || t.title, notes: $("#en").value.trim() || null, due_date: $("#ed").value || null, project_id: $("#eproj").value || null, assignee: ewho }, "Enregistrée");
   $("#del").onclick = () => remove(t);
   if ($("#unlink")) $("#unlink").onclick = () => patch(t, { link_url: null }, "Lien retiré");
   if (open){
@@ -539,6 +858,7 @@ function openEdit(t){
   } else $("#rop").onclick = () => { closeSheet(); reopen(t); };
   openSheet();
 }
+
 // ---------- Projets ----------
 let delArm = null;
 function openProjects(focusNew){
@@ -546,8 +866,7 @@ function openProjects(focusNew){
   $("#panel").innerHTML = `<h3>Projets</h3>
     <div id="plist">${projects.length ? projects.map(p => `<div class="prow" data-id="${p.id}">
       <button class="sw" style="background:${p.color}" aria-label="Changer la couleur"></button>
-      <input value="${esc(p.name)}" aria-label="Nom du projet" maxlength="60">
-      <span class="pc">${p.open_count || 0}</span>
+      <input value="${esc(p.name)}" aria-label="Nom du projet" maxlength="60"><span class="pc">${p.open_count || 0}</span>
       <button class="x">Supprimer</button></div>`).join("") : `<div class="empty" style="padding:16px">Aucun projet pour l'instant.</div>`}</div>
     <form class="newp" id="newp"><input id="np" placeholder="Nouveau projet" maxlength="60" autocomplete="off"><button>Créer</button></form>
     <div class="hint">Supprimer un projet garde ses tâches, sans projet.</div>
@@ -579,6 +898,51 @@ function openProjects(focusNew){
   openSheet();
   if (focusNew) setTimeout(() => $("#np")?.focus(), 50);
 }
+
+// ---------- Compte et clés ----------
+async function openAccount(){
+  if (legacy()) return showLogin();
+  const u = meInfo.user;
+  $("#panel").innerHTML = `<h3>Mon compte</h3><p><b style="color:var(--ink)">${esc(u.name || "")}</b> ${esc(u.email)}</p>
+    <h4>Clés d'accès</h4><p>Pour Siri, Claude, ChatGPT ou un autre appareil. Une clé donne accès à toute ta liste : garde-la pour toi.</p>
+    <div id="klist"><p>Chargement…</p></div>
+    <form class="newp" id="newk"><input id="kl" placeholder="Nom de la clé (ex. Siri iPhone)" maxlength="60"><button>Créer</button></form>
+    <div id="knew"></div>
+    ${u.role === "admin" ? `<h4>Accès sans connexion</h4><div class="toggle"><span style="font-size:14px">${meInfo.legacy_open ? "Ouvert : l'ancienne app et Siri sans clé voient ta liste." : "Fermé : seule une connexion ou une clé donne accès."}</span>
+      <button class="btn" id="legacyBtn">${meInfo.legacy_open ? "Fermer" : "Rouvrir"}</button></div>` : ""}
+    <div class="actions"><button class="danger" id="lo">Se déconnecter</button><button class="primary" id="cancel">Fermer</button></div>`;
+  $("#cancel").onclick = closeSheet;
+  $("#lo").onclick = logout;
+  if ($("#legacyBtn")) $("#legacyBtn").onclick = async () => {
+    try { const r = await api("/admin/legacy", { method:"POST", body: JSON.stringify({ open: !meInfo.legacy_open }) }); meInfo.legacy_open = r.legacy_open; toast(r.legacy_open ? "Accès sans connexion rouvert" : "Accès sans connexion fermé"); openAccount(); }
+    catch(e){ toast(e.message); }
+  };
+  $("#newk").onsubmit = async e => {
+    e.preventDefault();
+    try {
+      const k = await api("/keys", { method:"POST", body: JSON.stringify({ label: $("#kl").value.trim() || "Clé" }) });
+      $("#kl").value = "";
+      $("#knew").innerHTML = `<p style="color:var(--ink);margin-top:12px"><b>Copie-la maintenant, elle ne sera plus affichée.</b></p>
+        <div class="secret">${esc(k.key)}</div><button class="cbtn" data-c="${esc(k.key)}">Copier la clé</button>
+        <p>Siri (raccourci, action « Obtenir le contenu de l'URL ») :</p><div class="secret">${esc(API)}/voice?key=${esc(k.key)}</div><button class="cbtn" data-c="${esc(API)}/voice?key=${esc(k.key)}">Copier</button>
+        <p>Claude ou ChatGPT (connecteur MCP) :</p><div class="secret">${esc(API)}/mcp/${esc(k.key)}</div><button class="cbtn" data-c="${esc(API)}/mcp/${esc(k.key)}">Copier</button>`;
+      $$("#knew .cbtn").forEach(b => b.onclick = async () => { try { await navigator.clipboard.writeText(b.dataset.c); toast("Copié"); } catch { toast("Copie impossible, sélectionne le texte"); } });
+      loadKeys();
+    } catch(e){ toast(e.message); }
+  };
+  openSheet(); loadKeys();
+}
+async function loadKeys(){
+  try {
+    const ks = await api("/keys");
+    $("#klist").innerHTML = ks.length ? ks.map(k => `<div class="krow"><div class="kl">${esc(k.label)}<div class="kd">créée ${fmtAgo(k.created_at)}${k.last_used_at ? ` · utilisée ${fmtAgo(k.last_used_at)}` : ""}</div></div><button data-k="${k.id}">Révoquer</button></div>`).join("") : `<p>Aucune clé.</p>`;
+    $$("#klist button").forEach(b => b.onclick = async () => {
+      if (b.textContent !== "Confirmer") { b.textContent = "Confirmer"; return; }
+      try { await api(`/keys/${b.dataset.k}`, { method:"DELETE" }); toast("Clé révoquée"); loadKeys(); } catch(e){ toast(e.message); }
+    });
+  } catch(e){ $("#klist").innerHTML = `<p>${esc(e.message)}</p>`; }
+}
+
 function openSheet(){ $("#toast").classList.remove("on"); $("#sheet").classList.add("on"); }
 function closeSheet(){ $("#sheet").classList.remove("on"); }
 $("#sheet").onclick = e => { if (e.target.id === "sheet") { closeSheet(); if ($("#plist")) load(); } };
@@ -608,13 +972,24 @@ function toast(msg, undo, label){
   $("#toastMsg").textContent = msg; const b = $("#toastUndo");
   b.textContent = label || "Annuler";
   b.style.display = undo ? "" : "none"; b.onclick = () => { $("#toast").classList.remove("on"); undo && undo(); };
-  $("#toast").classList.add("on"); clearTimeout(toastTimer); toastTimer = setTimeout(() => $("#toast").classList.remove("on"), undo ? 7000 : 4000);
+  $("#toast").classList.add("on"); clearTimeout(toastTimer); toastTimer = setTimeout(() => $("#toast").classList.remove("on"), undo ? 7000 : 5000);
 }
 function debounce(f, ms){ let t; return (...a) => { clearTimeout(t); t = setTimeout(() => f(...a), ms); }; }
-document.addEventListener("visibilitychange", () => { if (!document.hidden && !searching) load(); });
+document.addEventListener("visibilitychange", () => { if (!document.hidden && !searching && meInfo && $("#content")) load(); });
 document.addEventListener("keydown", e => { if (e.key === "Escape") closeSheet(); if (e.key === "n" && document.activeElement === document.body) { e.preventDefault(); $("#new")?.focus(); } });
+matchMedia("(min-width:980px)").addEventListener?.("change", () => meInfo && $("#content") && load());
 
-function boot(){ store.del("todo_key"); renderShell(); renderNav(); load(); }
+async function boot(){
+  const msg = readHash();
+  store.del("todo_key");
+  try { meInfo = await api("/me"); }
+  catch(e){ meInfo = null; return showLogin(msg.auth || ""); }
+  if (msg.mail || msg.mailErr) { view = "mail"; store.set("todo_view", "mail"); }
+  renderShell(); renderBanner(); renderNav(); load();
+  if (msg.mail) toast(msg.mail);
+  if (msg.mailErr) toast("Connexion de la boîte impossible : " + msg.mailErr);
+  if (msg.auth) toast(msg.auth);
+}
 boot();
 if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js", { scope: "./" }).catch(()=>{});
 </script>
