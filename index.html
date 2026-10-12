@@ -198,6 +198,10 @@ li{position:relative;margin-bottom:8px;border-radius:var(--radius);overflow:hidd
 .mail .mopen:hover .msj{text-decoration:underline}
 .mail .mread{font-size:13px;color:var(--accent);margin-top:4px}
 @media (min-width:980px){.panel.read{max-width:760px}}
+.xclose{position:sticky;top:-18px;z-index:2;display:flex;justify-content:space-between;align-items:center;gap:8px;margin:-18px -16px 10px;padding:12px 16px;background:var(--card);border-bottom:1px solid var(--line)}
+.xclose .xt{font-size:13px;color:var(--muted)}
+.xclose button{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:999px;padding:8px 14px;font-size:14px;font-weight:600;cursor:pointer;min-height:40px}
+.xclose button:hover{background:var(--hover)}
 .rd .rh{font-size:13px;color:var(--muted);line-height:1.5}
 .rd .rh b{color:var(--ink);font-weight:600}
 .rd h3{margin:4px 0 8px;word-wrap:break-word}
@@ -653,7 +657,7 @@ function mailCard(m){
     <div class="mopen" role="button" tabindex="0" aria-label="Lire le mail"><div class="msj">${esc(m.subject || "(sans objet)")}</div>
     ${m.snippet ? `<div class="msn">${esc(m.snippet)}</div>` : ""}<div class="mread">Lire le mail complet</div></div>
     ${m.priority_reason && mailTab === "nouveau" ? `<div class="mwhy">${esc(m.priority_reason)}</div>` : ""}
-    <div class="ma">${safeUrl(m.url) ? `<a href="${esc(m.url)}" target="_blank" rel="noopener">Ouvrir le mail ↗</a>` : `<span style="margin-right:auto"></span>`}
+    <div class="ma">${mailLink(m, `Ouvrir dans ${m.provider === "outlook" ? "Outlook" : "Gmail"}`) || `<span style="margin-right:auto"></span>`}
       ${mailTab === "nouveau" ? `<button class="btn mign">Ignorer</button><button class="btn primary madd">Ajouter à la To Do</button>`
         : mailTab === "ignore" ? `<button class="btn mres">Remettre à traiter</button>` : `<span class="ok">✓ Dans la To Do</span>`}</div></div>`;
 }
@@ -677,19 +681,32 @@ async function mailStatus(m, action){
   catch(e){ toast(e.message); }
 }
 const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
-const gmailAppUrl = m => /^[0-9a-f]{12,20}$/i.test(m.thread_key || "") && (m.provider === "claude" || m.provider === "gmail") ? `googlegmail:///cv=${m.thread_key}/accountId=1&create-new-tab` : null;
+// Identifiant du fil Gmail : thread_key, ou déduit du lien (thread-f:<décimal> = identifiant hexadécimal du fil)
+function gmailThreadId(m){
+  if (/^[0-9a-f]{12,20}$/i.test(m.thread_key || "")) return m.thread_key;
+  const x = String(m.url || "").match(/thread-f:(\d{10,25})/);
+  try { return x ? BigInt(x[1]).toString(16) : null; } catch { return null; }
+}
+const gmailAppUrl = m => { const id = (m.provider === "claude" || m.provider === "gmail") ? gmailThreadId(m) : null; return id ? `googlegmail:///cv=${id}/accountId=1&create-new-tab` : null; };
+// Sur iPhone et iPad : ouvre directement l'app Gmail ; ailleurs : Gmail ou Outlook sur le web
+function mailLink(m, label){
+  const app = isIOS ? gmailAppUrl(m) : null;
+  if (app) return `<a href="${esc(app)}">${label}</a>`;
+  return safeUrl(m.url) ? `<a href="${esc(m.url)}" target="_blank" rel="noopener">${label} ↗</a>` : "";
+}
 const listAddr = v => Array.isArray(v) ? v.join(", ") : (v || "");
 async function openMail(m){
   $("#panel").classList.add("read");
-  const head = d => `<div class="rd"><div class="rh"><b>${esc(d.from_name || d.from_email)}</b>${d.from_name ? ` &lt;${esc(d.from_email)}&gt;` : ""}</div><h3>${esc(d.subject || "(sans objet)")}</h3>`;
+  const bar = `<div class="xclose"><span class="xt">Mail</span><button type="button" class="xbtn" aria-label="Fermer le mail">✕ Fermer</button></div>`;
+  const head = d => bar + `<div class="rd"><div class="rh"><b>${esc(d.from_name || d.from_email)}</b>${d.from_name ? ` &lt;${esc(d.from_email)}&gt;` : ""}</div><h3>${esc(d.subject || "(sans objet)")}</h3>`;
   $("#panel").innerHTML = head(m) + `<div class="rbody">Chargement…</div></div>`;
+  $("#panel .xbtn").onclick = closeSheet;
   openSheet();
   let d;
   try { d = await api(`/mail/${m.id}`); } catch(e){ d = { ...m, body: null, body_error: e.message }; }
   if (!$("#panel").classList.contains("read")) return;
   const b = d.body, meta = b?.meta || {};
   const when = new Date(meta.date || d.received_at).toLocaleString("fr-BE", { weekday:"short", day:"numeric", month:"short", hour:"2-digit", minute:"2-digit" });
-  const app = isIOS ? gmailAppUrl(d) : null;
   const files = (meta.pieces_jointes || []).filter(Boolean);
   const st = d.status || mailTab;
   $("#panel").innerHTML = head(d) + `<div class="rh">${esc(when)}${listAddr(meta.a) ? `<br>À : ${esc(listAddr(meta.a))}` : ""}${listAddr(meta.cc) ? `<br>Cc : ${esc(listAddr(meta.cc))}` : ""}${meta.messages > 1 ? `<br>${meta.messages} messages dans la conversation` : ""}</div>
@@ -697,10 +714,11 @@ async function openMail(m){
     ${files.length ? `<div class="rfiles">Pièces jointes : ${files.map(esc).join(", ")}</div>` : ""}
     ${!b ? `<div class="rnote">${d.body_error ? `Texte complet indisponible : ${esc(d.body_error)}.` : "Aperçu seulement : le texte complet arrive au prochain passage de Claude (chaque heure)."}</div>`
       : b.a_jour === false ? `<div class="rnote">Un message plus récent est arrivé dans ce fil : texte mis à jour au prochain passage.</div>` : ""}
-    <div class="rlinks">${safeUrl(d.url) ? `<a href="${esc(d.url)}" target="_blank" rel="noopener">Ouvrir dans ${d.provider === "outlook" ? "Outlook" : "Gmail"} ↗</a>` : ""}${app ? `<a href="${esc(app)}">Ouvrir dans l'app Gmail</a>` : ""}</div>
+    <div class="rlinks">${mailLink(d, `Ouvrir dans ${d.provider === "outlook" ? "Outlook" : "Gmail"}`)}</div>
     <div class="actions">${st === "nouveau" ? `<button id="rIgn">Ignorer</button><button class="primary" id="rAdd">Ajouter à la To Do</button>`
       : st === "ignore" ? `<button id="rRes">Remettre à traiter</button><button class="primary" id="cancel">Fermer</button>` : `<button class="primary" id="cancel">Fermer</button>`}</div></div>`;
   $("#cancel")?.addEventListener("click", closeSheet);
+  $("#panel .xbtn").onclick = closeSheet;
   $("#rIgn")?.addEventListener("click", () => { closeSheet(); mailStatus(m, "ignore"); });
   $("#rRes")?.addEventListener("click", () => { closeSheet(); mailStatus(m, "restore"); });
   $("#rAdd")?.addEventListener("click", () => openAddMail(m));
