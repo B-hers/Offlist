@@ -194,6 +194,18 @@ li{position:relative;margin-bottom:8px;border-radius:var(--radius);overflow:hidd
 .mail .ma{display:flex;gap:8px;align-items:center;margin-top:10px;flex-wrap:wrap}
 .mail .ma a{color:var(--accent);text-decoration:none;font-size:14px;margin-right:auto}
 .mail .ma .ok{color:var(--accent);font-size:13.5px;font-weight:600}
+.mail .mopen{cursor:pointer}
+.mail .mopen:hover .msj{text-decoration:underline}
+.mail .mread{font-size:13px;color:var(--accent);margin-top:4px}
+@media (min-width:980px){.panel.read{max-width:760px}}
+.rd .rh{font-size:13px;color:var(--muted);line-height:1.5}
+.rd .rh b{color:var(--ink);font-weight:600}
+.rd h3{margin:4px 0 8px;word-wrap:break-word}
+.rd .rbody{white-space:pre-wrap;word-wrap:break-word;font-size:14.5px;line-height:1.55;background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin:12px 0;max-height:52dvh;overflow:auto}
+.rd .rfiles{font-size:13px;color:var(--muted)}
+.rd .rnote{font-size:13px;color:var(--muted);margin-top:8px}
+.rd .rlinks{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.rd .rlinks a{color:var(--accent);text-decoration:none;font-size:14px;border:1px solid var(--line);border-radius:10px;padding:8px 12px}
 @media (max-width:600px){
   .mailbar{display:grid;grid-template-columns:1fr 1fr;gap:8px}
   .mailbar .opt{grid-column:1/-1}
@@ -246,6 +258,7 @@ li{position:relative;margin-bottom:8px;border-radius:var(--radius);overflow:hidd
 .prow button.x{flex:none;border:1px solid var(--line);background:var(--bg);color:var(--danger);border-radius:10px;padding:8px 10px;font-size:13px;cursor:pointer}
 .newp{display:flex;gap:8px;margin-top:12px}
 .newp input{flex:1;min-width:0}
+#inv{flex-wrap:wrap}#inv input{flex:1 1 160px}#inv button{min-height:42px}
 .newp button{flex:none;border:0;background:var(--accent);color:#fff;border-radius:10px;padding:0 14px;font-weight:600;cursor:pointer}
 .krow{display:flex;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line);font-size:14px}
 .krow .kl{flex:1;min-width:0}
@@ -555,7 +568,7 @@ function renderAsks(){
     (legacy() ? "" : `<h3>Mails prioritaires sans réponse</h3>` + (top.length ? top.map(m => `<button class="mini" data-m="${m.id}"><div class="ms">${esc(m.subject || "(sans objet)")}</div><div class="mf">${esc(m.from_name || m.from_email)} · ${fmtAgo(m.received_at)}</div></button>`).join("")
       : `<div class="calm">Rien d'urgent.</div>`));
   bindAsks(a, ps);
-  a.querySelectorAll(".mini").forEach(b => b.onclick = () => setView("mail"));
+  a.querySelectorAll(".mini").forEach(b => b.onclick = () => { const m = top.find(x => x.id === b.dataset.m); m ? openMail(m) : setView("mail"); });
 }
 async function decide(p, accept, el){
   el.classList.add("busy");
@@ -626,6 +639,9 @@ function renderMail(){
   c.querySelectorAll(".mail").forEach(el => {
     const m = d.items.find(x => x.id === el.dataset.id);
     el.querySelector(".madd")?.addEventListener("click", () => openAddMail(m));
+    const op = el.querySelector(".mopen");
+    op?.addEventListener("click", () => openMail(m));
+    op?.addEventListener("keydown", e => { if (e.key === "Enter") openMail(m); });
     el.querySelector(".mign")?.addEventListener("click", () => mailStatus(m, "ignore"));
     el.querySelector(".mres")?.addEventListener("click", () => mailStatus(m, "restore"));
   });
@@ -634,8 +650,8 @@ function mailCard(m){
   const [cls, lab] = prioCls(m.priority);
   return `<div class="mail" data-id="${m.id}">
     <div class="mh">${mailTab === "nouveau" ? `<span class="prio ${cls}">${lab}</span>` : ""}<span class="from">${esc(m.from_name || m.from_email)}</span><span class="age">${fmtAgo(m.received_at)}</span></div>
-    <div class="msj">${esc(m.subject || "(sans objet)")}</div>
-    ${m.snippet ? `<div class="msn">${esc(m.snippet)}</div>` : ""}
+    <div class="mopen" role="button" tabindex="0" aria-label="Lire le mail"><div class="msj">${esc(m.subject || "(sans objet)")}</div>
+    ${m.snippet ? `<div class="msn">${esc(m.snippet)}</div>` : ""}<div class="mread">Lire le mail complet</div></div>
     ${m.priority_reason && mailTab === "nouveau" ? `<div class="mwhy">${esc(m.priority_reason)}</div>` : ""}
     <div class="ma">${safeUrl(m.url) ? `<a href="${esc(m.url)}" target="_blank" rel="noopener">Ouvrir le mail ↗</a>` : `<span style="margin-right:auto"></span>`}
       ${mailTab === "nouveau" ? `<button class="btn mign">Ignorer</button><button class="btn primary madd">Ajouter à la To Do</button>`
@@ -660,7 +676,37 @@ async function mailStatus(m, action){
   try { await api(`/mail/${m.id}/${action}`, { method:"POST", body:"{}" }); toast(action === "ignore" ? "Ignoré" : "Remis à traiter", action === "ignore" ? () => mailStatus(m, "restore") : null); await loadMail(); renderMail(); refreshCounts(); }
   catch(e){ toast(e.message); }
 }
+const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+const gmailAppUrl = m => /^[0-9a-f]{12,20}$/i.test(m.thread_key || "") && (m.provider === "claude" || m.provider === "gmail") ? `googlegmail:///cv=${m.thread_key}/accountId=1&create-new-tab` : null;
+const listAddr = v => Array.isArray(v) ? v.join(", ") : (v || "");
+async function openMail(m){
+  $("#panel").classList.add("read");
+  const head = d => `<div class="rd"><div class="rh"><b>${esc(d.from_name || d.from_email)}</b>${d.from_name ? ` &lt;${esc(d.from_email)}&gt;` : ""}</div><h3>${esc(d.subject || "(sans objet)")}</h3>`;
+  $("#panel").innerHTML = head(m) + `<div class="rbody">Chargement…</div></div>`;
+  openSheet();
+  let d;
+  try { d = await api(`/mail/${m.id}`); } catch(e){ d = { ...m, body: null, body_error: e.message }; }
+  if (!$("#panel").classList.contains("read")) return;
+  const b = d.body, meta = b?.meta || {};
+  const when = new Date(meta.date || d.received_at).toLocaleString("fr-BE", { weekday:"short", day:"numeric", month:"short", hour:"2-digit", minute:"2-digit" });
+  const app = isIOS ? gmailAppUrl(d) : null;
+  const files = (meta.pieces_jointes || []).filter(Boolean);
+  const st = d.status || mailTab;
+  $("#panel").innerHTML = head(d) + `<div class="rh">${esc(when)}${listAddr(meta.a) ? `<br>À : ${esc(listAddr(meta.a))}` : ""}${listAddr(meta.cc) ? `<br>Cc : ${esc(listAddr(meta.cc))}` : ""}${meta.messages > 1 ? `<br>${meta.messages} messages dans la conversation` : ""}</div>
+    <div class="rbody">${b ? esc(b.text || "(message sans texte)") : esc(d.snippet || "")}</div>
+    ${files.length ? `<div class="rfiles">Pièces jointes : ${files.map(esc).join(", ")}</div>` : ""}
+    ${!b ? `<div class="rnote">${d.body_error ? `Texte complet indisponible : ${esc(d.body_error)}.` : "Aperçu seulement : le texte complet arrive au prochain passage de Claude (chaque heure)."}</div>`
+      : b.a_jour === false ? `<div class="rnote">Un message plus récent est arrivé dans ce fil : texte mis à jour au prochain passage.</div>` : ""}
+    <div class="rlinks">${safeUrl(d.url) ? `<a href="${esc(d.url)}" target="_blank" rel="noopener">Ouvrir dans ${d.provider === "outlook" ? "Outlook" : "Gmail"} ↗</a>` : ""}${app ? `<a href="${esc(app)}">Ouvrir dans l'app Gmail</a>` : ""}</div>
+    <div class="actions">${st === "nouveau" ? `<button id="rIgn">Ignorer</button><button class="primary" id="rAdd">Ajouter à la To Do</button>`
+      : st === "ignore" ? `<button id="rRes">Remettre à traiter</button><button class="primary" id="cancel">Fermer</button>` : `<button class="primary" id="cancel">Fermer</button>`}</div></div>`;
+  $("#cancel")?.addEventListener("click", closeSheet);
+  $("#rIgn")?.addEventListener("click", () => { closeSheet(); mailStatus(m, "ignore"); });
+  $("#rRes")?.addEventListener("click", () => { closeSheet(); mailStatus(m, "restore"); });
+  $("#rAdd")?.addEventListener("click", () => openAddMail(m));
+}
 function openAddMail(m){
+  $("#panel").classList.remove("read");
   const who = m.from_name || m.from_email;
   $("#panel").innerHTML = `<h3>Ajouter à la To Do</h3>
     <p>${esc(who)} · « ${esc(m.subject || "(sans objet)")} »</p>
@@ -909,13 +955,27 @@ async function openAccount(){
     <form class="newp" id="newk"><input id="kl" placeholder="Nom de la clé (ex. Siri iPhone)" maxlength="60"><button>Créer</button></form>
     <div id="knew"></div>
     ${u.role === "admin" ? `<h4>Accès sans connexion</h4><div class="toggle"><span style="font-size:14px">${meInfo.legacy_open ? "Ouvert : l'ancienne app et Siri sans clé voient ta liste." : "Fermé : seule une connexion ou une clé donne accès."}</span>
-      <button class="btn" id="legacyBtn">${meInfo.legacy_open ? "Fermer" : "Rouvrir"}</button></div>` : ""}
+      <button class="btn" id="legacyBtn">${meInfo.legacy_open ? "Fermer" : "Rouvrir"}</button></div>
+      <h4>Inviter quelqu'un</h4><p>Crée un compte séparé : la personne aura sa propre liste, invisible pour toi, et toi pour elle.</p>
+      <form class="newp" id="inv"><input id="ie" type="email" placeholder="E-mail" required><input id="in" placeholder="Prénom (optionnel)" maxlength="80"><button>Inviter</button></form>
+      <div id="inew"></div>` : ""}
     <div class="actions"><button class="danger" id="lo">Se déconnecter</button><button class="primary" id="cancel">Fermer</button></div>`;
   $("#cancel").onclick = closeSheet;
   $("#lo").onclick = logout;
   if ($("#legacyBtn")) $("#legacyBtn").onclick = async () => {
     try { const r = await api("/admin/legacy", { method:"POST", body: JSON.stringify({ open: !meInfo.legacy_open }) }); meInfo.legacy_open = r.legacy_open; toast(r.legacy_open ? "Accès sans connexion rouvert" : "Accès sans connexion fermé"); openAccount(); }
     catch(e){ toast(e.message); }
+  };
+  if ($("#inv")) $("#inv").onsubmit = async e => {
+    e.preventDefault();
+    try {
+      const r = await api("/admin/users", { method:"POST", body: JSON.stringify({ email: $("#ie").value.trim(), name: $("#in").value.trim() }) });
+      $("#ie").value = ""; $("#in").value = "";
+      const msg = `Voici ton accès à la To Do :\n1. Ouvre ${APP}\n2. Colle cette clé et clique « Se connecter avec ma clé » :\n${r.key}\nGarde-la pour toi, elle donne accès à ta liste.`;
+      $("#inew").innerHTML = `<p style="color:var(--ink);margin-top:12px"><b>Compte créé pour ${esc(r.user.email)}.</b> Envoie-lui ce message, la clé ne sera plus affichée.</p>
+        <div class="secret" style="white-space:pre-wrap">${esc(msg)}</div><button class="cbtn" data-c="${esc(msg)}">Copier le message</button>`;
+      $$("#inew .cbtn").forEach(b => b.onclick = async () => { try { await navigator.clipboard.writeText(b.dataset.c); toast("Copié"); } catch { toast("Copie impossible, sélectionne le texte"); } });
+    } catch(e){ toast(e.message); }
   };
   $("#newk").onsubmit = async e => {
     e.preventDefault();
@@ -944,7 +1004,7 @@ async function loadKeys(){
 }
 
 function openSheet(){ $("#toast").classList.remove("on"); $("#sheet").classList.add("on"); }
-function closeSheet(){ $("#sheet").classList.remove("on"); }
+function closeSheet(){ $("#sheet").classList.remove("on"); $("#panel").classList.remove("read"); }
 $("#sheet").onclick = e => { if (e.target.id === "sheet") { closeSheet(); if ($("#plist")) load(); } };
 
 // ---------- Glisser ----------
