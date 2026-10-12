@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Test liens Gmail</title>
+<style>
+  :root{--bg:#f6f5f1;--card:#fff;--ink:#1d1d1b;--muted:#6b6a65;--line:#e4e2dc;--accent:#1f7a4d}
+  @media (prefers-color-scheme: dark){:root{--bg:#141413;--card:#1e1e1c;--ink:#f1efe8;--muted:#a3a19a;--line:#33322f;--accent:#4cc38a}}
+  body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+  main{max-width:560px;margin:0 auto;padding:20px 16px 40px}
+  h1{font-size:22px;margin:0 0 6px}
+  p{color:var(--muted);margin:0 0 16px;font-size:14.5px}
+  a{display:flex;gap:12px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:10px;color:var(--ink);text-decoration:none}
+  a b{flex:none;width:30px;height:30px;border-radius:50%;background:var(--accent);color:#fff;display:grid;place-items:center;font-size:15px}
+  a span{font-size:14.5px}
+</style>
+</head>
+<body>
+<main>
+  <h1>Test : ouvrir un mail dans Gmail</h1>
+  <p>Mail testé : « 2 ème RELANCE Paiement FC110_2026 WEGREEN » (Dessineo, 5 oct.). Touche chaque lien, reviens ici, et note les numéros qui ouvrent directement ce mail dans l'app Gmail.</p>
+  <a href="googlegmail:///cv=1a10b484c363cf3a/accountId=1&create-new-tab"><b>1</b><span>App, fil, compte 1 (version actuelle)</span></a>
+  <a href="googlegmail:///cv=1a10b484c363cf3a"><b>2</b><span>App, fil, sans compte</span></a>
+  <a href="googlegmail:///cv=thread-f:1878199526920277818"><b>3</b><span>App, fil au format thread-f</span></a>
+  <a href="googlegmail:///search?q=FC110_2026%20from%3Acompta.31dessineo%40gmail.com"><b>4</b><span>App, recherche (expéditeur + objet)</span></a>
+  <a href="googlegmail://search?q=FC110_2026"><b>5</b><span>App, recherche (variante)</span></a>
+  <a href="https://mail.google.com/mail/?authuser=benjamin.hers@we-green.be#all/thread-f:1878199526920277818"><b>6</b><span>Lien web officiel Gmail</span></a>
+  <a href="https://mail.google.com/mail/u/0/#all/1a10b484c363cf3a"><b>7</b><span>Lien web court</span></a>
+</main>
+</body>
+</html>
