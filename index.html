@@ -43,15 +43,11 @@ header.top h1{font-size:28px;letter-spacing:-.02em;margin:0;font-weight:700}
 @media (min-width:980px){
   .app{display:grid;grid-template-columns:252px minmax(0,1fr);}
   .side{display:flex;flex-direction:column;position:sticky;top:0;height:100dvh;overflow:auto;background:var(--side);border-right:1px solid var(--line);padding:18px 12px 14px}
-  .main{max-width:760px;width:100%;padding:28px 32px 80px}
+  .main{max-width:920px;width:100%;padding:28px 40px 80px}
   .mob{display:none !important}
   header.top h1{font-size:26px}
 }
-@media (min-width:1280px){
-  .app{grid-template-columns:252px minmax(0,1fr) 340px}
-  .aside{display:block;position:sticky;top:0;height:100dvh;overflow:auto;border-left:1px solid var(--line);padding:28px 20px}
-  .main .asksWrap{display:none}
-}
+@media (max-width:979px){.desk{display:none !important}}
 .brand{display:flex;align-items:center;gap:10px;padding:2px 8px 16px}
 .brand b{font-size:19px;letter-spacing:-.01em}
 .brand .lg{width:28px;height:28px;border-radius:8px;background:var(--accent);color:#fff;display:grid;place-items:center;font-weight:800}
@@ -87,8 +83,22 @@ header.top h1{font-size:28px;letter-spacing:-.02em;margin:0;font-weight:700}
 .add .mic.rec{background:#d64545;color:#fff;animation:pulse 1.4s infinite}
 .add .mic.busy{opacity:.6}
 @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(214,69,69,.45)}70%{box-shadow:0 0 0 12px rgba(214,69,69,0)}100%{box-shadow:0 0 0 0 rgba(214,69,69,0)}}
-@media (max-width:979px){.add{position:sticky;top:max(8px,env(safe-area-inset-top));z-index:5}}
-.opts{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:8px 0 0}
+.opts{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+#addZone{position:relative;z-index:6}
+.addpop{display:none;position:absolute;left:0;right:0;top:calc(100% + 6px);background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px;box-shadow:0 8px 24px rgba(0,0,0,.12)}
+#addZone.focus .addpop{display:block}
+.seg button.on.ur{background:var(--late);color:#fff}
+.seg button.on.lo{background:var(--muted);color:var(--bg)}
+.fab{position:fixed;right:18px;bottom:calc(22px + env(safe-area-inset-bottom));width:58px;height:58px;border-radius:50%;border:0;background:var(--accent);color:#fff;font-size:30px;line-height:1;box-shadow:0 6px 18px rgba(0,0,0,.22);z-index:15;cursor:pointer}
+.qadd{display:flex;gap:8px;align-items:center}
+.qadd input{flex:1;font-size:17px !important}
+.qadd .mic{flex:none;width:44px;height:44px;border:0;border-radius:12px;background:var(--accent-soft);color:var(--accent);cursor:pointer}
+.qadd .mic svg{width:20px;height:20px;vertical-align:middle}
+.qadd .mic.rec{background:#d64545;color:#fff;animation:pulse 1.4s infinite}
+.chips button.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.chips button.on.ur{background:var(--late);border-color:var(--late);color:#fff}
+.qrow{display:flex;gap:8px;align-items:center;margin-top:12px;flex-wrap:wrap}
+.qrow .ql{font-size:12.5px;color:var(--muted);width:100%}
 .opt{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;padding:0 10px;min-height:34px;font-size:13.5px;max-width:100%}
 .opt select,.opt input{border:0;background:transparent;color:inherit;font:inherit;font-size:13.5px;outline:none;padding:0;min-width:0;max-width:170px}
 .opt input[type=date]{max-width:132px}
@@ -120,25 +130,44 @@ nav.tabs .n.hot{opacity:1;color:#fff;background:var(--late);border-radius:999px;
 .search.on{display:block}
 .search input{width:100%;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:12px;padding:10px 12px;font:inherit}
 ul{list-style:none;margin:0;padding:0}
-li{position:relative;margin-bottom:8px;border-radius:var(--radius);overflow:hidden}
+li{position:relative;margin-bottom:6px;border-radius:12px;overflow:hidden}
 .bgL,.bgR{opacity:0;position:absolute;inset:0;display:flex;align-items:center;padding:0 18px;font-weight:600;font-size:14px;color:#fff}
 .bgR{background:var(--accent)} .bgL{background:#5b6b8a;justify-content:flex-end}
-.row{position:relative;display:flex;gap:12px;align-items:flex-start;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:13px 14px;box-shadow:var(--shadow);touch-action:pan-y;transition:transform .18s ease}
-@media (min-width:980px){.row{padding:12px 14px}.row:hover{border-color:var(--muted)}}
-.check{flex:none;width:22px;height:22px;border-radius:50%;border:2px solid var(--muted);background:transparent;margin-top:1px;cursor:pointer;padding:0}
+.row{position:relative;display:flex;gap:10px;align-items:flex-start;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:9px 10px 9px 12px;box-shadow:var(--shadow);touch-action:pan-y;transition:transform .18s ease}
+.row.urg{box-shadow:inset 3px 0 0 var(--late)}
+@media (min-width:980px){.row{padding:9px 12px}.row:hover{border-color:var(--muted)}}
+.check{flex:none;width:20px;height:20px;border-radius:50%;border:2px solid var(--muted);background:transparent;margin-top:1px;cursor:pointer;padding:0}
+.urg .check{border-color:var(--late)}
 .check:hover{border-color:var(--accent);background:var(--accent-soft)}
 .done .check{background:var(--accent);border-color:var(--accent)}
 .body{flex:1;min-width:0;cursor:pointer}
-.title{word-wrap:break-word}
+.title{word-wrap:break-word;font-size:15px;line-height:1.3;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden}
+@media (min-width:980px){.title{-webkit-line-clamp:3}}
 .done .title{color:var(--muted);text-decoration:line-through}
-.meta{display:flex;flex-wrap:wrap;gap:6px 10px;margin-top:4px;font-size:12.5px;color:var(--muted)}
+.meta{display:flex;flex-wrap:nowrap;gap:8px;margin-top:3px;font-size:12px;color:var(--muted);overflow:hidden;white-space:nowrap;align-items:center}
+.meta>span{flex:none;max-width:60%;overflow:hidden;text-overflow:ellipsis}
+.meta>span.shrink{flex:0 1 auto;min-width:0}
+.pill{display:inline-block;border-radius:5px;padding:0 6px;font-weight:700;font-size:11.5px;line-height:17px}
+.pill.u{background:var(--late-soft);color:var(--late)}
+.pill.f{background:var(--hover);color:var(--muted)}
+.tg{display:inline-block;border:1px solid var(--line);border-radius:5px;padding:0 5px;line-height:16px;font-size:11.5px}
+.src{opacity:.75}
 .meta .late{color:var(--late);font-weight:600}
 .meta .auto{color:var(--accent)}
 .ptag{display:inline-flex;align-items:center;gap:5px}
 .agtag{display:inline-flex;align-items:center;gap:4px;color:var(--agent);background:var(--agent-soft);border-radius:6px;padding:0 6px;font-weight:600}
 .tlink{display:block;margin-top:6px;font-size:13px;color:var(--accent);text-decoration:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .tlink:hover{text-decoration:underline}
-.more{flex:none;border:0;background:transparent;color:var(--muted);font-size:18px;cursor:pointer;padding:0 2px}
+.more{flex:none;border:0;background:transparent;color:var(--muted);font-size:18px;cursor:pointer;padding:0 2px;line-height:20px}
+.fbar{display:flex;gap:6px;align-items:center;overflow-x:auto;scrollbar-width:none;margin:0 0 10px}
+.fbar::-webkit-scrollbar{display:none}
+.fbar button{flex:none;display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:transparent;color:var(--muted);border-radius:999px;padding:0 12px;min-height:32px;font-size:13px;cursor:pointer;white-space:nowrap}
+.fbar button.on{border-color:var(--ink);color:var(--ink);background:var(--card);font-weight:600}
+.fbar .x{opacity:.6;margin-left:2px}
+.stags{display:flex;flex-wrap:wrap;gap:4px;margin:0 6px}
+.stags button{border:1px solid var(--line);background:transparent;color:var(--muted);border-radius:7px;padding:3px 8px;font-size:12.5px;cursor:pointer}
+.stags button.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.orig{font-size:13px;color:var(--muted);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:8px 10px;margin-top:4px;word-wrap:break-word}
 .empty{color:var(--muted);text-align:center;padding:48px 16px}
 .empty b{display:block;color:var(--ink);font-size:17px;margin-bottom:4px}
 .foot{color:var(--muted);font-size:12px;text-align:center;margin-top:24px}
@@ -148,13 +177,13 @@ li{position:relative;margin-bottom:8px;border-radius:var(--radius);overflow:hidd
 .aside .asksH{margin-top:0}
 .asksH .n{background:var(--accent);color:var(--card);border-radius:999px;padding:1px 8px;font-size:12px;font-variant-numeric:tabular-nums}
 .asksH .sim{margin-left:auto;font-weight:400;color:var(--muted);font-size:12.5px}
-.ask{background:var(--accent-soft);border:1px solid var(--accent);border-radius:var(--radius);padding:12px 14px;margin-bottom:8px}
+.ask{background:var(--accent-soft);border:1px solid var(--accent);border-radius:12px;padding:10px 12px;margin-bottom:8px}
 .ask .at{font-weight:600;word-wrap:break-word}
 .ask .ap{font-size:13.5px;margin-top:4px;word-wrap:break-word}
 .ask .ap b{font-weight:600}
-.ask .ab{display:flex;align-items:center;gap:8px;margin-top:10px;flex-wrap:wrap}
+.ask .ab{display:flex;align-items:center;gap:8px;margin-top:6px;flex-wrap:wrap}
 .ask .ac{flex:1;font-size:12.5px;color:var(--muted)}
-.ask button{border:1px solid var(--accent);background:transparent;color:var(--accent);border-radius:10px;padding:7px 12px;font-size:14px;cursor:pointer}
+.ask button{border:1px solid var(--accent);background:transparent;color:var(--accent);border-radius:10px;padding:5px 12px;font-size:14px;cursor:pointer}
 .ask button.yes{background:var(--accent);color:var(--card);font-weight:600}
 .ask.busy{opacity:.5;pointer-events:none}
 .aside h3{font-size:13.5px;margin:22px 4px 8px;color:var(--muted);font-weight:600}
@@ -197,6 +226,22 @@ li{position:relative;margin-bottom:8px;border-radius:var(--radius);overflow:hidd
 .mail .mopen{cursor:pointer}
 .mail .mopen:hover .msj{text-decoration:underline}
 .mail .mread{font-size:13px;color:var(--accent);margin-top:4px}
+.mail.act{padding:10px 12px}
+.mail .mact{font-weight:600;font-size:15px;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.mail .msm{font-size:12.5px;color:var(--muted);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mail .mlearn{font-size:12px;color:var(--warn);margin-top:4px}
+.mail.act .ma{margin-top:8px}
+.mail.info{padding:9px 12px}
+.mail.info .ma{margin-top:6px}
+.cat{flex:none;border:1px solid var(--line);border-radius:5px;padding:0 6px;font-size:11.5px;line-height:17px;color:var(--muted)}
+.mgh{display:flex;align-items:baseline;gap:8px;margin:14px 2px 8px;font-size:13.5px;font-weight:700}
+.mgh .sub{font-weight:400;font-size:12.5px}
+details.minfo>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:8px;margin:16px 2px 8px;font-size:13.5px;font-weight:700;color:var(--muted)}
+details.minfo>summary::-webkit-details-marker{display:none}
+details.minfo>summary::before{content:"▸";font-size:12px}
+details.minfo[open]>summary::before{content:"▾"}
+details.maccts>summary{list-style:none;cursor:pointer;font-size:13px;color:var(--muted);margin:2px 2px 10px}
+details.maccts>summary::-webkit-details-marker{display:none}
 @media (min-width:980px){.panel.read{max-width:760px}}
 .xclose{position:sticky;top:-18px;z-index:2;display:flex;justify-content:space-between;align-items:center;gap:8px;margin:-18px -16px 10px;padding:12px 16px;background:var(--card);border-bottom:1px solid var(--line)}
 .xclose .xt{font-size:13px;color:var(--muted)}
@@ -211,10 +256,8 @@ li{position:relative;margin-bottom:8px;border-radius:var(--radius);overflow:hidd
 .rd .rlinks{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
 .rd .rlinks a{color:var(--accent);text-decoration:none;font-size:14px;border:1px solid var(--line);border-radius:10px;padding:8px 12px}
 @media (max-width:600px){
-  .mailbar{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-  .mailbar .opt{grid-column:1/-1}
   .mailbar .grow{display:none}
-  .mailbar #mRefresh{grid-column:1/-1}
+  .mailbar #mRefresh{padding:6px 10px;font-size:13px}
   .mail .ma{flex-wrap:nowrap}
   .mail .ma a{font-size:13.5px;white-space:nowrap}
   .mail .ma .btn{padding:8px 11px;font-size:13.5px;white-space:nowrap}
@@ -309,6 +352,8 @@ let view = store.get("todo_view") || "today";
 let tasks = [], counts = {today:0,later:0,done:0,mail:0}, searching = false, overview = null, projects = [];
 let fProject = store.get("todo_fproject") || "", fWho = store.get("todo_fwho") || "", newWho = "moi";
 let mailData = null, mailTab = "nouveau";
+let fTag = store.get("todo_ftag") || "", newPri = "moyen", tagList = [], capStart = 0;
+const PRIS = [["faible","Faible"],["moyen","Moyen"],["urgent","Urgent"]];
 const PALETTE = ["#1f8a9a","#2f8f5b","#6a4fd6","#c2417a","#c27a1f","#3b6fd1","#8a5a2b","#5b6b8a"];
 const HINT = "Astuces : demain, vendredi, 15/10 · #projet · @agent pour confier à l'IA";
 const $ = s => document.querySelector(s);
@@ -400,27 +445,32 @@ function renderShell(){
       <header class="top"><div><h1>To Do</h1><div class="sub">${d}</div></div>
         <div class="hright"><button class="hbtn" id="sumBtn">Résumé</button><button class="avatar mob" id="acctBtn" aria-label="Compte">${legacy() ? "?" : esc(initials())}</button></div></header>
       <div id="banner"></div>
-      <div id="addZone">
+      <div id="addZone" class="desk">
         <form class="add" id="add"><input id="new" placeholder="Nouvelle tâche…" enterkeyhint="done" autocomplete="off">
           <button type="button" class="mic" id="mic" aria-label="Dicter des tâches"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></button>
           <button type="submit" aria-label="Ajouter">+</button></form>
-        <div class="opts">
+        <div class="addpop"><div class="opts">
           <label class="opt"><span class="dot" id="nProjDot" style="background:var(--line)"></span><select id="nProj" aria-label="Projet de la nouvelle tâche"></select></label>
           <div class="seg" id="nWho" role="group" aria-label="Qui fait la tâche"><button type="button" data-w="moi" class="on">Moi</button><button type="button" data-w="agent" class="ag">Agent IA</button></div>
+          <div class="seg" id="nPri" role="group" aria-label="Urgence">${PRIS.map(([k,l]) => `<button type="button" data-p="${k}" class="${k==="moyen"?"on":""} ${k==="urgent"?"ur":k==="faible"?"lo":""}">${l}</button>`).join("")}</div>
           <label class="opt"><span class="lbl">Échéance</span><input type="date" id="nDue" aria-label="Échéance"></label>
         </div>
-        <div class="hint" id="hint">${HINT}</div>
+        <div class="hint" id="hint">${HINT}</div></div>
       </div>
-      <div class="asksWrap" id="asks"></div>
       <nav class="tabs mob" id="tabs"></nav>
-      <div class="pfilter mob" id="pfilter"></div>
+      <div class="fbar mob" id="pfilter"></div>
       <div class="vhead" id="vhead"></div>
       <div class="search" id="searchBox"><input id="q" type="search" placeholder="Rechercher dans toutes les tâches"></div>
+      <div class="asksWrap" id="asks"></div>
       <div id="content"></div>
     </main>
-    <aside class="aside" id="aside"></aside>
+    <button class="fab mob" id="fab" aria-label="Nouvelle tâche">+</button>
   </div>`;
   $("#add").onsubmit = onAdd;
+  $("#new").addEventListener("focus", () => { $("#addZone").classList.add("focus"); if (!capStart) capStart = Date.now(); });
+  document.addEventListener("pointerdown", e => { const z = $("#addZone"); if (z && !z.contains(e.target) && !$("#new").value && !$("#sheet").classList.contains("on")) z.classList.remove("focus"); });
+  $$("#nPri button").forEach(b => b.onclick = () => { newPri = b.dataset.p; renderNewPri(); });
+  $("#fab").onclick = () => openQuickAdd();
   $("#q").oninput = debounce(onSearch, 250);
   $("#mic").onclick = toggleMic;
   $("#sumBtn").onclick = openSummary;
@@ -429,6 +479,7 @@ function renderShell(){
   $$("#nWho button").forEach(b => b.onclick = () => { newWho = b.dataset.w; renderNewWho(); });
 }
 function renderNewWho(){ $$("#nWho button").forEach(b => b.classList.toggle("on", b.dataset.w === newWho)); }
+function renderNewPri(){ $$("#nPri button").forEach(b => b.classList.toggle("on", b.dataset.p === newPri)); }
 function renderNewProj(){
   const sel = $("#nProj"); if (!sel) return;
   const cur = sel.value || (fProject && fProject !== "aucun" ? fProject : "");
@@ -464,6 +515,7 @@ function renderSide(){
       ${projects.map(p => `<button data-p="${p.id}" class="${fProject===p.id?"on":""}"><span class="dot" style="background:${p.color}"></span><span class="nm">${esc(p.name)}</span>${p.open_count?`<span class="n">${p.open_count}</span>`:""}</button>`).join("")}
       <button data-p="aucun" class="${fProject==="aucun"?"on":""}"><span class="dot" style="background:var(--line)"></span><span class="nm">Sans projet</span></button>
     </div>
+    ${tagList.length ? `<div class="stitle">Étiquettes</div><div class="stags">${tagList.map(t => `<button data-t="${esc(t.tag)}" class="${fTag===t.tag?"on":""}">#${esc(t.tag)}</button>`).join("")}</div>` : ""}
     <div class="sfoot">
       <button class="acct" id="sAcct"><span class="avatar" style="display:grid;place-items:center">${legacy() ? "?" : esc(initials())}</span>
         <span style="min-width:0"><div style="font-size:14px;font-weight:600">${legacy() ? "Mode ouvert" : esc(meInfo?.user?.name || "Mon compte")}</div><div class="em">${legacy() ? "Se connecter" : esc(meInfo?.user?.email || "")}</div></span></button>
@@ -471,6 +523,7 @@ function renderSide(){
   $$("#side .snav button").forEach(b => b.onclick = () => setView(b.dataset.v));
   $$("#side .swho button").forEach(b => b.onclick = () => setWho(b.dataset.w));
   $$("#side .sproj button").forEach(b => b.onclick = () => setProject(b.dataset.p));
+  $$("#side .stags button").forEach(b => b.onclick = () => setTag(fTag === b.dataset.t ? "" : b.dataset.t));
   $("#sManage").onclick = () => openProjects(false);
   $("#sAcct").onclick = () => legacy() ? showLogin() : openAccount();
 }
@@ -480,19 +533,36 @@ function renderTabs(){
   $$("#tabs button").forEach(b => b.onclick = () => setView(b.dataset.v));
   const box = $("#pfilter");
   if (view === "mail" && !searching) { box.innerHTML = ""; return; }
-  const who = [["","Tous"],["moi","Moi"],["agent",`Agents IA${counts.agent ? ` <span class="n">${counts.agent}</span>` : ""}`]];
-  box.innerHTML = `<div class="seg">${who.map(([k,l]) => `<button type="button" data-w="${k}" class="${fWho===k?"on":""} ${k==="agent"?"ag":""}">${l}</button>`).join("")}</div><span class="sep"></span>` +
-    `<button class="pf ${!fProject?"on":""}" data-p="">Tous les projets</button>` +
-    projects.map(p => `<button class="pf ${fProject===p.id?"on":""}" data-p="${p.id}"><span class="dot" style="background:${p.color}"></span>${esc(p.name)}${p.open_count?` <span class="n">${p.open_count}</span>`:""}</button>`).join("") +
-    `<button class="pf ${fProject==="aucun"?"on":""}" data-p="aucun">Sans projet</button><button class="pf" id="manageP">Projets…</button>`;
-  $$("#pfilter .seg button").forEach(b => b.onclick = () => setWho(b.dataset.w));
-  $$("#pfilter .pf[data-p]").forEach(b => b.onclick = () => setProject(b.dataset.p));
+  const p = projById(fProject);
+  const act = [];
+  if (fWho) act.push(["w", fWho === "agent" ? "Agents IA" : "Moi"]);
+  if (fProject) act.push(["p", p ? `<span class="dot" style="background:${p.color}"></span>${esc(p.name)}` : "Sans projet"]);
+  if (fTag) act.push(["t", "#" + esc(fTag)]);
+  box.innerHTML = `<button id="fOpen" class="${act.length?"on":""}">☰ Filtres${act.length ? ` · ${act.length}` : ""}</button>` +
+    act.map(([k,l]) => `<button class="on" data-clear="${k}">${l}<span class="x">✕</span></button>`).join("") +
+    (counts.urgent && !act.length ? `<button id="fUrg"><span class="pill u">${counts.urgent}</span> urgente${counts.urgent>1?"s":""}</button>` : "");
+  $("#fOpen").onclick = openFilters;
+  $$("#pfilter [data-clear]").forEach(b => b.onclick = () => b.dataset.clear === "w" ? setWho("") : b.dataset.clear === "p" ? setProject("") : setTag(""));
+  if ($("#fUrg")) $("#fUrg").onclick = () => { const el = $("#list .row.urg"); el?.scrollIntoView({ behavior:"smooth", block:"center" }); };
+}
+function openFilters(){
+  const who = [["","Tous"],["moi","Moi"],["agent","Agents IA"]];
+  $("#panel").innerHTML = `<h3>Filtres</h3>
+    <label>Qui fait</label><div class="chips" id="fw">${who.map(([k,l]) => `<button data-w="${k}" class="${fWho===k?"on":""}">${l}${k==="agent" && counts.agent ? ` ${counts.agent}` : ""}</button>`).join("")}</div>
+    <label>Projet</label><div class="chips" id="fp"><button data-p="" class="${!fProject?"on":""}">Tous</button>${projects.map(p => `<button data-p="${p.id}" class="${fProject===p.id?"on":""}"><span class="dot" style="background:${p.color}"></span> ${esc(p.name)}${p.open_count?` ${p.open_count}`:""}</button>`).join("")}<button data-p="aucun" class="${fProject==="aucun"?"on":""}">Sans projet</button></div>
+    ${tagList.length ? `<label>Étiquette</label><div class="chips" id="ft"><button data-t="" class="${!fTag?"on":""}">Toutes</button>${tagList.map(t => `<button data-t="${esc(t.tag)}" class="${fTag===t.tag?"on":""}">#${esc(t.tag)} ${t.open_count}</button>`).join("")}</div>` : ""}
+    <div class="actions"><button id="manageP">Gérer les projets</button><button class="primary" id="cancel">Voir les tâches</button></div>`;
+  $$("#fw button").forEach(b => b.onclick = () => { fWho = b.dataset.w; store.set("todo_fwho", fWho); $$("#fw button").forEach(x => x.classList.toggle("on", x === b)); });
+  $$("#fp button").forEach(b => b.onclick = () => { fProject = b.dataset.p; store.set("todo_fproject", fProject); $$("#fp button").forEach(x => x.classList.toggle("on", x === b)); });
+  $$("#ft button").forEach(b => b.onclick = () => { fTag = b.dataset.t; store.set("todo_ftag", fTag); $$("#ft button").forEach(x => x.classList.toggle("on", x === b)); });
   $("#manageP").onclick = () => openProjects(false);
+  $("#cancel").onclick = () => { closeSheet(); if (view === "mail") { view = "today"; store.set("todo_view", view); } load(); };
+  openSheet();
 }
 function renderHead(){
   const cur = searching ? "search" : view;
   const p = projById(fProject);
-  const scope = [p ? p.name : fProject === "aucun" ? "Sans projet" : "", fWho === "agent" ? "Agents IA" : fWho === "moi" ? "Moi" : ""].filter(Boolean).join(" · ");
+  const scope = [p ? p.name : fProject === "aucun" ? "Sans projet" : "", fWho === "agent" ? "Agents IA" : fWho === "moi" ? "Moi" : "", fTag ? "#" + fTag : ""].filter(Boolean).join(" · ");
   $("#vhead").innerHTML = `<h2>${VIEWS[cur]}</h2>${cur !== "mail" && scope ? `<span class="sub">${esc(scope)}</span>` : ""}`;
   $("#addZone").style.display = cur === "mail" ? "none" : "";
 }
@@ -503,6 +573,7 @@ function setView(v){
   view = v; store.set("todo_view", v); load();
 }
 function setWho(w){ fWho = w; store.set("todo_fwho", w); if (view === "mail") { view = "today"; store.set("todo_view", view); } load(); }
+function setTag(t){ fTag = t; store.set("todo_ftag", t); if (view === "mail") { view = "today"; store.set("todo_view", view); } load(); }
 function setProject(p){ fProject = p; store.set("todo_fproject", p); if ($("#nProj")) $("#nProj").value = ""; if (view === "mail") { view = "today"; store.set("todo_view", view); } load(); }
 
 // ---------- Liste des tâches ----------
@@ -513,36 +584,35 @@ function renderList(){
     const msg = searching ? ["Aucun résultat",""] :
       view === "today" ? ["Rien pour aujourd'hui","Profite, ou avance sur Plus tard."] :
       view === "later" ? ["Rien de prévu","Ajoute une tâche en haut."] : ["Rien de fermé récemment",""];
-    if (!searching && (fProject || fWho)) msg[1] = "Aucune tâche avec ce filtre.";
+    if (!searching && (fProject || fWho || fTag)) msg[1] = "Aucune tâche avec ce filtre.";
     ul.innerHTML = `<div class="empty"><b>${msg[0]}</b>${msg[1]}</div>`; return;
   }
   ul.innerHTML = tasks.map(t => {
-    const meta = [];
-    if (t.status === "open"){
-      if (t.due_date) meta.push(fmtDue(t.due_date));
-      if (t.pinned_today && view !== "today") meta.push("Épinglée");
+    const meta = [], open = t.status === "open", urg = open && t.priority === "urgent";
+    if (open){
+      if (urg) meta.push(`<span class="pill u">Urgent</span>`);
+      else if (t.priority === "faible") meta.push(`<span class="pill f">Faible</span>`);
+      if (t.due_date && !(view === "today" && !searching && t.due_date === todayISO(0))) meta.push(fmtDue(t.due_date));
       if (t.assignee === "agent") meta.push(`<span class="agtag">✦ ${AGENT_LABEL(t.agent_name)}</span>`);
-      if (t.notes) meta.push(esc(t.notes.slice(0,80)));
     } else {
       meta.push(`Fermée ${fmtAgo(t.closed_at)}`);
       if (t.closed_by && t.closed_by !== "ben") meta.push(`<span class="auto">par ${t.closed_by === "auto" ? "l'IA" : "un agent"}</span>`);
-      if (t.close_proof) meta.push(esc(t.close_proof));
     }
     const pr = projById(t.project_id);
-    if (pr && fProject !== pr.id) meta.unshift(`<span class="ptag"><span class="dot" style="background:${pr.color}"></span>${esc(pr.name)}</span>`);
-    const link = t.status === "open" && safeUrl(t.link_url) ? `<a class="tlink" href="${esc(t.link_url)}" target="_blank" rel="noopener">↗ ${esc(t.link_label || "Ouvrir le mail")}</a>` : "";
+    if (pr && fProject !== pr.id) meta.push(`<span class="ptag"><span class="dot" style="background:${pr.color}"></span>${esc(pr.name)}</span>`);
+    (t.tags || []).filter(x => x !== fTag).slice(0, 2).forEach(x => meta.push(`<span class="tg">#${esc(x)}</span>`));
+    if (t.created_via === "mail" || (open && safeUrl(t.link_url))) meta.push(`<span class="src" title="Vient d'un mail">✉</span>`);
     return `<li data-id="${t.id}"><div class="bgR">✓ Fait</div><div class="bgL">Reporter →</div>
-      <div class="row ${t.status === "done" ? "done":""}">
+      <div class="row ${t.status === "done" ? "done":""} ${urg ? "urg" : ""}">
         <button class="check" aria-label="${t.status==="done"?"Rouvrir":"Terminer"}"></button>
-        <div class="body"><div class="title">${esc(t.title)}</div>${meta.length?`<div class="meta">${meta.map(m=>`<span>${m}</span>`).join("")}</div>`:""}${link}</div>
-        <button class="more" aria-label="Options">⋯</button></div></li>`;
+        <div class="body"><div class="title">${esc(t.title)}</div>${meta.length?`<div class="meta">${meta.map(m=>`<span>${m}</span>`).join("")}</div>`:""}</div>
+        <button class="more" aria-label="Détails et options">⋯</button></div></li>`;
   }).join("") + `<div class="foot mob">Glisse à droite pour terminer, à gauche pour reporter</div>`;
   ul.querySelectorAll("li").forEach(li => {
     const t = tasks.find(x => x.id === li.dataset.id);
     li.querySelector(".check").onclick = () => t.status === "done" ? reopen(t) : complete(t);
     li.querySelector(".more").onclick = () => openEdit(t);
     li.querySelector(".body").onclick = () => openEdit(t);
-    li.querySelectorAll(".tlink").forEach(a => a.onclick = e => e.stopPropagation());
     if (t.status === "open") swipe(li, t);
   });
 }
@@ -565,14 +635,7 @@ function bindAsks(root, ps){
 }
 function renderAsks(){
   const ps = overview?.pending || [];
-  const box = $("#asks"); box.innerHTML = view === "mail" ? "" : asksHtml(ps); bindAsks(box, ps);
-  const a = $("#aside"); if (!a) return;
-  const top = view === "mail" && mailTab !== "nouveau" ? [] : (mailData?.items || []).filter(m => m.status === "nouveau" && m.priority >= 70).slice(0, 5);
-  a.innerHTML = (ps.length ? asksHtml(ps) : `<div class="asksH">C'est fait ?</div><div class="calm">Aucune clôture à valider. La vérification passe chaque heure.</div>`) +
-    (legacy() ? "" : `<h3>Mails prioritaires sans réponse</h3>` + (top.length ? top.map(m => `<button class="mini" data-m="${m.id}"><div class="ms">${esc(m.subject || "(sans objet)")}</div><div class="mf">${esc(m.from_name || m.from_email)} · ${fmtAgo(m.received_at)}</div></button>`).join("")
-      : `<div class="calm">Rien d'urgent.</div>`));
-  bindAsks(a, ps);
-  a.querySelectorAll(".mini").forEach(b => b.onclick = () => { const m = top.find(x => x.id === b.dataset.m); m ? openMail(m) : setView("mail"); });
+  const box = $("#asks"); box.innerHTML = view === "mail" || searching ? "" : asksHtml(ps); bindAsks(box, ps);
 }
 async function decide(p, accept, el){
   el.classList.add("busy");
@@ -581,6 +644,14 @@ async function decide(p, accept, el){
     if (accept) toast("Fermée sur preuve", () => reopen({ id: p.task_id })); else toast("Gardée ouverte");
     load();
   } catch(e){ el.classList.remove("busy"); toast(e.message); load(); }
+}
+function statsInfo(m){
+  if (!m) return "";
+  const c = m.capture || {}, a = m.suggestions_mail || {};
+  const sec = c.median_ms ? (c.median_ms / 1000).toFixed(1).replace(".", ",") + " s" : "pas encore mesuré";
+  const tot = (a.ajoutees || 0) + (a.ignorees || 0);
+  const ratio = tot ? `${Math.round((a.ajoutees || 0) * 100 / tot)} % gardées (${a.ajoutees} ajoutées, ${a.ignorees} ignorées)` : "pas encore de choix";
+  return `<div class="autoinfo"><b>Mesures sur 30 jours</b><br>Capture d'une tâche : ${sec}${c.n ? ` (médiane sur ${c.n})` : ""}.<br>Suggestions mail : ${ratio}${a.en_attente ? `, ${a.en_attente} en attente` : ""}.</div>`;
 }
 function autoInfo(o){
   if (!o) return "";
@@ -624,16 +695,25 @@ function renderMail(){
       ${a.provider !== "claude" ? `<button data-del="${a.id}">Retirer</button>` : ""}</div>`;
   }).join("");
   const noProv = !d.providers.gmail && !d.providers.outlook;
+  const items = d.items || [];
+  const todo = mailTab === "nouveau" ? items.filter(m => !m.info_only) : items;
+  const info = mailTab === "nouveau" ? items.filter(m => m.info_only) : [];
+  const syncTxt = d.accounts.length ? d.accounts.map(a => a.last_sync_at ? `mis à jour ${fmtAgo(a.last_sync_at)}` : "en attente").join(" · ") : "aucune boîte";
   c.innerHTML = `<div class="mailbar">
-      <label class="opt"><span class="lbl">Remonter</span><select id="mDays">${[7,14,21,28].map(n => `<option value="${n}" ${n===days?"selected":""}>${n/7} semaine${n>7?"s":""}</option>`).join("")}</select></label>
+      <div class="msub" style="margin:0">${[["nouveau","À traiter",cnt.a_faire ?? cnt.nouveau],["ajoute","Dans la To Do",cnt.ajoute],["ignore","Ignorés",cnt.ignore]].map(([k,l,n]) => `<button data-t="${k}" class="${mailTab===k?"on":""}">${l}${n?` ${n}`:""}</button>`).join("")}</div>
       <span class="grow"></span>
-      <button class="btn" id="mGmail" ${d.providers.gmail ? "" : "disabled title=\"Connexion directe pas encore configurée\""}>+ Gmail</button>
-      <button class="btn" id="mOutlook" ${d.providers.outlook ? "" : "disabled title=\"Connexion directe pas encore configurée\""}>+ Outlook</button>
       <button class="btn primary" id="mRefresh">Mettre à jour</button></div>
-    ${accts ? `<div class="accts">${accts}</div>` : `<div class="calm" style="margin-bottom:10px">Aucune boîte connectée pour l'instant.</div>`}
-    ${noProv ? `<div class="hint" style="margin:-4px 4px 10px">Connexion directe de Gmail et Outlook : en cours de configuration.</div>` : ""}
-    <div class="msub">${[["nouveau","À traiter",cnt.nouveau],["ajoute","Dans la To Do",cnt.ajoute],["ignore","Ignorés",cnt.ignore]].map(([k,l,n]) => `<button data-t="${k}" class="${mailTab===k?"on":""}">${l}${n?` ${n}`:""}</button>`).join("")}</div>
-    <div id="mlist">${d.items.length ? d.items.map(mailCard).join("") : `<div class="empty"><b>${mailTab === "nouveau" ? "Aucun mail en attente de réponse" : "Rien ici"}</b>${mailTab === "nouveau" ? `Sur les ${days} derniers jours.` : ""}</div>`}</div>`;
+    <details class="maccts"><summary>Boîtes et réglages · ${esc(syncTxt)} ▾</summary>
+      ${accts ? `<div class="accts">${accts}</div>` : `<div class="calm" style="margin-bottom:10px">Aucune boîte connectée pour l'instant.</div>`}
+      <div class="mailbar"><label class="opt"><span class="lbl">Remonter</span><select id="mDays">${[7,14,21,28].map(n => `<option value="${n}" ${n===days?"selected":""}>${n/7} semaine${n>7?"s":""}</option>`).join("")}</select></label>
+      <button class="btn" id="mGmail" ${d.providers.gmail ? "" : "disabled title=\"Connexion directe pas encore configurée\""}>+ Gmail</button>
+      <button class="btn" id="mOutlook" ${d.providers.outlook ? "" : "disabled title=\"Connexion directe pas encore configurée\""}>+ Outlook</button></div>
+      ${noProv ? `<div class="hint" style="display:block;margin:-4px 4px 10px">Connexion directe de Gmail et Outlook : en cours de configuration.</div>` : ""}
+    </details>
+    <div id="mlist">${mailTab === "nouveau"
+      ? (todo.length ? `<div class="mgh">À faire <span class="sub">${todo.length} · les plus importantes d'abord</span></div>` + todo.map(mailCard).join("") : `<div class="empty"><b>Aucune action en attente</b>Sur les ${days} derniers jours.</div>`)
+        + (info.length ? `<details class="minfo"><summary>Pour info, sans action (${info.length})</summary>${info.map(mailCard).join("")}</details>` : "")
+      : (items.length ? items.map(mailCard).join("") : `<div class="empty"><b>Rien ici</b></div>`)}</div>`;
   $("#mDays").onchange = async () => { try { await api("/mail/settings", { method:"PATCH", body: JSON.stringify({ lookback_days: +$("#mDays").value }) }); toast("Période enregistrée, appliquée à la prochaine mise à jour"); } catch(e){ toast(e.message); } };
   $("#mRefresh").onclick = refreshMail;
   $("#mGmail").onclick = () => connectMail("gmail");
@@ -650,16 +730,28 @@ function renderMail(){
     el.querySelector(".mres")?.addEventListener("click", () => mailStatus(m, "restore"));
   });
 }
+const CATS = { client:"Client", fournisseur:"Fournisseur", facture:"Facture", interne:"Interne", administratif:"Admin", partenaire:"Partenaire", prospect:"Prospect", notification:"Notif", personnel:"Perso", autre:"Autre" };
 function mailCard(m){
   const [cls, lab] = prioCls(m.priority);
+  const who = esc(m.from_name || m.from_email);
+  const btns = mailTab === "nouveau" ? `<button class="btn mign">Ignorer</button><button class="btn primary madd">${m.info_only ? "+ To Do" : "Ajouter à la To Do"}</button>`
+    : mailTab === "ignore" ? `<button class="btn mres">Remettre à traiter</button>` : `<span class="ok">✓ Dans la To Do</span>`;
+  const link = mailLink(m, m.provider === "outlook" ? "Outlook" : "Gmail") || `<span style="margin-right:auto"></span>`;
+  if (mailTab === "nouveau" && m.info_only) return `<div class="mail info" data-id="${m.id}">
+    <div class="mopen" role="button" tabindex="0" aria-label="Lire le mail"><div class="mh">${m.category ? `<span class="cat">${esc(CATS[m.category] || m.category)}</span>` : ""}<span class="from">${who}</span><span class="age">${fmtAgo(m.received_at)}</span></div>
+    <div class="msm">${esc(m.subject || "(sans objet)")}</div></div>
+    <div class="ma">${link}${btns}</div></div>`;
+  if (mailTab === "nouveau") return `<div class="mail act" data-id="${m.id}">
+    <div class="mopen" role="button" tabindex="0" aria-label="Lire le mail">
+      <div class="mh"><span class="prio ${cls}">${lab}</span>${m.category ? `<span class="cat">${esc(CATS[m.category] || m.category)}</span>` : ""}<span class="from">${who}</span><span class="age">${fmtAgo(m.received_at)}</span></div>
+      <div class="mact" style="margin-top:5px">${esc(m.action || ("Répondre : " + (m.subject || "(sans objet)")))}</div>
+      <div class="msm">✉ ${esc(m.subject || "(sans objet)")}</div></div>
+    ${m.learned ? `<div class="mlearn">${esc(m.learned)}</div>` : ""}
+    <div class="ma">${link}${btns}</div></div>`;
   return `<div class="mail" data-id="${m.id}">
-    <div class="mh">${mailTab === "nouveau" ? `<span class="prio ${cls}">${lab}</span>` : ""}<span class="from">${esc(m.from_name || m.from_email)}</span><span class="age">${fmtAgo(m.received_at)}</span></div>
-    <div class="mopen" role="button" tabindex="0" aria-label="Lire le mail"><div class="msj">${esc(m.subject || "(sans objet)")}</div>
-    ${m.snippet ? `<div class="msn">${esc(m.snippet)}</div>` : ""}<div class="mread">Lire le mail complet</div></div>
-    ${m.priority_reason && mailTab === "nouveau" ? `<div class="mwhy">${esc(m.priority_reason)}</div>` : ""}
-    <div class="ma">${mailLink(m, `Ouvrir dans ${m.provider === "outlook" ? "Outlook" : "Gmail"}`) || `<span style="margin-right:auto"></span>`}
-      ${mailTab === "nouveau" ? `<button class="btn mign">Ignorer</button><button class="btn primary madd">Ajouter à la To Do</button>`
-        : mailTab === "ignore" ? `<button class="btn mres">Remettre à traiter</button>` : `<span class="ok">✓ Dans la To Do</span>`}</div></div>`;
+    <div class="mopen" role="button" tabindex="0" aria-label="Lire le mail"><div class="mh"><span class="from">${who}</span><span class="age">${fmtAgo(m.received_at)}</span></div>
+    <div class="msj">${esc(m.action || m.subject || "(sans objet)")}</div>${m.action ? `<div class="msm">✉ ${esc(m.subject || "")}</div>` : ""}</div>
+    <div class="ma">${link}${btns}</div></div>`;
 }
 async function refreshMail(){
   const b = $("#mRefresh"); b.disabled = true; b.textContent = "Mise à jour…";
@@ -723,23 +815,35 @@ async function openMail(m){
   $("#rRes")?.addEventListener("click", () => { closeSheet(); mailStatus(m, "restore"); });
   $("#rAdd")?.addEventListener("click", () => openAddMail(m));
 }
+// Titre court pour un mail : « Répondre à Prénom : sujet court », le sujet complet reste dans les détails
+function shortTitle(who, subject){
+  const first = String(who || "").replace(/\s*\(.*?\)\s*/g, " ").trim().split(/\s+/)[0] || "l'expéditeur";
+  let sj = String(subject || "(sans objet)").replace(/^\s*((re|tr|fw|fwd|réf)\s*:\s*)+/i, "").replace(/\s*[-|]\s*We Green\s*$/i, "").trim();
+  if (sj.length > 46) sj = sj.slice(0, 45).replace(/\s+\S*$/, "") + "…";
+  return `Répondre à ${first} : ${sj}`;
+}
 function openAddMail(m){
   $("#panel").classList.remove("read");
   const who = m.from_name || m.from_email;
+  let apri = m.priority >= 85 ? "urgent" : "moyen";
+  const atag = m.category && !["autre","notification"].includes(m.category) ? (CATS[m.category] || m.category).toLowerCase() : "";
   $("#panel").innerHTML = `<h3>Ajouter à la To Do</h3>
     <p>${esc(who)} · « ${esc(m.subject || "(sans objet)")} »</p>
-    <label>Titre</label><input id="amt" value="${esc(`Répondre à ${who} : ${m.subject || "(sans objet)"}`)}">
+    <label>Titre</label><textarea id="amt" rows="2" style="min-height:0">${esc(m.action || shortTitle(who, m.subject))}</textarea>
+    <label>Urgence</label><div class="seg" id="amu">${PRIS.map(([k,l]) => `<button type="button" data-p="${k}" class="${k===apri?"on":""} ${k==="urgent"?"ur":k==="faible"?"lo":""}">${l}</button>`).join("")}</div>
+    <label>Étiquettes</label><input id="amg" value="${esc(atag)}" placeholder="Ex. client, facture" autocomplete="off">
     <label>Projet</label><select id="amp"><option value="">Sans projet</option>${projects.map(p => `<option value="${p.id}" ${fProject===p.id?"selected":""}>${esc(p.name)}</option>`).join("")}</select>
     <label>Échéance</label><input type="date" id="amd" value="${m.priority >= 70 ? todayISO(0) : ""}">
     <label>Qui fait la tâche</label><div class="seg" id="amw"><button type="button" data-w="moi" class="on">Moi</button><button type="button" data-w="agent" class="ag">Agent IA</button></div>
     <p>La tâche se fermera sur preuve quand ta réponse partira dans ce fil.</p>
     <div class="actions"><button id="cancel">Annuler</button><button class="primary" id="ok">Ajouter</button></div>`;
   let w = "moi";
+  $$("#amu button").forEach(b => b.onclick = () => { apri = b.dataset.p; $$("#amu button").forEach(x => x.classList.toggle("on", x === b)); });
   $$("#amw button").forEach(b => b.onclick = () => { w = b.dataset.w; $$("#amw button").forEach(x => x.classList.toggle("on", x === b)); });
   $("#cancel").onclick = closeSheet;
   $("#ok").onclick = async () => {
     try {
-      await api(`/mail/${m.id}/add`, { method:"POST", body: JSON.stringify({ title: $("#amt").value.trim(), project_id: $("#amp").value || null, due_date: $("#amd").value || null, assignee: w }) });
+      await api(`/mail/${m.id}/add`, { method:"POST", body: JSON.stringify({ title: $("#amt").value.replace(/\s+/g, " ").trim(), priority: apri, tags: [...new Set($("#amg").value.split(/[,;#]+/).map(x => x.trim()).filter(Boolean))].slice(0, 6), project_id: $("#amp").value || null, due_date: $("#amd").value || null, assignee: w }) });
       closeSheet(); toast("Ajouté à la To Do"); await loadMail(); renderMail(); refreshCounts();
     } catch(e){ toast(e.message); }
   };
@@ -747,21 +851,22 @@ function openAddMail(m){
 }
 
 // ---------- Chargement ----------
-function qs(){ const q = new URLSearchParams(); if (fProject) q.set("project", fProject); if (fWho) q.set("assignee", fWho); return q.toString(); }
+function qs(){ const q = new URLSearchParams(); if (fProject) q.set("project", fProject); if (fWho) q.set("assignee", fWho); if (fTag) q.set("tag", fTag); return q.toString(); }
 async function refreshCounts(){ try { counts = await api("/counts" + (qs() ? "?" + qs() : "")); renderNav(); renderAsks(); } catch {} }
 async function load(){
   try {
     const q = qs();
     const isMail = view === "mail";
-    const [list, c, o, ps] = await Promise.all([
+    const [list, c, o, ps, tg] = await Promise.all([
       isMail ? Promise.resolve([]) : api("/tasks?view=" + view + (q ? "&" + q : "")),
-      api("/counts" + (q ? "?" + q : "")), api("/proposals").catch(() => null), api("/projects").catch(() => projects),
+      api("/counts" + (q ? "?" + q : "")), api("/proposals").catch(() => null), api("/projects").catch(() => projects), api("/tags").catch(() => tagList),
     ]);
-    projects = ps;
+    projects = ps; tagList = Array.isArray(tg) ? tg : [];
     if (fProject && fProject !== "aucun" && !projById(fProject)) { fProject = ""; store.set("todo_fproject", ""); return load(); }
+    if (fTag && !tagList.some(x => x.tag === fTag)) { fTag = ""; store.set("todo_ftag", ""); return load(); }
     tasks = list; counts = c; overview = o;
     if (!isMail) mailTab = "nouveau";
-    if (isMail || isWide()) await loadMail();
+    if (isMail) await loadMail();
     renderNav(); renderNewProj();
     if (isMail) renderMail(); else renderList();
     renderAsks();
@@ -780,26 +885,70 @@ function newOpts(){
   if (pid) o.project_id = pid; else if (fProject && fProject !== "aucun") o.project_id = fProject;
   if (newWho === "agent") o.assignee = "agent";
   if (due) o.due_date = due;
+  if (newPri !== "moyen") o.priority = newPri;
+  if (fTag) o.tags = [fTag];
   return o;
 }
-function resetNewOpts(){ $("#nDue").value = ""; newWho = "moi"; renderNewWho(); }
-async function addTask(v, force){
-  try { const o = newOpts();
-    const t = await api("/tasks", { method:"POST", body: JSON.stringify({ title: v, force, ...o, pinned_today: view === "today" && !o.due_date && !hasDate(v) }) });
-    const bits = [t.due_date ? fmtDue(t.due_date).replace(/<[^>]+>/g,"") : "", t.project_name || "", t.assignee === "agent" ? "confiée à l'IA" : ""].filter(Boolean);
+function resetNewOpts(){ $("#nDue").value = ""; newWho = "moi"; newPri = "moyen"; renderNewWho(); renderNewPri(); capStart = 0; }
+async function addTask(v, force, opts){
+  try { const o = opts || newOpts();
+    const capture_ms = capStart ? Math.min(Date.now() - capStart, 600000) : undefined;
+    const t = await api("/tasks", { method:"POST", body: JSON.stringify({ title: v, force, ...o, capture_ms, pinned_today: !opts && view === "today" && !o.due_date && !hasDate(v) }) });
+    const bits = [t.priority === "urgent" ? "urgente" : "", t.due_date ? fmtDue(t.due_date).replace(/<[^>]+>/g,"") : "", t.project_name || "", t.assignee === "agent" ? "confiée à l'IA" : ""].filter(Boolean);
     toast(bits.length ? `Ajoutée · ${bits.join(" · ")}` : "Ajoutée"); resetNewOpts(); load();
+    return true;
   } catch(err){
-    if (err.status === 409) { const c = err.data.candidates[0]; toast(`Déjà dans ta liste : « ${c.title} »`, () => addTask(v, true), "Ajouter quand même"); }
-    else { toast(err.message); $("#new").value = v; }
+    if (err.status === 409) { const c = err.data.candidates[0]; toast(`Déjà dans ta liste : « ${c.title} »`, () => addTask(v, true, opts), "Ajouter quand même"); }
+    else { toast(err.message); if (!opts) $("#new").value = v; }
+    return false;
   }
+}
+// Ajout rapide (mobile) : une feuille avec le strict nécessaire
+function openQuickAdd(){
+  capStart = Date.now();
+  let due = view === "later" ? "" : "today", pri = "moyen", pid = fProject && fProject !== "aucun" ? fProject : "", who = "moi";
+  const DUES = [["today","Aujourd'hui"],["tomorrow","Demain"],["week","Cette semaine"],["","Plus tard"]];
+  $("#panel").innerHTML = `<h3>Nouvelle tâche</h3>
+    <form class="qadd" id="qf"><input id="qt" placeholder="Ex. Rappeler Viktor demain !urgent" enterkeyhint="done" autocomplete="off">
+      <button type="button" class="mic" id="qmic" aria-label="Dicter"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></button></form>
+    <div class="qrow"><span class="ql">Quand</span><div class="chips" id="qd" style="margin:0">${DUES.map(([k,l]) => `<button type="button" data-d="${k}" class="${due===k?"on":""}">${l}</button>`).join("")}</div></div>
+    <div class="qrow"><span class="ql">Urgence</span><div class="chips" id="qp" style="margin:0">${PRIS.map(([k,l]) => `<button type="button" data-p="${k}" class="${pri===k?"on":""} ${k==="urgent"?"ur":""}">${l}</button>`).join("")}</div></div>
+    <div class="qrow"><span class="ql">Projet</span><div class="chips" id="qj" style="margin:0"><button type="button" data-j="" class="${!pid?"on":""}">Aucun</button>${projects.map(p => `<button type="button" data-j="${p.id}" class="${pid===p.id?"on":""}"><span class="dot" style="background:${p.color}"></span> ${esc(p.name)}</button>`).join("")}</div></div>
+    <div class="qrow"><span class="ql">Qui fait</span><div class="chips" id="qw" style="margin:0"><button type="button" data-w="moi" class="on">Moi</button><button type="button" data-w="agent">Agent IA</button></div></div>
+    <div class="hint" id="qhint" style="display:block">Tu peux aussi écrire « demain », « vendredi », « #projet », « !urgent ».</div>
+    <div class="actions"><button type="button" id="cancel">Annuler</button><button class="primary" id="ok">Ajouter</button></div>`;
+  const pick = (sel, attr, set) => $$(sel + " button").forEach(b => b.onclick = () => { set(b.dataset[attr]); $$(sel + " button").forEach(x => x.classList.toggle("on", x === b)); });
+  pick("#qd", "d", v => due = v); pick("#qp", "p", v => pri = v); pick("#qj", "j", v => pid = v); pick("#qw", "w", v => who = v);
+  const submit = async () => {
+    const v = $("#qt").value.trim(); if (!v) { $("#qt").focus(); return; }
+    if (v.length > 50 && /[.;!?]\s|\n|\bet puis\b|\bensuite\b/i.test(v)) { closeSheet(); return runDictate(v); }
+    const o = {};
+    const d = due === "today" ? todayISO(0) : due === "tomorrow" ? todayISO(1) : due === "week" ? (new Date().getDay() === 5 ? todayISO(0) : nextWeekday(5)) : "";
+    if (d && !hasDate(v)) o.due_date = d;
+    if (pri !== "moyen") o.priority = pri;
+    if (pid) o.project_id = pid;
+    if (who === "agent") o.assignee = "agent";
+    if (fTag) o.tags = [fTag];
+    $("#ok").disabled = true;
+    const ok = await addTask(v, false, o);
+    if (ok) closeSheet(); else { const b = $("#ok"); if (b) b.disabled = false; }
+  };
+  $("#qf").onsubmit = e => { e.preventDefault(); submit(); };
+  $("#ok").onclick = submit;
+  $("#cancel").onclick = () => { capStart = 0; closeSheet(); };
+  $("#qmic").onclick = () => toggleMic($("#qmic"));
+  openSheet();
+  setTimeout(() => $("#qt")?.focus(), 60);
 }
 
 // ---------- Dictée ----------
 const VOICE_ENDPOINT = "https://qdepdtwrokazceyecege.supabase.co/functions/v1/transcribe-audio";
 const VOICE_SECRET = "xh6y8dlA9-6x1ziYD9kmIP7kmFut6r4F";
 let rec = null, recChunks = [], recStream = null, recTimer = null, recSec = 0;
-async function toggleMic(){
-  const btn = $("#mic");
+let micBtn = null;
+const setHint = t => { if ($("#hint")) $("#hint").textContent = t; if ($("#qhint")) $("#qhint").textContent = t; };
+async function toggleMic(b){
+  const btn = micBtn = (b instanceof HTMLElement ? b : null) || (rec && rec.state === "recording" ? micBtn : null) || $("#mic");
   if (rec && rec.state === "recording") { rec.stop(); return; }
   if (btn.classList.contains("busy")) return;
   try { recStream = await navigator.mediaDevices.getUserMedia({ audio: true }); }
@@ -809,13 +958,13 @@ async function toggleMic(){
   rec.ondataavailable = e => { if (e.data.size) recChunks.push(e.data); };
   rec.onstop = onRecStop;
   rec.start(); btn.classList.add("rec"); recSec = 0;
-  $("#hint").textContent = "Enregistrement 0:00 · touche à nouveau le micro pour terminer";
-  recTimer = setInterval(() => { recSec++; $("#hint").textContent = `Enregistrement ${Math.floor(recSec/60)}:${String(recSec%60).padStart(2,"0")} · touche à nouveau le micro pour terminer`; if (recSec >= 180) rec.stop(); }, 1000);
+  setHint("Enregistrement 0:00 · touche à nouveau le micro pour terminer");
+  recTimer = setInterval(() => { recSec++; setHint(`Enregistrement ${Math.floor(recSec/60)}:${String(recSec%60).padStart(2,"0")} · touche à nouveau le micro pour terminer`); if (recSec >= 180) rec.stop(); }, 1000);
 }
 async function onRecStop(){
   clearInterval(recTimer); recStream?.getTracks().forEach(t => t.stop());
-  const btn = $("#mic"); btn.classList.remove("rec"); btn.classList.add("busy");
-  $("#hint").textContent = "Transcription en cours…";
+  const btn = micBtn || $("#mic"); btn.classList.remove("rec"); btn.classList.add("busy");
+  setHint("Transcription en cours…");
   try {
     const blob = new Blob(recChunks, { type: rec.mimeType || "audio/webm" });
     const ext = (rec.mimeType || "").includes("mp4") ? "m4a" : (rec.mimeType || "").includes("ogg") ? "ogg" : "webm";
@@ -825,7 +974,7 @@ async function onRecStop(){
     if (!r.ok || !j.transcript) throw new Error("Transcription impossible");
     await runDictate(j.transcript);
   } catch(e){ toast(e.message); }
-  finally { btn.classList.remove("busy"); $("#hint").textContent = HINT; }
+  finally { btn.classList.remove("busy"); if ($("#hint")) $("#hint").textContent = HINT; micBtn = null; }
 }
 async function runDictate(texte){
   try { const r = await api("/dictate", { method: "POST", body: JSON.stringify({ texte }) }); openProposals(texte, r.proposals); }
@@ -856,8 +1005,8 @@ function openProposals(texte, props){
 async function openSummary(){
   $("#panel").innerHTML = `<h3>Résumé</h3><div class="summary">Analyse en cours…</div>`; openSheet();
   try {
-    const [s, o] = await Promise.all([api("/summary"), api("/proposals").catch(() => null)]);
-    $("#panel").innerHTML = `<h3>Résumé</h3><div class="summary">${esc(s.resume)}</div>${autoInfo(o)}
+    const [s, o, m] = await Promise.all([api("/summary"), api("/proposals").catch(() => null), api("/stats").catch(() => null)]);
+    $("#panel").innerHTML = `<h3>Résumé</h3><div class="summary">${esc(s.resume)}</div>${autoInfo(o)}${statsInfo(m)}
       ${s.doublons.length ? `<h3 style="margin-top:18px">Doublons probables</h3>` + s.doublons.map((d,i) => `<div class="pair">
         <div class="pa">« ${esc(d.a.title)} »<br>« ${esc(d.b.title)} »</div>
         <div class="chips"><button data-k="${i}" data-w="a">Garder la 1re</button><button data-k="${i}" data-w="b">Garder la 2e</button><button data-k="${i}" data-w="x">Ce n'est pas un doublon</button></div></div>`).join("") : ""}
@@ -901,8 +1050,11 @@ function openPostpone(t){
 function openEdit(t){
   confirmDelete = false;
   const open = t.status === "open";
-  $("#panel").innerHTML = `<h3>${open ? "Modifier" : "Tâche fermée"}</h3>
-    <label>Titre</label><input id="et" value="${esc(t.title)}">
+  $("#panel").innerHTML = `<h3>${open ? "Détails" : "Tâche fermée"}</h3>
+    <label>Titre</label><textarea id="et" rows="3" style="min-height:0">${esc(t.title)}</textarea>
+    ${t.source_subject ? `<label>Sujet du mail d'origine</label><div class="orig">${esc(t.source_subject)}</div>` : ""}
+    <label>Urgence</label><div class="seg" id="epri">${PRIS.map(([k,l]) => `<button type="button" data-p="${k}" class="${(t.priority||"moyen")===k?"on":""} ${k==="urgent"?"ur":k==="faible"?"lo":""}">${l}</button>`).join("")}</div>
+    <label>Étiquettes</label><input id="etg" value="${esc((t.tags||[]).join(", "))}" placeholder="Ex. compta, chantier" autocomplete="off" list="tagopts"><datalist id="tagopts">${tagList.map(x => `<option value="${esc(x.tag)}">`).join("")}</datalist>
     <label>Notes</label><textarea id="en">${esc(t.notes||"")}</textarea>
     <label>Échéance</label><input type="date" id="ed" value="${t.due_date||""}">
     <label>Projet</label><select id="eproj"><option value="">Sans projet</option>${projects.map(p => `<option value="${p.id}" ${p.id===t.project_id?"selected":""}>${esc(p.name)}</option>`).join("")}</select>
@@ -910,9 +1062,11 @@ function openEdit(t){
     ${safeUrl(t.link_url) ? `<label>Mail lié</label><div class="linkrow"><a href="${esc(t.link_url)}" target="_blank" rel="noopener">↗ ${esc(t.link_label || "Ouvrir le mail")}</a><button id="unlink">Retirer</button></div>` : ""}
     ${open ? `<div class="chips" style="margin-top:12px"><button id="pin">${t.pinned_today ? "Retirer d'Aujourd'hui" : "Épingler dans Aujourd'hui"}</button><button id="pp">Reporter…</button></div>` : ""}
     <div class="actions"><button class="danger" id="del">Supprimer</button>${open ? `<button id="cmp">Terminer</button>` : `<button id="rop">Rouvrir</button>`}<button class="primary" id="save">Enregistrer</button></div>`;
-  let ewho = t.assignee === "agent" ? "agent" : "moi";
+  let ewho = t.assignee === "agent" ? "agent" : "moi", epri = t.priority || "moyen";
+  $$("#epri button").forEach(b => b.onclick = () => { epri = b.dataset.p; $$("#epri button").forEach(x => x.classList.toggle("on", x === b)); });
+  const tagsOf = v => [...new Set(v.split(/[,;#]+/).map(x => x.trim()).filter(Boolean))].slice(0, 6);
   $$("#ewho button").forEach(b => b.onclick = () => { ewho = b.dataset.w; $$("#ewho button").forEach(x => x.classList.toggle("on", x === b)); });
-  $("#save").onclick = () => patch(t, { title: $("#et").value.trim() || t.title, notes: $("#en").value.trim() || null, due_date: $("#ed").value || null, project_id: $("#eproj").value || null, assignee: ewho }, "Enregistrée");
+  $("#save").onclick = () => patch(t, { title: $("#et").value.replace(/\s+/g, " ").trim() || t.title, notes: $("#en").value.trim() || null, due_date: $("#ed").value || null, project_id: $("#eproj").value || null, assignee: ewho, priority: epri, tags: tagsOf($("#etg").value) }, "Enregistrée");
   $("#del").onclick = () => remove(t);
   if ($("#unlink")) $("#unlink").onclick = () => patch(t, { link_url: null }, "Lien retiré");
   if (open){
@@ -1023,7 +1177,7 @@ async function loadKeys(){
 
 function openSheet(){ $("#toast").classList.remove("on"); $("#sheet").classList.add("on"); }
 function closeSheet(){ $("#sheet").classList.remove("on"); $("#panel").classList.remove("read"); }
-$("#sheet").onclick = e => { if (e.target.id === "sheet") { closeSheet(); if ($("#plist")) load(); } };
+$("#sheet").onclick = e => { if (e.target.id === "sheet") { const re = $("#plist") || $("#fw"); closeSheet(); if (re) load(); } };
 
 // ---------- Glisser ----------
 function swipe(li, t){
