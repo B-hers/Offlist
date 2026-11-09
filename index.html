@@ -207,6 +207,22 @@ li.lift .grip{cursor:grabbing;opacity:1}
 .sechead .chev{font-size:12px;color:var(--muted);transition:transform .15s}
 .sechead.shut .chev{transform:rotate(-90deg)}
 .lsearch{position:relative;margin:0 0 12px}
+.stabs{display:flex;align-items:center;gap:6px;margin:0 0 12px;overflow-x:auto;scrollbar-width:none;padding:2px}
+.stabs::-webkit-scrollbar{display:none}
+.stab{flex:none;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;padding:8px 14px;font:inherit;font-size:14px;font-weight:600;cursor:pointer;transition:background .12s,border-color .12s,transform .12s}
+.stab span{font-weight:500;color:var(--muted);margin-left:2px;font-variant-numeric:tabular-nums}
+.stab.on{background:var(--ink);border-color:var(--ink);color:var(--card)}
+.stab.on span{color:inherit;opacity:.7}
+.stab.drop{border-color:var(--accent);background:var(--accent-soft);color:var(--ink);transform:scale(1.04)}
+.stabs .grow{flex:1}
+.stabs{position:relative;z-index:30}
+.stab b{font-weight:inherit}
+.stab .sm{display:none}
+@media (max-width:600px){.stab .lg{display:none}.stab .sm{display:inline}.stab{padding:8px 12px}#secAdd{display:none}
+.mailbar .msub{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;max-width:100%}.mailbar .msub::-webkit-scrollbar{display:none}.mailbar .msub button{flex:none}
+.mailbar{flex-wrap:wrap}.mmeta{gap:4px 12px}}
+.sbtn{flex:none;border:0;background:transparent;color:var(--muted);width:34px;height:34px;border-radius:50%;font-size:18px;cursor:pointer}
+.sbtn:hover{background:var(--hover);color:var(--ink)}
 .fchips{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 4px}
 .fchips button{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;padding:6px 12px;font:inherit;font-size:13px;cursor:pointer}
 .fchips button span{color:var(--muted);margin-left:2px;font-variant-numeric:tabular-nums}
@@ -262,6 +278,14 @@ li.secadd button:hover{color:var(--ink);border-color:var(--muted)}
 .msub{display:flex;gap:6px;margin:6px 0 12px;flex-wrap:wrap}
 .msub button{border:1px solid var(--line);background:transparent;color:var(--muted);border-radius:999px;padding:6px 12px;font-size:13.5px;cursor:pointer}
 .msub button.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.msub button span{opacity:.7;font-variant-numeric:tabular-nums}
+.msub .mback{color:var(--ink)}
+.msub .mtitle{align-self:center;font-weight:600;font-size:14.5px;margin-left:4px}
+.mmeta{display:flex;align-items:flex-start;gap:12px;flex-wrap:wrap}
+.mmeta .maccts{flex:1;min-width:0}
+.march{font-size:13px;color:var(--muted);padding-top:2px;white-space:nowrap}
+.march button{border:0;background:transparent;color:var(--muted);font:inherit;padding:0;cursor:pointer;text-decoration:underline;text-underline-offset:2px;text-decoration-color:var(--line)}
+.march button:hover{color:var(--ink)}
 .mail{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:12px 14px;margin-bottom:8px;box-shadow:var(--shadow)}
 .mail .mh{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted)}
 .mail .from{color:var(--ink);font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
@@ -459,7 +483,7 @@ let view = store.get("todo_view") || "today";
 if (view === "later") view = "today";
 let sections = [], tasks = [], counts = {today:0,open:0,done:0,mail:0}, searching = false, overview = null, projects = [];
 let fProject = store.get("todo_fproject") || "", fWho = store.get("todo_fwho") || "", newWho = "moi";
-let mailData = null, mailTab = "nouveau";
+let mailData = null, mailTab = "nouveau", mView = (() => { try { return store.get("todo_mview") || "todo"; } catch { return "todo"; } })();
 let mailPending = +(store.get("todo_mail_refresh") || 0), mailPoll = null;
 let fTag = store.get("todo_ftag") || "", newPri = "moyen", tagList = [], capStart = 0;
 const PRIS = [["faible","Faible"],["moyen","Moyen"],["urgent","Urgent"]];
@@ -719,34 +743,32 @@ function renderList(){
         <button class="check" aria-label="${t.status==="done"?"Rouvrir":"Marquer comme fait"}" title="${t.status==="done"?"Rouvrir":"Done"}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></button>${open && canReorder() ? `<span class="grip" role="button" aria-label="Glisser pour déplacer" title="Glisser pour déplacer"><i></i><i></i></span>` : ""}</div></li>`;
   };
   const useSec = view === "today" && !searching;
+  let tabs = null;
   if (useSec && sections.length) {
-    const free = tasks.filter(t => !t.section_id || !sections.some(x => x.id === t.section_id));
-    let html = free.map(taskLi).join("");
-    for (const sc of sections) {
-      const mine = tasks.filter(t => t.section_id === sc.id), shut = collapsed.has(sc.id) && !tFilter;
-      html += `<li class="sechead${shut ? " shut" : ""}" data-sid="${sc.id}"><button class="stog" aria-expanded="${!shut}" aria-label="${shut ? "Déplier" : "Replier"} ${esc(sc.name)}"><span class="chev">▾</span><span class="sn">${esc(sc.name)}</span><span class="sc">${mine.length || ""}</span></button><button class="sadd" aria-label="Ajouter une tâche dans ${esc(sc.name)}">+</button><button class="smore" aria-label="Options de la section">⋯</button></li>`
-        + (shut ? "" : mine.length ? mine.map(taskLi).join("") : `<li class="secempty" data-sid="${sc.id}">Glisse une tâche ici avec ≡</li>`);
-    }
-    ul.innerHTML = html;
+    if (!sections.some(x => x.id === curSec)) curSec = (sections.find(x => x.name === "To Do") || sections[0]).id;
+    const inSec = id => tasks.filter(t => t.section_id === id || (!t.section_id && id === sections[0].id));
+    tabs = document.createElement("div"); tabs.className = "stabs"; tabs.setAttribute("role", "tablist");
+    tabs.innerHTML = sections.map(sc => { const n = inSec(sc.id).length; return `<button role="tab" class="stab${sc.id === curSec ? " on" : ""}" data-sid="${sc.id}" aria-selected="${sc.id === curSec}" title="${esc(sc.name)}"><b class="lg">${esc(sc.name)}</b><b class="sm">${esc(shortSec(sc.name))}</b>${n ? ` <span>${n}</span>` : ""}</button>`; }).join("")
+      + `<span class="grow"></span><button class="sbtn" id="secAdd" aria-label="Nouvelle section" title="Nouvelle section">+</button><button class="sbtn" id="secMore" aria-label="Options de la section" title="Options de la section">⋯</button>`;
+    const mine = tFilter ? tasks : inSec(curSec);
+    ul.innerHTML = mine.length ? mine.map(taskLi).join("") : `<div class="empty"><b>Rien ici</b>${tFilter ? "" : "Glisse une tâche sur cet onglet avec ≡ pour l'y ranger."}</div>`;
   } else ul.innerHTML = tasks.map(taskLi).join("");
-  ul.insertAdjacentHTML("beforeend", (useSec ? `<li class="secadd"><button id="secNew">+ Nouvelle section</button></li>` : "")
-    + `<div class="foot">${canReorder() ? "Glisse ≡ pour déplacer une tâche, y compris vers une autre section" : view === "today" && !searching ? "Retire les filtres et la recherche pour réordonner" : ""}<span class="mob"> · Glisse à droite pour terminer, à gauche pour reporter</span></div>`);
-  if ($("#secNew")) $("#secNew").onclick = () => openSection(null);
+  ul.insertAdjacentHTML("beforeend", `<div class="foot">${canReorder() ? "Glisse ≡ pour réordonner, ou sur un onglet pour changer de section" : view === "today" && !searching ? "Retire les filtres et la recherche pour réordonner" : ""}<span class="mob"> · Glisse à droite pour terminer, à gauche pour reporter</span></div>`);
   if (view === "today" && !searching) {
     const bar = document.createElement("div"); bar.className = "lsearch";
     bar.innerHTML = `<span class="lsi" aria-hidden="true">⌕</span><input id="tq" type="search" placeholder="Rechercher dans la To Do" value="${esc(tFilter)}" autocomplete="off" aria-label="Rechercher dans la To Do">${tFilter ? `<button type="button" class="lsx" aria-label="Effacer">✕</button>` : ""}`;
+    if (tabs) $("#content").prepend(tabs);
     $("#content").prepend(bar);
+    if (tabs) {
+      tabs.querySelectorAll(".stab").forEach(b => b.onclick = () => { curSec = b.dataset.sid; store.set("todo_sec", curSec); renderList(); });
+      $("#secAdd").onclick = () => openSection(null);
+      $("#secMore").onclick = () => openSection(sections.find(x => x.id === curSec));
+    }
     const tq = $("#tq");
     tq.oninput = () => { const had = !!tFilter; tFilter = tq.value.trim(); if (!!tFilter !== had) { renderList(); const n = $("#tq"); n.focus(); n.setSelectionRange(n.value.length, n.value.length); } else applyTaskFilter(); };
     bar.querySelector(".lsx")?.addEventListener("click", () => { tFilter = ""; renderList(); });
     applyTaskFilter();
   }
-  ul.querySelectorAll(".sechead").forEach(h => {
-    const sc = sections.find(x => x.id === h.dataset.sid);
-    h.querySelector(".stog").onclick = () => { collapsed.has(sc.id) ? collapsed.delete(sc.id) : collapsed.add(sc.id); store.set("todo_collapsed", JSON.stringify([...collapsed])); renderList(); };
-    h.querySelector(".sadd").onclick = () => openQuickAdd(sc.id);
-    h.querySelector(".smore").onclick = () => openSection(sc);
-  });
   ul.querySelectorAll("li[data-id]").forEach(li => {
     const t = tasks.find(x => x.id === li.dataset.id);
     li.querySelector(".check").onclick = () => t.status === "done" ? reopen(t) : complete(t);
@@ -757,7 +779,8 @@ function renderList(){
 }
 
 // Recherche dans la To Do : filtre la liste affichée (titre, notes, étiquettes, projet), sections dépliées
-let tFilter = "";
+const shortSec = n => { const r = String(n).replace(/^à faire\s+/i, ""); return r === n ? n : r.charAt(0).toUpperCase() + r.slice(1); };
+let tFilter = "", curSec = (() => { try { return store.get("todo_sec") || ""; } catch { return ""; } })();
 let collapsed = new Set((() => { try { return JSON.parse(store.get("todo_collapsed") || "[]"); } catch { return []; } })());
 const norm = x => String(x || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 function applyTaskFilter(){
@@ -860,7 +883,10 @@ function renderMail(){
   const words = norm(mQ).split(/\s+/).filter(Boolean);
   const items = (d.items || []).filter(m => !words.length || words.every(w => norm([m.from_name, m.from_email, m.subject, m.action, m.snippet, CATS[m.category] || m.category].join(" ")).includes(w)));
   const todo = mailTab === "nouveau" ? items.filter(m => !m.info_only) : items;
-  const infoAll = mailTab === "nouveau" ? items.filter(m => m.info_only) : [];
+  const isNotif = m => (m.category || "") === "notification";
+  const infoAll = mailTab === "nouveau" ? items.filter(m => m.info_only && (mView === "notif" ? isNotif(m) : !isNotif(m))) : [];
+  const allNew = mailTab === "nouveau" ? (d.items || []) : [];
+  const nInfo = allNew.filter(m => m.info_only && !isNotif(m)).length, nNotif = allNew.filter(m => m.info_only && isNotif(m)).length;
   const catCount = {}; infoAll.forEach(m => { const k = m.category || "autre"; catCount[k] = (catCount[k] || 0) + 1; });
   if (mCat && !catCount[mCat]) mCat = "";
   const info = mCat ? infoAll.filter(m => (m.category || "autre") === mCat) : infoAll;
@@ -876,21 +902,23 @@ function renderMail(){
   const pendTxt = mailPending ? `<div class="mpend">⟳ Mise à jour demandée ${fmtAgo(new Date(mailPending).toISOString())}. Claude relit ta boîte Gmail : résultat ${nextPass()}. La liste se rafraîchit toute seule.</div>` : "";
   const syncTxt = d.accounts.length ? d.accounts.map(a => a.last_sync_at ? `mis à jour ${fmtAgo(a.last_sync_at)}` : "en attente").join(" · ") : "aucune boîte";
   c.innerHTML = `<div class="mailbar">
-      <div class="msub" style="margin:0">${[["nouveau","À traiter",cnt.a_faire ?? cnt.nouveau],["ajoute","Dans la To Do",cnt.ajoute],["ignore","Ignorés",cnt.ignore]].map(([k,l,n]) => `<button data-t="${k}" class="${mailTab===k?"on":""}">${l}${n?` ${n}`:""}</button>`).join("")}</div>
+      ${mailTab === "nouveau" ? `<div class="msub" style="margin:0" role="tablist">${[["todo","À traiter",todo.length && !words.length ? todo.length : (cnt.a_faire ?? 0)],["info","Pour information",nInfo],["notif","Notifications",nNotif]].map(([k,l,n]) => `<button role="tab" data-v="${k}" aria-selected="${mView===k}" class="${mView===k?"on":""}">${l}${n?` <span>${n}</span>`:""}</button>`).join("")}</div>`
+        : `<div class="msub" style="margin:0"><button class="mback" data-back="1">← Retour</button><span class="mtitle">${mailTab === "ajoute" ? "Mails mis dans la To Do" : "Mails ignorés"}</span></div>`}
       <span class="grow"></span>
       <button class="btn primary" id="mRefresh" ${mailPending ? "disabled" : ""}>${mailPending ? "Mise à jour en cours…" : "Mettre à jour"}</button></div>
     ${pendTxt}
-    <details class="maccts"><summary>Boîtes et réglages · ${esc(syncTxt)} ▾</summary>
+    <div class="mmeta"><details class="maccts"><summary>Boîtes et réglages · ${esc(syncTxt)} ▾</summary>
       ${accts ? `<div class="accts">${accts}</div>` : `<div class="calm" style="margin-bottom:10px">Aucune boîte connectée pour l'instant.</div>`}
       <div class="mailbar"><label class="opt"><span class="lbl">Remonter</span><select id="mDays">${[7,14,21,28].map(n => `<option value="${n}" ${n===days?"selected":""}>${n/7} semaine${n>7?"s":""}</option>`).join("")}</select></label>
       <button class="btn" id="mGmail" ${d.providers.gmail ? "" : "disabled title=\"Connexion directe pas encore configurée\""}>+ Gmail</button>
       <button class="btn" id="mOutlook" ${d.providers.outlook ? "" : "disabled title=\"Connexion directe pas encore configurée\""}>+ Outlook</button></div>
       ${noProv ? `<div class="hint" style="display:block;margin:-4px 4px 10px">Connexion directe de Gmail et Outlook : en cours de configuration.</div>` : ""}
-    </details>
+    </details>${mailTab === "nouveau" ? `<span class="march">Classés : <button data-t="ajoute">dans la To Do${cnt.ajoute ? ` (${cnt.ajoute})` : ""}</button> · <button data-t="ignore">ignorés${cnt.ignore ? ` (${cnt.ignore})` : ""}</button></span>` : ""}</div>
     <div class="lsearch"><span class="lsi" aria-hidden="true">⌕</span><input id="mq" type="search" placeholder="Rechercher un mail : expéditeur, objet, action" value="${esc(mQ)}" autocomplete="off" aria-label="Rechercher dans les mails">${mQ ? `<button type="button" class="lsx" aria-label="Effacer">✕</button>` : ""}</div>
     <div id="mlist">${mailTab === "nouveau"
-      ? (todo.length ? `<div class="mgh">À faire <span class="sub">${todo.length} · les plus importantes d'abord</span></div>` + todo.map(mailCard).join("") : `<div class="empty"><b>Aucune action en attente</b>Sur les ${days} derniers jours.</div>`)
-        + (infoAll.length ? `<details class="minfo"${mInfoOpen || mCat || words.length ? " open" : ""}><summary>Pour info, sans action (${infoAll.length})</summary>${catChips}${info.map(mailCard).join("")}</details>` : "")
+      ? (mView === "todo"
+        ? (todo.length ? `<div class="mgh">À faire <span class="sub">${todo.length} · les plus importantes d'abord</span></div>` + todo.map(mailCard).join("") : `<div class="empty"><b>Aucune action en attente</b>Sur les ${days} derniers jours.</div>`)
+        : (infoAll.length ? (mView === "info" ? catChips : "") + info.map(mailCard).join("") : `<div class="empty"><b>${mView === "notif" ? "Aucune notification" : "Rien pour information"}</b>${words.length ? "Aucun résultat pour cette recherche." : `Sur les ${days} derniers jours.`}</div>`))
       : (items.length ? items.map(mailCard).join("") : `<div class="empty"><b>Rien ici</b></div>`)}</div>`;
   $("#mDays").onchange = async () => { try { await api("/mail/settings", { method:"PATCH", body: JSON.stringify({ lookback_days: +$("#mDays").value }) }); toast("Période enregistrée, appliquée à la prochaine mise à jour"); } catch(e){ toast(e.message); } };
   $("#mRefresh").onclick = refreshMail;
@@ -902,7 +930,9 @@ function renderMail(){
   $("#mGmail").onclick = () => connectMail("gmail");
   $("#mOutlook").onclick = () => connectMail("outlook");
   c.querySelectorAll("[data-del]").forEach(b => b.onclick = async () => { if (b.textContent !== "Confirmer") { b.textContent = "Confirmer"; return; } try { await api(`/mail/accounts/${b.dataset.del}`, { method:"DELETE" }); toast("Boîte retirée"); await loadMail(); renderMail(); } catch(e){ toast(e.message); } });
-  c.querySelectorAll(".msub button").forEach(b => b.onclick = async () => { mailTab = b.dataset.t; await loadMail(); renderMail(); renderAsks(); });
+  c.querySelectorAll(".msub [data-v]").forEach(b => b.onclick = () => { mView = b.dataset.v; mCat = ""; store.set("todo_mview", mView); renderMail(); });
+  c.querySelectorAll(".march [data-t]").forEach(b => b.onclick = async () => { mailTab = b.dataset.t; await loadMail(); renderMail(); renderAsks(); });
+  c.querySelector(".mback")?.addEventListener("click", async () => { mailTab = "nouveau"; await loadMail(); renderMail(); renderAsks(); });
   c.querySelectorAll(".mail").forEach(el => {
     const m = d.items.find(x => x.id === el.dataset.id);
     el.querySelector(".madd")?.addEventListener("click", () => openAddMail(m));
@@ -1531,7 +1561,7 @@ async function uploadFile(t, file){
 const canReorder = () => !searching && view === "today" && !fProject && !fWho && !fTag && !tFilter;
 // Ordre affiché, avec la section de chaque tâche, envoyé tel quel au serveur
 function domOrder(ul){
-  const items = []; let sec = null;
+  const items = []; let sec = view === "today" && sections.length ? (curSec || null) : null;
   for (const el of ul.children) {
     if (el.classList.contains("sechead")) sec = el.dataset.sid;
     else if (el.dataset.id) items.push({ id: el.dataset.id, section_id: sec });
@@ -1582,6 +1612,8 @@ function longDrag(li){
     if (!drag) return;
     e.preventDefault();
     const dy = e.clientY - y0 - base; li.style.transform = `translateY(${dy}px)`;
+    const over = document.elementsFromPoint(e.clientX, e.clientY).find(x => x.classList?.contains("stab"));
+    document.querySelectorAll(".stab").forEach(x => x.classList.toggle("drop", x === over && x.dataset.sid !== curSec));
     const prev = li.previousElementSibling, next = li.nextElementSibling;
     if (dy < 0 && movable(prev) && e.clientY < prev.getBoundingClientRect().top + prev.offsetHeight / 2) {
       const h = prev.offsetHeight + (prev.dataset.id ? 6 : 0); li.parentElement.insertBefore(li, prev); base -= h; li.style.transform = `translateY(${e.clientY - y0 - base}px)`;
@@ -1590,8 +1622,18 @@ function longDrag(li){
     }
   });
   li.addEventListener("touchmove", e => { if (drag) e.preventDefault(); }, { passive: false });
-  const end = () => {
+  const end = e => {
     cancel(); if (!drag) return;
+    const tab = e && document.elementsFromPoint(e.clientX, e.clientY).find(x => x.classList?.contains("stab"));
+    document.querySelectorAll(".stab.drop").forEach(x => x.classList.remove("drop"));
+    if (tab && tab.dataset.sid !== curSec) {
+      drag = false; li._drag = false; li.classList.remove("lift"); li.style.transform = "";
+      const t = tasks.find(x => x.id === li.dataset.id), sc = sections.find(x => x.id === tab.dataset.sid);
+      t.section_id = sc.id; renderList();
+      api(`/tasks/${t.id}`, { method:"PATCH", body: JSON.stringify({ section_id: sc.id }) }).then(() => load()).catch(er => { toast(er.message); load(); });
+      toast(`Déplacée dans « ${sc.name} »`);
+      return;
+    }
     drag = false; li._drag = false; li.dataset.dragged = "1"; setTimeout(() => delete li.dataset.dragged, 400);
     li.classList.remove("lift"); li.style.transform = "";
     const ul = li.parentElement, items = domOrder(ul);
@@ -1600,7 +1642,7 @@ function longDrag(li){
       applyOrder(items); saveOrder(items); renderList(); toast("Ordre enregistré");
     }
   };
-  row.addEventListener("pointerup", end); row.addEventListener("pointercancel", end);
+  row.addEventListener("pointerup", end); row.addEventListener("pointercancel", () => end(null));
   row.addEventListener("contextmenu", e => { if (drag || timer) e.preventDefault(); });
 }
 // Créer, renommer, déplacer ou supprimer une section
@@ -1610,6 +1652,7 @@ function openSection(sc){
     <label>Nom</label><input id="sname" value="${esc(sc?.name || "")}" placeholder="Ex. Chantiers, Admin, Cette semaine" maxlength="60" autocomplete="off">
     ${sc ? `<div class="chips" style="margin-top:12px"><button id="sup" ${i <= 0 ? "disabled" : ""}>↑ Monter la section</button><button id="sdown" ${i >= sections.length - 1 ? "disabled" : ""}>↓ Descendre la section</button></div>
       <p>Supprimer la section garde ses tâches : elles remontent en haut de la liste, sans section.</p>` : ""}
+    ${sc ? `<div class="tools" style="margin-top:10px"><button type="button" id="snew">+ Nouvelle section</button></div>` : ""}
     <div class="actions">${sc && sc.name !== "To Do" ? `<button class="danger" id="sdel">Supprimer</button>` : sc ? `<span class="hint" style="align-self:center">La section To Do reçoit les nouvelles tâches.</span>` : `<button id="cancel">Annuler</button>`}<button class="primary" id="ssave">${sc ? "Enregistrer" : "Créer"}</button></div>`;
   const save = async () => {
     const name = $("#sname").value.replace(/\s+/g, " ").trim(); if (!name) { $("#sname").focus(); return; }
@@ -1620,6 +1663,7 @@ function openSection(sc){
     } catch(e){ toast(e.message); }
   };
   $("#ssave").onclick = save;
+  if ($("#snew")) $("#snew").onclick = () => openSection(null);
   $("#sname").onkeydown = e => { if (e.key === "Enter") { e.preventDefault(); save(); } };
   if ($("#cancel")) $("#cancel").onclick = closeSheet;
   const shift = async d => {
