@@ -367,6 +367,27 @@ details.maccts>summary::-webkit-details-marker{display:none}
 .trow input{min-width:0}
 .trow .te.unv{border-color:#d9822b;background:rgba(217,130,43,.08)}
 .trow .tdel{border:1px solid var(--line);background:transparent;color:var(--muted);border-radius:10px;padding:0 10px;font:inherit;font-size:13px;cursor:pointer;white-space:nowrap}
+.ctools{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:12px}
+.ctools select.pill{padding-top:6px;padding-bottom:6px;font-size:13.5px}
+.sheethead .xbtn{border:0;background:transparent;color:var(--muted);width:34px;height:34px;border-radius:50%;font-size:15px;cursor:pointer;padding:0}
+.sheethead .xbtn:hover{background:var(--hover);color:var(--ink)}
+.actions .sm{display:none}
+@media (max-width:600px){.actions .lg{display:none}.actions .sm{display:inline}}
+.mailbody{color:var(--ink);min-height:180px;max-height:42dvh;overflow:auto;font-size:14.5px;line-height:1.5}
+.mailbody p{margin:0 0 10px;color:inherit;font-size:inherit}
+.mailbody ul,.mailbody ol{margin:0 0 10px;padding-left:22px}
+.fchip{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:999px;padding:4px 6px 4px 10px;font-size:13px;margin:6px 6px 0 0;max-width:100%}
+.fchip small{color:var(--muted)}
+.fchip button{border:0;background:transparent;color:var(--muted);cursor:pointer;width:22px;height:22px;border-radius:50%}
+.fchip button:hover{background:var(--hover);color:var(--ink)}
+.sigprev{margin-top:12px;font-size:13px;color:var(--muted)}
+.sigprev summary{cursor:pointer}
+.sigprev #csig{margin-top:8px;padding:10px 12px;border:1px dashed var(--line);border-radius:10px;color:var(--ink)}
+.sigprev img{max-width:140px;height:auto}
+.aibar{display:flex;gap:8px;align-items:center;margin-top:12px}
+.tbtn{flex:none;border:1px solid var(--line);background:transparent;color:var(--ink);border-radius:999px;padding:7px 12px;font-size:13.5px;cursor:pointer;white-space:nowrap}
+.tbtn:hover{background:var(--hover)}
+.props.cmp{margin-top:6px}
 .tick{display:flex;gap:8px;align-items:center;font-size:14px;color:var(--ink);margin-top:12px}
 .tick input{width:auto;margin:0}
 .newp input{flex:1;min-width:0}
@@ -824,6 +845,7 @@ function renderMail(){
     op?.addEventListener("click", () => openMail(m));
     op?.addEventListener("keydown", e => { if (e.key === "Enter") openMail(m); });
     el.querySelector(".mign")?.addEventListener("click", () => mailStatus(m, "ignore"));
+    el.querySelector(".mrep")?.addEventListener("click", () => startReply({ mail: m }));
     el.querySelector(".mres")?.addEventListener("click", () => mailStatus(m, "restore"));
   });
 }
@@ -831,7 +853,7 @@ const CATS = { client:"Client", fournisseur:"Fournisseur", facture:"Facture", in
 function mailCard(m){
   const [cls, lab] = prioCls(m.priority);
   const who = esc(m.from_name || m.from_email);
-  const btns = mailTab === "nouveau" ? `<button class="btn mign">Ignorer</button><button class="btn primary madd">${m.info_only ? "+ To Do" : "Ajouter à la To Do"}</button>`
+  const btns = mailTab === "nouveau" ? `<button class="btn mign">Ignorer</button>${legacy() ? "" : `<button class="btn mrep">Répondre</button>`}<button class="btn primary madd">${m.info_only ? "+ To Do" : "Ajouter à la To Do"}</button>`
     : mailTab === "ignore" ? `<button class="btn mres">Remettre à traiter</button>` : `<span class="ok">✓ Dans la To Do</span>`;
   const link = mailLink(m, m.provider === "outlook" ? "Outlook" : "Gmail") || `<span style="margin-right:auto"></span>`;
   if (mailTab === "nouveau" && m.info_only) return `<div class="mail info" data-id="${m.id}">
@@ -850,6 +872,19 @@ function mailCard(m){
     <div class="msj">${esc(m.action || m.subject || "(sans objet)")}</div>${m.action ? `<div class="msm">✉ ${esc(m.subject || "")}</div>` : ""}</div>
     <div class="ma">${link}${btns}</div></div>`;
 }
+// Tri par l'IA des nouveaux mails, uniquement après un clic sur « Mettre à jour » : action, priorité, et « Pour info » pour le reste
+const TAPI = "https://rorwnacthttwxyqemkgv.supabase.co/functions/v1/todo-triage";
+async function triageMail(){
+  const b = $("#mRefresh");
+  for (let i = 0; i < 8; i++) {
+    if (b) { b.disabled = true; b.textContent = "Tri par l'IA…"; }
+    let r;
+    try { r = await api("", { method:"POST", body:"{}", base: TAPI }); } catch(e){ toast("Tri par l'IA indisponible : " + e.message); break; }
+    if (r.done) { await loadMail(); if (view === "mail") renderMail(); refreshCounts(); }
+    if (!r.remaining) { if (r.done || i) toast("Mails triés par l'IA"); break; }
+  }
+  const b2 = $("#mRefresh"); if (b2) { b2.disabled = false; b2.textContent = "Mettre à jour"; }
+}
 async function refreshMail(){
   const b = $("#mRefresh"); b.disabled = true; b.textContent = "Mise à jour…";
   try {
@@ -859,6 +894,7 @@ async function refreshMail(){
       : a.error ? `${a.email} : ${a.error}` : a.skipped ? `${a.email} : ${a.skipped}` : `${a.email} : ${a.found} sans réponse`);
     toast(parts.join(" · ") || "Aucune boîte connectée");
     await loadMail(); renderMail(); refreshCounts();
+    if (!legacy() && r.accounts.some(a => !a.via_claude && !a.error)) await triageMail();
   } catch(e){ toast(e.message); }
   finally { const x = $("#mRefresh"); if (x && !mailPending) { x.disabled = false; x.textContent = "Mettre à jour"; } }
 }
@@ -919,13 +955,14 @@ async function openMail(m){
     ${!b ? `<div class="rnote">${d.body_error ? `Texte complet indisponible : ${esc(d.body_error)}.` : "Aperçu seulement : le texte complet arrive au prochain passage de Claude (chaque heure)."}</div>`
       : b.a_jour === false ? `<div class="rnote">Un message plus récent est arrivé dans ce fil : texte mis à jour au prochain passage.</div>` : ""}
     <div class="rlinks">${mailLink(d, `Ouvrir dans ${d.provider === "outlook" ? "Outlook" : "Gmail"}`)}</div>
-    <div class="actions">${st === "nouveau" ? `<button id="rIgn">Ignorer</button><button class="primary" id="rAdd">Ajouter à la To Do</button>`
+    <div class="actions">${st === "nouveau" ? `<button id="rIgn">Ignorer</button><button id="rRep">Répondre</button><button class="primary" id="rAdd">Ajouter à la To Do</button>`
       : st === "ignore" ? `<button id="rRes">Remettre à traiter</button><button class="primary" id="cancel">Fermer</button>` : `<button class="primary" id="cancel">Fermer</button>`}</div></div>`;
   $("#cancel")?.addEventListener("click", closeSheet);
   $("#panel .xbtn").onclick = closeSheet;
   $("#rIgn")?.addEventListener("click", () => { closeSheet(); mailStatus(m, "ignore"); });
   $("#rRes")?.addEventListener("click", () => { closeSheet(); mailStatus(m, "restore"); });
   $("#rAdd")?.addEventListener("click", () => openAddMail(m));
+  $("#rRep")?.addEventListener("click", () => startReply({ mail: m, back: () => openMail(m) }));
 }
 // Titre court pour un mail : « Répondre à Prénom : sujet court », le sujet complet reste dans les détails
 function shortTitle(who, subject){
@@ -1182,7 +1219,7 @@ function openEdit(t){
       ${legacy() ? "" : `<label title="Joindre un fichier">📎 Fichier<input type="file" id="fAdd" multiple></label><label title="Prendre ou joindre une photo">📷 Photo<input type="file" id="fCam" accept="image/*" capture="environment"></label>`}</div>
     <div id="en" class="rich" contenteditable="true" data-ph="Notes, détails, liens…">${mdToHtml(t.notes || "")}</div>
     <div class="files" id="files"></div>
-    ${open ? `<div class="tools">${legacy() ? "" : `<button type="button" id="fwd">↗ Transférer</button>`}<button type="button" id="pp">Reporter</button>${canReorder() && tasks.some(x => x.id === t.id) ? `<button type="button" id="mvUp" aria-label="Monter">↑ Monter</button><button type="button" id="mvDown" aria-label="Descendre">↓ Descendre</button>` : ""}</div>` : ""}
+    ${open ? `<div class="tools">${legacy() ? "" : `${t.link_url ? `<button type="button" id="rep">↩ Répondre</button>` : ""}<button type="button" id="fwd">↗ Transférer</button>`}<button type="button" id="pp">Reporter</button>${canReorder() && tasks.some(x => x.id === t.id) ? `<button type="button" id="mvUp" aria-label="Monter">↑ Monter</button><button type="button" id="mvDown" aria-label="Descendre">↓ Descendre</button>` : ""}</div>` : ""}
     <div class="actions foot"><button class="danger ghost" id="del">Supprimer</button><span class="sp"></span>${open ? "" : `<button id="rop">Rouvrir</button>`}<button class="primary" id="save">Enregistrer</button></div>`;
   let ewho = t.assignee === "agent" ? "agent" : "moi", epri = t.priority || "moyen";
   $$("#epri button").forEach(b => b.onclick = () => { epri = b.dataset.p; $$("#epri button").forEach(x => x.classList.toggle("on", x === b)); });
@@ -1204,6 +1241,7 @@ function openEdit(t){
   if (open){
     $("#cmpTop").onclick = done;
     $("#pp").onclick = () => openPostpone(t);
+    if ($("#rep")) $("#rep").onclick = () => startReply({ task: t, back: () => openEdit(t) });
     if ($("#fwd")) $("#fwd").onclick = async () => {
       const f = fields(); const changed = f.title !== t.title || (f.notes || null) !== (t.notes || null);
       if (changed) { try { Object.assign(t, await api(`/tasks/${t.id}`, { method:"PATCH", body: JSON.stringify(f) })); } catch(e){ toast(e.message); return; } }
@@ -1237,35 +1275,97 @@ async function openTransfer(t){
   $("#tother").onsubmit = e => { e.preventDefault(); const v = $("#toe").value.trim(); if (v) prepareTransfer(t, { to_email: v }, null); };
 }
 async function prepareTransfer(t, who, person){
-  $("#panel").innerHTML = `<div class="sheethead"><h3>Transférer</h3><button class="xbtn" aria-label="Fermer">✕</button></div><div class="empty" style="padding:28px 8px"><b>Rédaction du mail…</b>${person ? esc(person.name) : ""}</div>`;
-  $("#panel .xbtn").onclick = () => openTransfer(t);
+  composerLoading("Rédaction du mail…", () => openTransfer(t));
   let d;
   try { d = await dapi("/draft", { method:"POST", body: JSON.stringify({ task_id: t.id, ...who }) }); }
   catch(e){ toast(e.message); return openTransfer(t); }
-  const warn = person && !person.verified ? `<div class="hint" style="display:block;margin:4px 0 0">Adresse déduite du nom, à vérifier.</div>` : "";
-  $("#panel").innerHTML = `<div class="sheethead"><h3>Transférer</h3><button class="xbtn" aria-label="Fermer">✕</button></div>
-    <label>À</label><input id="tto" type="email" value="${esc(d.to.email)}">${warn}
-    <label>Objet</label><input id="tsub" value="${esc(d.subject)}" maxlength="200">
-    <label>Message${d.mode === "ia" ? " (rédigé par l'IA, à relire)" : ""}</label><textarea id="tbody" rows="11">${esc(d.body)}</textarea>
-    ${d.attach_original ? `<label class="tick"><input type="checkbox" id="tatt" checked> Joindre le mail d'origine${d.original?.from ? " de " + esc(d.original.from) : ""} avec ses pièces jointes</label>` : ""}
-    ${d.can_send ? "" : `<p class="hint" style="display:block">Pour envoyer depuis l'app, connecte Gmail dans la section Mail (Boîtes et réglages, + Gmail). En attendant, « Ouvrir dans ma messagerie » prépare le mail dans Outlook.</p>`}
-    ${d.ai ? "" : `<p class="hint" style="display:block">Rédaction simple : la reformulation par l'IA s'active avec la clé ANTHROPIC_API_KEY.</p>`}
-    <div class="actions"><button id="tmail">Ouvrir dans ma messagerie</button>${d.can_send ? `<button id="tdraft">Brouillon</button><button class="primary" id="tsend">Envoyer</button>` : ""}</div>`;
-  $("#panel .xbtn").onclick = () => openTransfer(t);
-  const vals = () => ({ task_id: t.id, ...(person && $("#tto").value.trim().toLowerCase() === person.email ? { to_id: person.id } : { to_email: $("#tto").value.trim(), to_name: person?.name }),
-    subject: $("#tsub").value.trim(), body: $("#tbody").value.trim(), attach_original: $("#tatt") ? $("#tatt").checked : false });
-  $("#tmail").onclick = () => { const v = vals(); location.href = `mailto:${encodeURIComponent($("#tto").value.trim())}?subject=${encodeURIComponent(v.subject)}&body=${encodeURIComponent(v.body)}`; };
-  const go = async mode => {
-    const v = vals(); if (!v.subject || !v.body) return toast("Objet et message requis");
-    const btns = $$("#panel .actions button"); btns.forEach(b => b.disabled = true);
+  openComposer({ kind:"forward", title:"Transférer", task:t, person, back: () => openTransfer(t),
+    to: [d.to], cc: [], subject: d.subject, body: d.body, mode: d.mode, can_send: d.can_send, ai: d.ai, attach: d.attach_original ? (d.original?.from || "l'expéditeur") : null });
+}
+async function startReply(ctx){
+  composerLoading("Rédaction de la réponse…", ctx.back || closeSheet);
+  let d;
+  try { d = await dapi("/draft", { method:"POST", body: JSON.stringify({ kind:"reply", ...(ctx.mail ? { mail_id: ctx.mail.id } : { task_id: ctx.task.id }), instructions: ctx.instructions || "" }) }); }
+  catch(e){ toast(e.message); return (ctx.back || closeSheet)(); }
+  openComposer({ ...ctx, kind:"reply", title:"Répondre", to: d.to, cc: d.cc, others: d.others, subject: d.subject, body: d.body, mode: d.mode, can_send: d.can_send, ai: d.ai, original: d.original });
+}
+function composerLoading(msg, back){
+  $("#panel").innerHTML = `<div class="sheethead"><h3>${msg.startsWith("Rédaction de la réponse") ? "Répondre" : "Transférer"}</h3><button class="xbtn" aria-label="Fermer">✕</button></div><div class="empty" style="padding:36px 8px"><b>${esc(msg)}</b>Quelques secondes.</div>`;
+  $("#panel .xbtn").onclick = back; openSheet();
+}
+let sigCache = null;
+const fmtSize = n => n > 1048576 ? (n / 1048576).toFixed(1).replace(".", ",") + " Mo" : Math.max(1, Math.round(n / 1024)) + " Ko";
+const txtToHtml = t => esc(t).split(/\n{2,}/).map(p => `<p>${p.replace(/\n/g, "<br>")}</p>`).join("");
+const addrStr = l => (l || []).map(x => x.email).join(", ");
+async function openComposer(c){
+  const files = [];
+  $("#panel").innerHTML = `<div class="sheethead"><h3>${c.title}</h3><button class="xbtn" aria-label="Fermer">✕</button></div>
+    <div class="props cmp">
+      <span class="pl">À</span><div class="pv"><input id="cto" class="pill wide" type="text" inputmode="email" value="${esc(addrStr(c.to))}" placeholder="adresse, adresse"></div>
+      <span class="pl">Cc</span><div class="pv"><input id="ccc" class="pill wide" type="text" inputmode="email" value="${esc(addrStr(c.cc))}" placeholder="Optionnel">${c.kind === "reply" && c.others?.length ? `<button type="button" class="tbtn" id="rall" title="Ajouter les autres destinataires">${c.cc?.length ? "Retirer les autres" : "Répondre à tous"}</button>` : ""}</div>
+      <span class="pl">Objet</span><div class="pv"><input id="csub" class="pill wide" value="${esc(c.subject)}" maxlength="250"></div>
+    </div>
+    ${c.person && !c.person.verified ? `<p class="hint" style="display:block;margin:0 0 6px">Adresse déduite du nom, à vérifier.</p>` : ""}
+    <div class="ntools ctools">
+      <button type="button" data-cmd="bold" title="Gras"><b>G</b></button><button type="button" data-cmd="italic" title="Italique"><i>I</i></button><button type="button" data-cmd="underline" title="Souligné"><u>S</u></button>
+      <button type="button" data-cmd="insertUnorderedList" title="Liste à puces">• Liste</button><button type="button" data-cmd="insertOrderedList" title="Liste numérotée">1. Liste</button>
+      <select id="cfont" class="pill" title="Police"><option value="">Police</option><option value="Arial">Arial</option><option value="Calibri, Carlito, sans-serif">Calibri</option><option value="Georgia">Georgia</option><option value="Verdana">Verdana</option><option value="Courier New">Courier</option></select>
+      <button type="button" id="clink" title="Lien">🔗</button>
+      <label title="Joindre des fichiers">📎 Joindre<input type="file" id="cfile" multiple></label>
+    </div>
+    <div id="cbody" class="rich mailbody" contenteditable="true">${txtToHtml(c.body || "")}</div>
+    <div class="files" id="cfiles"></div>
+    ${c.attach ? `<label class="tick"><input type="checkbox" id="catt" checked> Joindre le mail d'origine de ${esc(c.attach)}, avec ses pièces jointes</label>` : ""}
+    <details class="sigprev"><summary>Signature ajoutée automatiquement</summary><div id="csig">Chargement…</div></details>
+    ${c.ai ? `<div class="aibar"><input id="cinst" class="pill wide" placeholder="Consigne pour l'IA (ex. accepter jeudi 10 h, demander le devis)"><button type="button" class="tbtn" id="cregen">✨ Réécrire</button></div>` : ""}
+    ${c.mode === "ia" ? `<p class="hint" style="display:block">Rédigé par l'IA : relis avant d'envoyer.${c.kind === "reply" ? " Les [à compléter] sont à remplir." : ""}</p>` : ""}
+    ${c.can_send ? "" : `<p class="hint" style="display:block">Envoi depuis Klaar : connecte Gmail (Mail, Boîtes et réglages, + Gmail). En attendant, « Ouvrir dans ma messagerie » reprend le texte.</p>`}
+    <div class="actions foot"><button class="ghost" id="cmail" title="Ouvrir dans ma messagerie"><span class="lg">Ouvrir dans ma messagerie</span><span class="sm">✉ Messagerie</span></button><span class="sp"></span>${c.can_send ? `<button id="cdraft">Brouillon</button><button class="primary" id="csend">Envoyer</button>` : ""}</div>`;
+  $("#panel .xbtn").onclick = c.back || closeSheet;
+  openSheet();
+  const ed = $("#cbody");
+  $$(".ctools [data-cmd]").forEach(b => { b.onmousedown = e => e.preventDefault(); b.onclick = () => { ed.focus(); document.execCommand(b.dataset.cmd); }; });
+  $("#cfont").onchange = e => { if (e.target.value) { ed.focus(); document.execCommand("fontName", false, e.target.value); } e.target.value = ""; };
+  $("#clink").onmousedown = e => e.preventDefault();
+  $("#clink").onclick = () => { const sel = String(window.getSelection() || ""); if (!sel) return toast("Sélectionne d'abord le texte à lier"); const u = window.prompt("Adresse du lien", "https://"); if (u && /^(https?:|mailto:|tel:)/.test(u)) document.execCommand("createLink", false, u); };
+  ed.addEventListener("paste", e => { e.preventDefault(); document.execCommand("insertText", false, (e.clipboardData || window.clipboardData).getData("text/plain")); });
+  const showFiles = () => { $("#cfiles").innerHTML = files.map((f, i) => `<span class="fchip">📎 ${esc(f.name)} <small>${fmtSize(f.size)}</small><button type="button" data-i="${i}" aria-label="Retirer">✕</button></span>`).join("");
+    $$("#cfiles button").forEach(b => b.onclick = () => { files.splice(+b.dataset.i, 1); showFiles(); }); };
+  $("#cfile").onchange = e => { for (const f of e.target.files) { if (files.reduce((n, x) => n + x.size, 0) + f.size > 18 * 1048576) { toast("18 Mo au maximum au total"); break; } files.push(f); } e.target.value = ""; showFiles(); };
+  if ($("#rall")) $("#rall").onclick = () => { const on = !$("#ccc").value.trim(); $("#ccc").value = on ? addrStr(c.others) : ""; $("#rall").textContent = on ? "Retirer les autres" : "Répondre à tous"; };
+  if ($("#cregen")) $("#cregen").onclick = async () => {
+    const b = $("#cregen"); b.disabled = true; b.textContent = "Rédaction…";
     try {
-      const r = await dapi("/send", { method:"POST", body: JSON.stringify({ ...v, mode }) });
+      const body = c.kind === "reply" ? { kind:"reply", ...(c.mail ? { mail_id: c.mail.id } : { task_id: c.task.id }), instructions: $("#cinst").value }
+        : { task_id: c.task.id, ...(c.person ? { to_id: c.person.id } : { to_email: $("#cto").value.split(",")[0].trim() }), instructions: $("#cinst").value };
+      const d = await dapi("/draft", { method:"POST", body: JSON.stringify(body) });
+      ed.innerHTML = txtToHtml(d.body);
+    } catch(e){ toast(e.message); }
+    b.disabled = false; b.textContent = "✨ Réécrire";
+  };
+  (sigCache ? Promise.resolve(sigCache) : dapi("/signature").then(r => sigCache = r.html)).then(h => { if ($("#csig")) $("#csig").innerHTML = h || "Aucune signature enregistrée."; }).catch(() => { if ($("#csig")) $("#csig").textContent = "Signature indisponible."; });
+  $("#cmail").onclick = () => { location.href = `mailto:${encodeURIComponent($("#cto").value.trim())}?cc=${encodeURIComponent($("#ccc").value.trim())}&subject=${encodeURIComponent($("#csub").value.trim())}&body=${encodeURIComponent(ed.innerText.trim())}`; };
+  const go = async mode => {
+    const to = $("#cto").value.split(/[,;]/).map(x => x.trim()).filter(Boolean);
+    if (!to.length) return toast("Ajoute un destinataire");
+    if (!$("#csub").value.trim() || !ed.innerText.trim()) return toast("Objet et message requis");
+    const btns = $$("#panel .actions button"); btns.forEach(b => b.disabled = true);
+    $("#csend") && ($("#csend").textContent = mode === "send" ? "Envoi…" : "Envoyer");
+    try {
+      const enc64 = f => new Promise((ok, ko) => { const r = new FileReader(); r.onload = () => ok(String(r.result).split(",")[1]); r.onerror = ko; r.readAsDataURL(f); });
+      const payload = { mode, kind: c.kind, subject: $("#csub").value.trim(), html: ed.innerHTML,
+        to: to.map(e => ({ email: e, name: c.to?.find(x => x.email === e)?.name || (c.person?.email === e ? c.person.name : "") })),
+        cc: $("#ccc").value.split(/[,;]/).map(x => x.trim()).filter(Boolean),
+        files: await Promise.all(files.map(async f => ({ name: f.name, type: f.type, b64: await enc64(f) }))),
+        ...(c.mail ? { mail_id: c.mail.id } : {}), ...(c.task ? { task_id: c.task.id } : {}), attach_original: $("#catt") ? $("#catt").checked : false };
+      const r = await dapi("/send", { method:"POST", body: JSON.stringify(payload) });
       closeSheet();
       if (mode === "draft") toast("Brouillon enregistré dans Gmail");
-      else { toast(`Envoyé à ${r.to.name}${r.attached ? ", mail d'origine joint" : ""}`, () => complete(t), "Marquer fait"); load(); }
-    } catch(e){ toast(e.message); btns.forEach(b => b.disabled = false); }
+      else if (c.kind === "reply") { toast("Réponse envoyée"); if (view === "mail") { await loadMail(); renderMail(); } refreshCounts(); }
+      else { toast(`Envoyé à ${r.to.name || r.to.email}${r.attached ? ", mail d'origine joint" : ""}`, () => complete(c.task), "Marquer fait"); load(); }
+    } catch(e){ toast(e.message); btns.forEach(b => b.disabled = false); $("#csend") && ($("#csend").textContent = "Envoyer"); }
   };
-  if ($("#tsend")) { $("#tsend").onclick = () => go("send"); $("#tdraft").onclick = () => go("draft"); }
+  if ($("#csend")) { $("#csend").onclick = () => go("send"); $("#cdraft").onclick = () => go("draft"); }
 }
 function teamRows(){
   return team.map(p => `<div class="trow" data-id="${p.id}"><input class="tn" value="${esc(p.name)}" maxlength="80"><input class="te${p.verified ? "" : " unv"}" type="email" value="${esc(p.email)}" title="${p.verified ? "" : "Adresse déduite, à vérifier"}"><button class="tdel" aria-label="Retirer">✕</button></div>`).join("");
