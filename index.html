@@ -307,7 +307,31 @@ details.maccts>summary::-webkit-details-marker{display:none}
 .panel h4{margin:18px 0 6px;font-size:14px}
 .panel label{display:block;font-size:13px;color:var(--muted);margin:10px 0 4px}
 .panel input,.panel textarea,.panel select{width:100%;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:10px;padding:10px;font:inherit}
-.panel select{-webkit-appearance:none;appearance:none}
+.panel select{-webkit-appearance:none;appearance:none;background-image:linear-gradient(45deg,transparent 50%,var(--muted) 50%),linear-gradient(135deg,var(--muted) 50%,transparent 50%);background-position:calc(100% - 15px) 50%,calc(100% - 10px) 50%;background-size:5px 5px;background-repeat:no-repeat;padding-right:30px}
+/* Règle : un sélecteur ou une date prend la largeur de son contenu, jamais toute la feuille */
+.panel select,.panel input[type=date]{width:auto;max-width:100%;min-width:0}
+.panel .ttl{border:0;background:transparent;font-size:18px;font-weight:600;padding:2px 0;min-height:0;resize:none;line-height:1.35}
+.panel .ttl:focus{outline:none;box-shadow:inset 0 -2px 0 var(--accent-soft)}
+.panel .orig{font-size:13px;color:var(--muted);margin:2px 0 6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;background:transparent;border:0;padding:0}
+.props{display:grid;grid-template-columns:96px minmax(0,1fr);align-items:center;column-gap:12px;row-gap:10px;margin:14px 0 6px;padding:12px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.props .pl{font-size:13px;color:var(--muted)}
+.props .pv{display:flex;align-items:center;gap:6px;min-width:0}
+.props .seg{justify-self:start}
+.panel .pill{border-radius:999px;padding:7px 12px;font-size:14px;background-color:var(--bg)}
+.panel select.pill{padding-right:30px}
+.panel .pill.wide{width:100%;max-width:320px}
+.pclear{border:0;background:transparent;color:var(--muted);font-size:13px;width:28px;height:28px;border-radius:50%;cursor:pointer}
+.pclear:hover{background:var(--hover);color:var(--ink)}
+.props .linkrow{margin:0}
+.tools{display:flex;flex-wrap:wrap;gap:6px;margin-top:14px}
+.tools button{border:1px solid var(--line);background:transparent;color:var(--ink);border-radius:999px;padding:7px 14px;font-size:13.5px;cursor:pointer}
+.tools button:hover{background:var(--hover)}
+.actions.foot{position:sticky;bottom:calc(-18px - env(safe-area-inset-bottom));background:var(--card);margin:16px -16px calc(-18px - env(safe-area-inset-bottom));padding:12px 16px calc(12px + env(safe-area-inset-bottom));border-top:1px solid var(--line);flex-wrap:nowrap;align-items:center}
+.actions.foot .sp{flex:1}
+.actions.foot .primary{flex:none;min-width:140px}
+.actions .ghost{background:transparent;border-color:transparent}
+.actions .ghost:hover{background:var(--hover)}
+@media (max-width:600px){.props{grid-template-columns:84px minmax(0,1fr)}.actions.foot .primary{flex:1}}
 .panel textarea{min-height:70px;resize:vertical}
 .panel .seg{margin-top:2px}
 .panel p{font-size:14px;color:var(--muted);margin:6px 0}
@@ -1142,22 +1166,24 @@ function openEdit(t){
   confirmDelete = false;
   const open = t.status === "open";
   $("#panel").innerHTML = `<div class="sheethead"><h3>${open ? "Détails" : "Tâche fermée"}</h3>${open ? `<button class="donebtn" id="cmpTop">✓ Done</button>` : `<button id="ropTop" class="btn">Rouvrir</button>`}</div>
-    <label>Titre</label><textarea id="et" rows="3" style="min-height:0">${esc(t.title)}</textarea>
-    ${t.source_subject ? `<label>Sujet du mail d'origine</label><div class="orig">${esc(t.source_subject)}</div>` : ""}
-    <label>Urgence</label><div class="seg" id="epri">${PRIS.map(([k,l]) => `<button type="button" data-p="${k}" class="${(t.priority||"moyen")===k?"on":""} ${k==="urgent"?"ur":k==="faible"?"lo":""}">${l}</button>`).join("")}</div>
-    <label>Étiquettes</label><input id="etg" value="${esc((t.tags||[]).join(", "))}" placeholder="Ex. compta, chantier" autocomplete="off" list="tagopts"><datalist id="tagopts">${tagList.map(x => `<option value="${esc(x.tag)}">`).join("")}</datalist>
+    <textarea id="et" class="ttl" rows="1" aria-label="Titre">${esc(t.title)}</textarea>
+    ${t.source_subject ? `<div class="orig">✉ ${esc(t.source_subject)}</div>` : ""}
+    <div class="props">
+      <span class="pl">Urgence</span><div class="seg" id="epri">${PRIS.map(([k,l]) => `<button type="button" data-p="${k}" class="${(t.priority||"moyen")===k?"on":""} ${k==="urgent"?"ur":k==="faible"?"lo":""}">${l}</button>`).join("")}</div>
+      <span class="pl">Échéance</span><div class="pv"><input type="date" id="ed" class="pill" value="${t.due_date||""}">${t.due_date ? `<button type="button" class="pclear" id="edx" aria-label="Retirer l'échéance">✕</button>` : ""}</div>
+      ${sections.length ? `<span class="pl">Section</span><div class="pv"><select id="esec" class="pill"><option value="">Sans section</option>${sections.map(x => `<option value="${x.id}" ${x.id===t.section_id?"selected":""}>${esc(x.name)}</option>`).join("")}</select></div>` : ""}
+      <span class="pl">Projet</span><div class="pv"><select id="eproj" class="pill"><option value="">Sans projet</option>${projects.map(p => `<option value="${p.id}" ${p.id===t.project_id?"selected":""}>${esc(p.name)}</option>`).join("")}</select></div>
+      <span class="pl">Qui fait</span><div class="seg" id="ewho"><button type="button" data-w="moi" class="${t.assignee!=="agent"?"on":""}">Moi</button><button type="button" data-w="agent" class="ag ${t.assignee==="agent"?"on":""}">Agent IA</button></div>
+      <span class="pl">Étiquettes</span><div class="pv"><input id="etg" class="pill wide" value="${esc((t.tags||[]).join(", "))}" placeholder="compta, chantier…" autocomplete="off" list="tagopts"><datalist id="tagopts">${tagList.map(x => `<option value="${esc(x.tag)}">`).join("")}</datalist></div>
+      ${safeUrl(t.link_url) ? `<span class="pl">Mail lié</span><div class="pv linkrow"><a href="${esc(t.link_url)}" target="_blank" rel="noopener">↗ ${esc(t.link_label || "Ouvrir le mail")}</a><button type="button" id="unlink">Retirer</button></div>` : ""}
+    </div>
     <label>Notes</label>
     <div class="ntools"><button type="button" data-cmd="bold" title="Gras"><b>G</b></button><button type="button" data-cmd="italic" title="Italique"><i>I</i></button><button type="button" data-cmd="insertUnorderedList" title="Liste">• Liste</button>
       ${legacy() ? "" : `<label title="Joindre un fichier">📎 Fichier<input type="file" id="fAdd" multiple></label><label title="Prendre ou joindre une photo">📷 Photo<input type="file" id="fCam" accept="image/*" capture="environment"></label>`}</div>
     <div id="en" class="rich" contenteditable="true" data-ph="Notes, détails, liens…">${mdToHtml(t.notes || "")}</div>
     <div class="files" id="files"></div>
-    <label>Échéance</label><input type="date" id="ed" value="${t.due_date||""}">
-    ${sections.length ? `<label>Section</label><select id="esec"><option value="">Sans section</option>${sections.map(x => `<option value="${x.id}" ${x.id===t.section_id?"selected":""}>${esc(x.name)}</option>`).join("")}</select>` : ""}
-    <label>Projet</label><select id="eproj"><option value="">Sans projet</option>${projects.map(p => `<option value="${p.id}" ${p.id===t.project_id?"selected":""}>${esc(p.name)}</option>`).join("")}</select>
-    <label>Qui fait la tâche</label><div class="seg" id="ewho"><button type="button" data-w="moi" class="${t.assignee!=="agent"?"on":""}">Moi</button><button type="button" data-w="agent" class="ag ${t.assignee==="agent"?"on":""}">Agent IA</button></div>
-    ${safeUrl(t.link_url) ? `<label>Mail lié</label><div class="linkrow"><a href="${esc(t.link_url)}" target="_blank" rel="noopener">↗ ${esc(t.link_label || "Ouvrir le mail")}</a><button id="unlink">Retirer</button></div>` : ""}
-    ${open ? `<div class="chips" style="margin-top:12px">${legacy() ? "" : `<button id="fwd">↗ Transférer…</button>`}<button id="pp">Reporter…</button>${canReorder() && tasks.some(x => x.id === t.id) ? `<button id="mvUp">↑ Monter</button><button id="mvDown">↓ Descendre</button>` : ""}</div>` : ""}
-    <div class="actions"><button class="danger" id="del">Supprimer</button>${open ? `<button class="donebtn" id="cmp">✓ Done</button>` : `<button id="rop">Rouvrir</button>`}<button class="primary" id="save">Enregistrer</button></div>`;
+    ${open ? `<div class="tools">${legacy() ? "" : `<button type="button" id="fwd">↗ Transférer</button>`}<button type="button" id="pp">Reporter</button>${canReorder() && tasks.some(x => x.id === t.id) ? `<button type="button" id="mvUp" aria-label="Monter">↑ Monter</button><button type="button" id="mvDown" aria-label="Descendre">↓ Descendre</button>` : ""}</div>` : ""}
+    <div class="actions foot"><button class="danger ghost" id="del">Supprimer</button><span class="sp"></span>${open ? "" : `<button id="rop">Rouvrir</button>`}<button class="primary" id="save">Enregistrer</button></div>`;
   let ewho = t.assignee === "agent" ? "agent" : "moi", epri = t.priority || "moyen";
   $$("#epri button").forEach(b => b.onclick = () => { epri = b.dataset.p; $$("#epri button").forEach(x => x.classList.toggle("on", x === b)); });
   const tagsOf = v => [...new Set(v.split(/[,;#]+/).map(x => x.trim()).filter(Boolean))].slice(0, 6);
@@ -1173,9 +1199,10 @@ function openEdit(t){
     closeSheet(); complete(t);
   };
   $("#del").onclick = () => remove(t);
+  if ($("#edx")) $("#edx").onclick = () => { $("#ed").value = ""; $("#edx").remove(); };
   if ($("#unlink")) $("#unlink").onclick = () => patch(t, { link_url: null }, "Lien retiré");
   if (open){
-    $("#cmp").onclick = done; $("#cmpTop").onclick = done;
+    $("#cmpTop").onclick = done;
     $("#pp").onclick = () => openPostpone(t);
     if ($("#fwd")) $("#fwd").onclick = async () => {
       const f = fields(); const changed = f.title !== t.title || (f.notes || null) !== (t.notes || null);
@@ -1190,6 +1217,8 @@ function openEdit(t){
     loadFiles(t);
   }
   openSheet();
+  const et = $("#et"), fit = () => { et.style.height = "auto"; et.style.height = et.scrollHeight + "px"; };
+  fit(); et.addEventListener("input", fit);
 }
 
 // ---------- Transfert à l'équipe : brouillon rédigé, relu, puis envoyé ou rangé dans les brouillons Gmail ----------
