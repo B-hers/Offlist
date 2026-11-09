@@ -192,6 +192,17 @@ li.lift .bgL,li.lift .bgR{display:none}
 .stags button.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
 .orig{font-size:13px;color:var(--muted);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:8px 10px;margin-top:4px;word-wrap:break-word}
 .empty{color:var(--muted);text-align:center;padding:48px 16px}
+/* ---------- Sections ---------- */
+li.sechead{display:flex;align-items:center;gap:6px;margin:18px 2px 6px;overflow:visible;border-radius:0;padding-bottom:4px;border-bottom:1px solid var(--line)}
+ul > li.sechead:first-child{margin-top:4px}
+.sechead .sn{font-weight:700;font-size:14.5px;letter-spacing:.01em;flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sechead .sc{color:var(--muted);font-size:13px;font-variant-numeric:tabular-nums;flex:1}
+.sechead button{border:0;background:transparent;color:var(--muted);font:inherit;font-size:18px;line-height:1;width:34px;height:34px;border-radius:8px;cursor:pointer}
+.sechead button:hover,.sechead button:focus-visible{background:var(--card);color:var(--ink)}
+li.secempty{border:1px dashed var(--line);color:var(--muted);font-size:13px;padding:10px 12px;text-align:center}
+li.secadd{overflow:visible;margin-top:14px}
+li.secadd button{width:100%;border:1px dashed var(--line);background:transparent;color:var(--muted);border-radius:12px;padding:10px;font:inherit;font-size:14px;cursor:pointer}
+li.secadd button:hover{color:var(--ink);border-color:var(--muted)}
 .empty b{display:block;color:var(--ink);font-size:17px;margin-bottom:4px}
 .foot{color:var(--muted);font-size:12px;text-align:center;margin-top:24px}
 
@@ -328,6 +339,12 @@ details.maccts>summary::-webkit-details-marker{display:none}
 .prow .pc{color:var(--muted);font-size:12.5px;flex:none}
 .prow button.x{flex:none;border:1px solid var(--line);background:var(--bg);color:var(--danger);border-radius:10px;padding:8px 10px;font-size:13px;cursor:pointer}
 .newp{display:flex;gap:8px;margin-top:12px}
+.trow{display:grid;grid-template-columns:1fr 1.4fr auto;gap:6px;margin-top:6px}
+.trow input{min-width:0}
+.trow .te.unv{border-color:#d9822b;background:rgba(217,130,43,.08)}
+.trow .tdel{border:1px solid var(--line);background:transparent;color:var(--muted);border-radius:10px;padding:0 10px;font:inherit;font-size:13px;cursor:pointer;white-space:nowrap}
+.tick{display:flex;gap:8px;align-items:center;font-size:14px;color:var(--ink);margin-top:12px}
+.tick input{width:auto;margin:0}
 .newp input{flex:1;min-width:0}
 #inv{flex-wrap:wrap}#inv input{flex:1 1 160px}#inv button{min-height:42px}
 .newp button{flex:none;border:0;background:var(--accent);color:#fff;border-radius:10px;padding:0 14px;font-weight:600;cursor:pointer}
@@ -364,6 +381,7 @@ details.maccts>summary::-webkit-details-marker{display:none}
 
 <script>
 const API = "https://rorwnacthttwxyqemkgv.supabase.co/functions/v1/todo-api";
+const DAPI = "https://rorwnacthttwxyqemkgv.supabase.co/functions/v1/todo-delegate";
 const APP = location.href.split("#")[0].split("?")[0];
 const store = {
   get(k){ try{ return localStorage.getItem(k) }catch{ return null } },
@@ -373,7 +391,8 @@ const store = {
 let token = store.get("todo_token");
 let meInfo = null;
 let view = store.get("todo_view") || "today";
-let tasks = [], counts = {today:0,later:0,done:0,mail:0}, searching = false, overview = null, projects = [];
+if (view === "later") view = "today";
+let sections = [], tasks = [], counts = {today:0,open:0,done:0,mail:0}, searching = false, overview = null, projects = [];
 let fProject = store.get("todo_fproject") || "", fWho = store.get("todo_fwho") || "", newWho = "moi";
 let mailData = null, mailTab = "nouveau";
 let mailPending = +(store.get("todo_mail_refresh") || 0), mailPoll = null;
@@ -393,12 +412,14 @@ const legacy = () => !!meInfo?.legacy;
 async function api(path, opts = {}){
   const headers = { "Content-Type": "application/json" };
   if (token) headers.Authorization = "Bearer " + token;
-  const r = await fetch(API + path, { ...opts, headers });
+  const r = await fetch((opts.base || API) + path, { ...opts, headers });
   const data = await r.json().catch(() => ({}));
   if (r.status === 401 && token && !path.startsWith("/auth/")) { token = null; store.del("todo_token"); meInfo = null; showLogin("Session expirée, reconnecte-toi."); }
   if (!r.ok) throw Object.assign(new Error(data.error || "Erreur réseau"), { status: r.status, data });
   return data;
 }
+
+const dapi = (path, opts = {}) => api(path, { ...opts, base: DAPI });
 
 // ---------- Dates ----------
 const todayISO = (o=0) => new Date(Date.now()+o*864e5).toLocaleDateString("en-CA");
@@ -438,14 +459,14 @@ async function showLogin(err){
   const red = encodeURIComponent(APP);
   closeSheet();
   $("#app").innerHTML = `<div class="login">
-    <h1>To Do</h1><p>Ta liste qui se vide toute seule quand c'est fait.</p>
+    <h1>To Do</h1><p>Tes tâches, tes mails à traiter et les clôtures à valider.</p>
     ${prov.google ? `<button class="lbtn" id="lg">Continuer avec Google</button>` : ""}
     ${prov.microsoft ? `<button class="lbtn" id="lm">Continuer avec Microsoft</button>` : ""}
     ${prov.google || prov.microsoft ? `<div class="or">ou</div>` : ""}
     <form id="kf"><input id="k" placeholder="Clé d'accès (todo_…)" autocomplete="off" autocapitalize="off" spellcheck="false">
     <button class="go">Se connecter avec ma clé</button></form>
     <div class="err" id="lerr">${esc(err || "")}</div>
-    <div class="note">${prov.google || prov.microsoft ? "" : "La connexion avec Google et Microsoft arrive bientôt. En attendant, utilise ta clé d'accès personnelle."}</div>
+    <div class="note">${prov.google || prov.microsoft ? "" : "Connexion avec Google et Microsoft pas encore configurée : utilise ta clé d'accès personnelle."}</div>
   </div>`;
   if ($("#lg")) $("#lg").onclick = () => location.href = `${API}/auth/google/start?redirect=${red}`;
   if ($("#lm")) $("#lm").onclick = () => location.href = `${API}/auth/microsoft/start?redirect=${red}`;
@@ -520,18 +541,18 @@ function renderBanner(){
 }
 
 // ---------- Navigation ----------
-const VIEWS = { today:"To Do", later:"Plus tard", mail:"Mail", done:"Fait récemment", search:"Rechercher" };
-const ICONS = { today:"☀", later:"→", mail:"✉", done:"✓", search:"⌕" };
+const VIEWS = { today:"To Do", mail:"Mail", done:"Fait récemment", search:"Rechercher" };
+const ICONS = { today:"☀", mail:"✉", done:"✓", search:"⌕" };
 function viewBadge(k){
   if (k === "mail") return counts.mail ? `<span class="n hot">${counts.mail}</span>` : "";
-  const n = counts[k]; return n != null && k !== "search" ? `<span class="n">${n}</span>` : "";
+  const n = k === "today" ? (counts.open ?? counts.today) : counts[k]; return n != null && k !== "search" ? `<span class="n">${n}</span>` : "";
 }
 function renderSide(){
   const s = $("#side"); if (!s) return;
   const cur = searching ? "search" : view;
   const who = [["","Tous"],["moi","Moi"],["agent","Agents IA"]];
   s.innerHTML = `<div class="brand"><span class="lg">✓</span><b>Klaar</b></div>
-    <div class="snav">${["today","later","mail","done","search"].map(k => `<button data-v="${k}" class="${cur===k?"on":""}"><span class="ic">${ICONS[k]}</span>${VIEWS[k]}${viewBadge(k)}</button>`).join("")}</div>
+    <div class="snav">${["today","mail","done","search"].map(k => `<button data-v="${k}" class="${cur===k?"on":""}"><span class="ic">${ICONS[k]}</span>${VIEWS[k]}${viewBadge(k)}</button>`).join("")}</div>
     <div class="stitle">Qui fait</div>
     <div class="swho">${who.map(([k,l]) => `<button data-w="${k}" class="${fWho===k?"on":""} ${k==="agent"?"ag":""}">${l}${k==="agent" && counts.agent ? ` ${counts.agent}`:""}</button>`).join("")}</div>
     <div class="stitle">Projets<button id="sManage" title="Gérer les projets">+</button></div>
@@ -554,7 +575,7 @@ function renderSide(){
 }
 function renderTabs(){
   const cur = searching ? "search" : view;
-  $("#tabs").innerHTML = ["today","later","mail","done","search"].map(k => `<button data-v="${k}" class="${cur===k?"on":""}">${VIEWS[k]}${viewBadge(k)}</button>`).join("");
+  $("#tabs").innerHTML = ["today","mail","done","search"].map(k => `<button data-v="${k}" class="${cur===k?"on":""}">${VIEWS[k]}${viewBadge(k)}</button>`).join("");
   $$("#tabs button").forEach(b => b.onclick = () => setView(b.dataset.v));
   const box = $("#pfilter");
   if (view === "mail" && !searching) { box.innerHTML = ""; return; }
@@ -605,14 +626,13 @@ function setProject(p){ fProject = p; store.set("todo_fproject", p); if ($("#nPr
 function renderList(){
   const ul = document.createElement("ul"); ul.id = "list";
   $("#content").replaceChildren(ul);
-  if (!tasks.length){
+  if (!tasks.length && !(view === "today" && !searching && sections.length)){
     const msg = searching ? ["Aucun résultat",""] :
-      view === "today" ? ["Rien à faire pour l'instant","Profite, ou avance sur Plus tard."] :
-      view === "later" ? ["Rien de prévu","Ajoute une tâche en haut."] : ["Rien de fermé récemment",""];
+      view === "today" ? ["Rien à faire pour l'instant","Ajoute une tâche avec le champ du haut ou le bouton +."] : ["Rien de fermé récemment",""];
     if (!searching && (fProject || fWho || fTag)) msg[1] = "Aucune tâche avec ce filtre.";
     ul.innerHTML = `<div class="empty"><b>${msg[0]}</b>${msg[1]}</div>`; return;
   }
-  ul.innerHTML = tasks.map(t => {
+  const taskLi = t => {
     const meta = [], open = t.status === "open", urg = open && t.priority === "urgent";
     if (open){
       if (urg) meta.push(`<span class="pill u">Urgent</span>`);
@@ -628,12 +648,31 @@ function renderList(){
     (t.tags || []).filter(x => x !== fTag).slice(0, 2).forEach(x => meta.push(`<span class="tg">#${esc(x)}</span>`));
     if (t.created_via === "mail" || (open && safeUrl(t.link_url))) meta.push(`<span class="src" title="Vient d'un mail">✉</span>`);
     if (t.files_count) meta.push(`<span class="src" title="Pièces jointes">📎 ${t.files_count}</span>`);
-    return `<li data-id="${t.id}" data-g="${prioRank(t)}"><div class="bgR">✓ Fait</div><div class="bgL">Reporter →</div>
+    return `<li data-id="${t.id}"><div class="bgR">✓ Fait</div><div class="bgL">Reporter →</div>
       <div class="row ${t.status === "done" ? "done":""} ${urg ? "urg" : ""}">
         <div class="body"><div class="title">${esc(t.title)}</div>${meta.length?`<div class="meta">${meta.map(m=>`<span>${m}</span>`).join("")}</div>`:""}</div>
         <button class="check" aria-label="${t.status==="done"?"Rouvrir":"Marquer comme fait"}" title="${t.status==="done"?"Rouvrir":"Done"}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></button></div></li>`;
-  }).join("") + `<div class="foot">${canReorder() ? "Appui long sur une tâche pour la monter ou la descendre · " : ""}<span class="mob">Glisse à droite pour terminer, à gauche pour reporter</span></div>`;
-  ul.querySelectorAll("li").forEach(li => {
+  };
+  const useSec = view === "today" && !searching;
+  if (useSec && sections.length) {
+    const free = tasks.filter(t => !t.section_id || !sections.some(x => x.id === t.section_id));
+    let html = free.map(taskLi).join("");
+    for (const sc of sections) {
+      const mine = tasks.filter(t => t.section_id === sc.id);
+      html += `<li class="sechead" data-sid="${sc.id}"><span class="sn">${esc(sc.name)}</span><span class="sc">${mine.length || ""}</span><button class="sadd" aria-label="Ajouter une tâche dans ${esc(sc.name)}">+</button><button class="smore" aria-label="Options de la section">⋯</button></li>`
+        + (mine.length ? mine.map(taskLi).join("") : `<li class="secempty" data-sid="${sc.id}">Aucune tâche · appui long sur une tâche pour la glisser ici</li>`);
+    }
+    ul.innerHTML = html;
+  } else ul.innerHTML = tasks.map(taskLi).join("");
+  ul.insertAdjacentHTML("beforeend", (useSec ? `<li class="secadd"><button id="secNew">+ Nouvelle section</button></li>` : "")
+    + `<div class="foot">${canReorder() ? "Appui long sur une tâche pour la déplacer, y compris vers une autre section · " : view === "today" && !searching ? "Retire les filtres pour réordonner la liste · " : ""}<span class="mob">Glisse à droite pour terminer, à gauche pour reporter</span></div>`);
+  if ($("#secNew")) $("#secNew").onclick = () => openSection(null);
+  ul.querySelectorAll(".sechead").forEach(h => {
+    const sc = sections.find(x => x.id === h.dataset.sid);
+    h.querySelector(".sadd").onclick = () => openQuickAdd(sc.id);
+    h.querySelector(".smore").onclick = () => openSection(sc);
+  });
+  ul.querySelectorAll("li[data-id]").forEach(li => {
     const t = tasks.find(x => x.id === li.dataset.id);
     li.querySelector(".check").onclick = () => t.status === "done" ? reopen(t) : complete(t);
     li.querySelector(".body").onclick = () => { if (li.dataset.dragged) { delete li.dataset.dragged; return; } openEdit(t); };
@@ -646,7 +685,7 @@ function renderList(){
 const SRC = { mail: "Mail", agenda: "Agenda", autre: "Preuve" };
 function asksHtml(ps){
   if (!ps.length) return "";
-  return `<div class="asksH">C'est fait ?<span class="n">${ps.length}</span>${overview?.mode === "simulation" ? `<span class="sim">Rien ne se ferme sans toi</span>` : ""}</div>` +
+  return `<div class="asksH">C'est fait ?<span class="n">${ps.length}</span>${overview?.mode === "simulation" ? `<span class="sim">Tu valides chaque clôture</span>` : ""}</div>` +
     ps.map(p => `<div class="ask" data-id="${p.id}"><div class="at">${esc(p.task_title)}</div>
       <div class="ap"><b>${SRC[p.source] || "Preuve"}</b> · ${esc(p.proof)}</div>
       <div class="ab"><span class="ac">Certitude ${Math.round(p.confidence * 100)} %</span><button class="no">Non</button><button class="yes">Oui, fermer</button></div></div>`).join("");
@@ -814,7 +853,7 @@ function syncPoll(){
   if (!mailPending && mailPoll) { clearInterval(mailPoll); mailPoll = null; }
 }
 async function connectMail(p){
-  try { const r = await api(`/mail/connect/${p}`, { method:"POST", body: JSON.stringify({ redirect: APP }) }); location.href = r.url; }
+  try { const r = p === "gmail" ? await dapi("/gmail/connect", { method:"POST", body: JSON.stringify({ redirect: APP }) }) : await api(`/mail/connect/${p}`, { method:"POST", body: JSON.stringify({ redirect: APP }) }); location.href = r.url; }
   catch(e){ toast(e.message); }
 }
 async function mailStatus(m, action){
@@ -907,10 +946,11 @@ async function load(){
     const q = qs();
     const isMail = view === "mail";
     const [list, c, o, ps, tg] = await Promise.all([
-      isMail ? Promise.resolve([]) : api("/tasks?view=" + view + (q ? "&" + q : "")),
+      isMail ? Promise.resolve([]) : api("/tasks?view=" + (view === "today" ? "todo" : view) + (q ? "&" + q : "")),
       api("/counts" + (q ? "?" + q : "")), api("/proposals").catch(() => null), api("/projects").catch(() => projects), api("/tags").catch(() => tagList),
     ]);
     projects = ps; tagList = Array.isArray(tg) ? tg : [];
+    if (view === "today") sections = await api("/sections").catch(() => sections);
     if (fProject && fProject !== "aucun" && !projById(fProject)) { fProject = ""; store.set("todo_fproject", ""); return load(); }
     if (fTag && !tagList.some(x => x.tag === fTag)) { fTag = ""; store.set("todo_ftag", ""); return load(); }
     tasks = list; counts = c; overview = o;
@@ -953,21 +993,22 @@ async function addTask(v, force, opts){
   }
 }
 // Ajout rapide (mobile) : une feuille avec le strict nécessaire
-function openQuickAdd(){
+function openQuickAdd(secId){
   capStart = Date.now();
-  let due = view === "later" ? "" : "today", pri = "moyen", pid = fProject && fProject !== "aucun" ? fProject : "", who = "moi";
-  const DUES = [["today","Aujourd'hui"],["tomorrow","Demain"],["week","Cette semaine"],["","Plus tard"]];
+  let due = "", sec = secId || "", pri = "moyen", pid = fProject && fProject !== "aucun" ? fProject : "", who = "moi";
+  const DUES = [["","Sans date"],["today","Aujourd'hui"],["tomorrow","Demain"],["week","Cette semaine"]];
   $("#panel").innerHTML = `<h3>Nouvelle tâche</h3>
     <form class="qadd" id="qf"><input id="qt" placeholder="Ex. Rappeler Viktor demain !urgent" enterkeyhint="done" autocomplete="off">
       <button type="button" class="mic" id="qmic" aria-label="Dicter"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></button></form>
     <div class="qrow"><span class="ql">Quand</span><div class="chips" id="qd" style="margin:0">${DUES.map(([k,l]) => `<button type="button" data-d="${k}" class="${due===k?"on":""}">${l}</button>`).join("")}</div></div>
     <div class="qrow"><span class="ql">Urgence</span><div class="chips" id="qp" style="margin:0">${PRIS.map(([k,l]) => `<button type="button" data-p="${k}" class="${pri===k?"on":""} ${k==="urgent"?"ur":""}">${l}</button>`).join("")}</div></div>
+    ${sections.length ? `<div class="qrow"><span class="ql">Section</span><div class="chips" id="qs" style="margin:0"><button type="button" data-s="" class="${!sec?"on":""}">Aucune</button>${sections.map(x => `<button type="button" data-s="${x.id}" class="${sec===x.id?"on":""}">${esc(x.name)}</button>`).join("")}</div></div>` : ""}
     <div class="qrow"><span class="ql">Projet</span><div class="chips" id="qj" style="margin:0"><button type="button" data-j="" class="${!pid?"on":""}">Aucun</button>${projects.map(p => `<button type="button" data-j="${p.id}" class="${pid===p.id?"on":""}"><span class="dot" style="background:${p.color}"></span> ${esc(p.name)}</button>`).join("")}</div></div>
     <div class="qrow"><span class="ql">Qui fait</span><div class="chips" id="qw" style="margin:0"><button type="button" data-w="moi" class="on">Moi</button><button type="button" data-w="agent">Agent IA</button></div></div>
     <div class="hint" id="qhint" style="display:block">Tu peux aussi écrire « demain », « vendredi », « #projet », « !urgent ».</div>
     <div class="actions"><button type="button" id="cancel">Annuler</button><button class="primary" id="ok">Ajouter</button></div>`;
   const pick = (sel, attr, set) => $$(sel + " button").forEach(b => b.onclick = () => { set(b.dataset[attr]); $$(sel + " button").forEach(x => x.classList.toggle("on", x === b)); });
-  pick("#qd", "d", v => due = v); pick("#qp", "p", v => pri = v); pick("#qj", "j", v => pid = v); pick("#qw", "w", v => who = v);
+  pick("#qd", "d", v => due = v); pick("#qp", "p", v => pri = v); pick("#qj", "j", v => pid = v); pick("#qw", "w", v => who = v); pick("#qs", "s", v => sec = v);
   const submit = async () => {
     const v = $("#qt").value.trim(); if (!v) { $("#qt").focus(); return; }
     if (v.length > 50 && /[.;!?]\s|\n|\bet puis\b|\bensuite\b/i.test(v)) { closeSheet(); return runDictate(v); }
@@ -977,6 +1018,7 @@ function openQuickAdd(){
     if (pri !== "moyen") o.priority = pri;
     if (pid) o.project_id = pid;
     if (who === "agent") o.assignee = "agent";
+    if (sec) o.section_id = sec;
     if (fTag) o.tags = [fTag];
     $("#ok").disabled = true;
     const ok = await addTask(v, false, o);
@@ -1110,10 +1152,11 @@ function openEdit(t){
     <div id="en" class="rich" contenteditable="true" data-ph="Notes, détails, liens…">${mdToHtml(t.notes || "")}</div>
     <div class="files" id="files"></div>
     <label>Échéance</label><input type="date" id="ed" value="${t.due_date||""}">
+    ${sections.length ? `<label>Section</label><select id="esec"><option value="">Sans section</option>${sections.map(x => `<option value="${x.id}" ${x.id===t.section_id?"selected":""}>${esc(x.name)}</option>`).join("")}</select>` : ""}
     <label>Projet</label><select id="eproj"><option value="">Sans projet</option>${projects.map(p => `<option value="${p.id}" ${p.id===t.project_id?"selected":""}>${esc(p.name)}</option>`).join("")}</select>
     <label>Qui fait la tâche</label><div class="seg" id="ewho"><button type="button" data-w="moi" class="${t.assignee!=="agent"?"on":""}">Moi</button><button type="button" data-w="agent" class="ag ${t.assignee==="agent"?"on":""}">Agent IA</button></div>
     ${safeUrl(t.link_url) ? `<label>Mail lié</label><div class="linkrow"><a href="${esc(t.link_url)}" target="_blank" rel="noopener">↗ ${esc(t.link_label || "Ouvrir le mail")}</a><button id="unlink">Retirer</button></div>` : ""}
-    ${open ? `<div class="chips" style="margin-top:12px"><button id="pin">${t.pinned_today ? "Retirer de To Do" : "Épingler dans To Do"}</button><button id="pp">Reporter…</button>${canReorder() && tasks.some(x => x.id === t.id) ? `<button id="mvUp">↑ Monter</button><button id="mvDown">↓ Descendre</button>` : ""}</div>` : ""}
+    ${open ? `<div class="chips" style="margin-top:12px">${legacy() ? "" : `<button id="fwd">↗ Transférer…</button>`}<button id="pp">Reporter…</button>${canReorder() && tasks.some(x => x.id === t.id) ? `<button id="mvUp">↑ Monter</button><button id="mvDown">↓ Descendre</button>` : ""}</div>` : ""}
     <div class="actions"><button class="danger" id="del">Supprimer</button>${open ? `<button class="donebtn" id="cmp">✓ Done</button>` : `<button id="rop">Rouvrir</button>`}<button class="primary" id="save">Enregistrer</button></div>`;
   let ewho = t.assignee === "agent" ? "agent" : "moi", epri = t.priority || "moyen";
   $$("#epri button").forEach(b => b.onclick = () => { epri = b.dataset.p; $$("#epri button").forEach(x => x.classList.toggle("on", x === b)); });
@@ -1122,7 +1165,7 @@ function openEdit(t){
   const ed = $("#en");
   $$(".ntools [data-cmd]").forEach(b => { b.onmousedown = e => e.preventDefault(); b.onclick = () => { ed.focus(); document.execCommand(b.dataset.cmd); }; });
   ed.addEventListener("paste", e => { e.preventDefault(); document.execCommand("insertText", false, (e.clipboardData || window.clipboardData).getData("text/plain")); });
-  const fields = () => ({ title: $("#et").value.replace(/\s+/g, " ").trim() || t.title, notes: htmlToMd(ed).trim() || null, due_date: $("#ed").value || null, project_id: $("#eproj").value || null, assignee: ewho, priority: epri, tags: tagsOf($("#etg").value) });
+  const fields = () => ({ title: $("#et").value.replace(/\s+/g, " ").trim() || t.title, notes: htmlToMd(ed).trim() || null, due_date: $("#ed").value || null, project_id: $("#eproj").value || null, assignee: ewho, priority: epri, tags: tagsOf($("#etg").value) , ...($("#esec") ? { section_id: $("#esec").value || null } : {}) });
   $("#save").onclick = () => patch(t, fields(), "Enregistrée");
   const done = async () => {
     const f = fields(); const changed = f.title !== t.title || (f.notes || null) !== (t.notes || null) || f.priority !== (t.priority || "moyen");
@@ -1133,8 +1176,12 @@ function openEdit(t){
   if ($("#unlink")) $("#unlink").onclick = () => patch(t, { link_url: null }, "Lien retiré");
   if (open){
     $("#cmp").onclick = done; $("#cmpTop").onclick = done;
-    $("#pin").onclick = () => patch(t, { pinned_today: !t.pinned_today }, t.pinned_today ? "Retirée de To Do" : "Épinglée");
     $("#pp").onclick = () => openPostpone(t);
+    if ($("#fwd")) $("#fwd").onclick = async () => {
+      const f = fields(); const changed = f.title !== t.title || (f.notes || null) !== (t.notes || null);
+      if (changed) { try { Object.assign(t, await api(`/tasks/${t.id}`, { method:"PATCH", body: JSON.stringify(f) })); } catch(e){ toast(e.message); return; } }
+      openTransfer(t);
+    };
     if ($("#mvUp")) { $("#mvUp").onclick = () => moveTask(t, -1); $("#mvDown").onclick = () => moveTask(t, 1); }
   } else { $("#rop").onclick = () => { closeSheet(); reopen(t); }; $("#ropTop").onclick = () => { closeSheet(); reopen(t); }; }
   if (!legacy()) {
@@ -1143,6 +1190,67 @@ function openEdit(t){
     loadFiles(t);
   }
   openSheet();
+}
+
+// ---------- Transfert à l'équipe : brouillon rédigé, relu, puis envoyé ou rangé dans les brouillons Gmail ----------
+let team = null;
+async function loadTeam(force){ if (!team || force) team = await dapi("/team"); return team; }
+async function openTransfer(t){
+  $("#panel").innerHTML = `<div class="sheethead"><h3>Transférer</h3><button class="xbtn" aria-label="Fermer">✕</button></div>
+    <div class="orig" style="margin-bottom:12px">${esc(t.title)}</div><label>À qui ?</label><div class="chips" id="tteam"><span class="hint" style="display:block">Chargement…</span></div>
+    <form class="newp" id="tother"><input id="toe" type="email" placeholder="Autre adresse e-mail" autocomplete="email"><button>OK</button></form>`;
+  $("#panel .xbtn").onclick = () => openEdit(t);
+  openSheet();
+  try { await loadTeam(); } catch(e){ toast(e.message); team = []; }
+  $("#tteam").innerHTML = team.length ? team.map(p => `<button data-id="${p.id}" title="${esc(p.email)}">${esc(p.name)}${p.verified ? "" : " ?"}</button>`).join("")
+    : `<span class="hint" style="display:block">Ajoute ton équipe dans Mon compte.</span>`;
+  $$("#tteam button").forEach(b => b.onclick = () => prepareTransfer(t, { to_id: b.dataset.id }, team.find(p => p.id === b.dataset.id)));
+  $("#tother").onsubmit = e => { e.preventDefault(); const v = $("#toe").value.trim(); if (v) prepareTransfer(t, { to_email: v }, null); };
+}
+async function prepareTransfer(t, who, person){
+  $("#panel").innerHTML = `<div class="sheethead"><h3>Transférer</h3><button class="xbtn" aria-label="Fermer">✕</button></div><div class="empty" style="padding:28px 8px"><b>Rédaction du mail…</b>${person ? esc(person.name) : ""}</div>`;
+  $("#panel .xbtn").onclick = () => openTransfer(t);
+  let d;
+  try { d = await dapi("/draft", { method:"POST", body: JSON.stringify({ task_id: t.id, ...who }) }); }
+  catch(e){ toast(e.message); return openTransfer(t); }
+  const warn = person && !person.verified ? `<div class="hint" style="display:block;margin:4px 0 0">Adresse déduite du nom, à vérifier.</div>` : "";
+  $("#panel").innerHTML = `<div class="sheethead"><h3>Transférer</h3><button class="xbtn" aria-label="Fermer">✕</button></div>
+    <label>À</label><input id="tto" type="email" value="${esc(d.to.email)}">${warn}
+    <label>Objet</label><input id="tsub" value="${esc(d.subject)}" maxlength="200">
+    <label>Message${d.mode === "ia" ? " (rédigé par l'IA, à relire)" : ""}</label><textarea id="tbody" rows="11">${esc(d.body)}</textarea>
+    ${d.attach_original ? `<label class="tick"><input type="checkbox" id="tatt" checked> Joindre le mail d'origine${d.original?.from ? " de " + esc(d.original.from) : ""} avec ses pièces jointes</label>` : ""}
+    ${d.can_send ? "" : `<p class="hint" style="display:block">Pour envoyer depuis l'app, connecte Gmail dans la section Mail (Boîtes et réglages, + Gmail). En attendant, « Ouvrir dans ma messagerie » prépare le mail dans Outlook.</p>`}
+    ${d.ai ? "" : `<p class="hint" style="display:block">Rédaction simple : la reformulation par l'IA s'active avec la clé ANTHROPIC_API_KEY.</p>`}
+    <div class="actions"><button id="tmail">Ouvrir dans ma messagerie</button>${d.can_send ? `<button id="tdraft">Brouillon</button><button class="primary" id="tsend">Envoyer</button>` : ""}</div>`;
+  $("#panel .xbtn").onclick = () => openTransfer(t);
+  const vals = () => ({ task_id: t.id, ...(person && $("#tto").value.trim().toLowerCase() === person.email ? { to_id: person.id } : { to_email: $("#tto").value.trim(), to_name: person?.name }),
+    subject: $("#tsub").value.trim(), body: $("#tbody").value.trim(), attach_original: $("#tatt") ? $("#tatt").checked : false });
+  $("#tmail").onclick = () => { const v = vals(); location.href = `mailto:${encodeURIComponent($("#tto").value.trim())}?subject=${encodeURIComponent(v.subject)}&body=${encodeURIComponent(v.body)}`; };
+  const go = async mode => {
+    const v = vals(); if (!v.subject || !v.body) return toast("Objet et message requis");
+    const btns = $$("#panel .actions button"); btns.forEach(b => b.disabled = true);
+    try {
+      const r = await dapi("/send", { method:"POST", body: JSON.stringify({ ...v, mode }) });
+      closeSheet();
+      if (mode === "draft") toast("Brouillon enregistré dans Gmail");
+      else { toast(`Envoyé à ${r.to.name}${r.attached ? ", mail d'origine joint" : ""}`, () => complete(t), "Marquer fait"); load(); }
+    } catch(e){ toast(e.message); btns.forEach(b => b.disabled = false); }
+  };
+  if ($("#tsend")) { $("#tsend").onclick = () => go("send"); $("#tdraft").onclick = () => go("draft"); }
+}
+function teamRows(){
+  return team.map(p => `<div class="trow" data-id="${p.id}"><input class="tn" value="${esc(p.name)}" maxlength="80"><input class="te${p.verified ? "" : " unv"}" type="email" value="${esc(p.email)}" title="${p.verified ? "" : "Adresse déduite, à vérifier"}"><button class="tdel" aria-label="Retirer">✕</button></div>`).join("");
+}
+async function renderTeam(){
+  const box = $("#tlist"); if (!box) return;
+  try { await loadTeam(true); } catch(e){ box.innerHTML = `<p>${esc(e.message)}</p>`; return; }
+  const unv = team.filter(p => !p.verified).length;
+  box.innerHTML = (unv ? `<p class="hint" style="display:block">${unv} adresse${unv > 1 ? "s" : ""} en orange déduite${unv > 1 ? "s" : ""} du nom : vérifie-les.</p>` : "") + teamRows();
+  box.querySelectorAll(".trow").forEach(r => {
+    const save = async () => { try { await dapi(`/team/${r.dataset.id}`, { method:"PATCH", body: JSON.stringify({ name: r.querySelector(".tn").value, email: r.querySelector(".te").value }) }); r.querySelector(".te").classList.remove("unv"); toast("Enregistré"); team = null; } catch(e){ toast(e.message); } };
+    r.querySelector(".tn").onchange = save; r.querySelector(".te").onchange = save;
+    r.querySelector(".tdel").onclick = async e => { const b = e.currentTarget; if (b.textContent !== "Retirer ?") { b.textContent = "Retirer ?"; return; } try { await dapi(`/team/${r.dataset.id}`, { method:"DELETE" }); renderTeam(); } catch(er){ toast(er.message); } };
+  });
 }
 
 // ---------- Notes : gras, italique, listes (enregistrées en texte simple : **gras**, *italique*, - liste) ----------
@@ -1224,25 +1332,39 @@ async function uploadFile(t, file){
 }
 
 // ---------- Ordre manuel (sans casser l'urgence : on ne bouge qu'à l'intérieur d'un même niveau) ----------
-const prioRank = t => t.priority === "urgent" ? 0 : t.priority === "faible" ? 2 : 1;
-const canReorder = () => !searching && (view === "today" || view === "later");
-async function saveOrder(group){
-  try { await api("/tasks/reorder", { method:"POST", body: JSON.stringify({ ids: group.map(x => x.id) }) }); }
+const canReorder = () => !searching && view === "today" && !fProject && !fWho && !fTag;
+// Ordre affiché, avec la section de chaque tâche, envoyé tel quel au serveur
+function domOrder(ul){
+  const items = []; let sec = null;
+  for (const el of ul.children) {
+    if (el.classList.contains("sechead")) sec = el.dataset.sid;
+    else if (el.dataset.id) items.push({ id: el.dataset.id, section_id: sec });
+  }
+  return items;
+}
+async function saveOrder(items){
+  try { await api("/tasks/reorder", { method:"POST", body: JSON.stringify({ items }) }); }
   catch(e){ toast(e.message); load(); }
 }
-function moveTask(t, dir){
-  const group = tasks.filter(x => x.status === "open" && prioRank(x) === prioRank(t));
-  const i = group.findIndex(x => x.id === t.id), j = i + dir;
-  if (i < 0 || j < 0 || j >= group.length) { toast(dir < 0 ? "Déjà en tête de son niveau d'urgence" : "Déjà en bas de son niveau d'urgence"); return; }
-  [group[i], group[j]] = [group[j], group[i]];
-  const others = tasks.filter(x => !group.includes(x));
-  tasks = [...tasks.filter(x => prioRank(x) < prioRank(t) && x.status === "open"), ...group, ...others.filter(x => !(prioRank(x) < prioRank(t) && x.status === "open"))];
-  closeSheet(); renderList(); saveOrder(group); toast(dir < 0 ? "Montée" : "Descendue");
+function applyOrder(items){
+  const byId = new Map(tasks.map(t => [t.id, t]));
+  tasks = items.map(x => { const t = byId.get(x.id); t.section_id = x.section_id; return t; }).concat(tasks.filter(t => !items.some(x => x.id === t.id)));
 }
-// Appui long (0,45 s) puis glisser vers le haut ou le bas
+function moveTask(t, dir){
+  const ul = $("#list"); if (!ul) return;
+  const items = domOrder(ul);
+  const i = items.findIndex(x => x.id === t.id);
+  const mates = items.map((x, k) => [x, k]).filter(([x]) => x.section_id === items[i].section_id);
+  const pos = mates.findIndex(([x]) => x.id === t.id), other = mates[pos + dir];
+  if (!other) { toast(dir < 0 ? "Déjà en haut de sa section" : "Déjà en bas de sa section"); return; }
+  const j = other[1]; [items[i], items[j]] = [items[j], items[i]];
+  closeSheet(); applyOrder(items); renderList(); saveOrder(items); toast(dir < 0 ? "Montée" : "Descendue");
+}
+// Appui long (0,45 s) puis glisser n'importe où dans la liste, y compris d'une section à l'autre
 function longDrag(li){
   const row = li.querySelector(".row"); let timer = null, drag = false, y0 = 0, x0 = 0, base = 0, pid = null;
   const cancel = () => { clearTimeout(timer); timer = null; };
+  const movable = el => el && el.tagName === "LI" && !el.classList.contains("secadd");
   row.addEventListener("pointerdown", e => {
     if (e.target.closest(".check") || (e.pointerType === "mouse" && e.button !== 0)) return;
     x0 = e.clientX; y0 = e.clientY; pid = e.pointerId;
@@ -1257,29 +1379,57 @@ function longDrag(li){
     if (!drag) return;
     e.preventDefault();
     const dy = e.clientY - y0 - base; li.style.transform = `translateY(${dy}px)`;
-    const sibs = [...li.parentElement.querySelectorAll(`li[data-g="${li.dataset.g}"]`)];
-    const k = sibs.indexOf(li);
-    const prev = sibs[k - 1], next = sibs[k + 1];
-    if (dy < 0 && prev && e.clientY < prev.getBoundingClientRect().top + prev.offsetHeight / 2) { const h = prev.offsetHeight + 6; li.parentElement.insertBefore(li, prev); base -= h; li.style.transform = `translateY(${e.clientY - y0 - base}px)`; }
-    else if (dy > 0 && next && e.clientY > next.getBoundingClientRect().top + next.offsetHeight / 2) { const h = next.offsetHeight + 6; li.parentElement.insertBefore(next, li); base += h; li.style.transform = `translateY(${e.clientY - y0 - base}px)`; }
+    const prev = li.previousElementSibling, next = li.nextElementSibling;
+    if (dy < 0 && movable(prev) && e.clientY < prev.getBoundingClientRect().top + prev.offsetHeight / 2) {
+      const h = prev.offsetHeight + (prev.dataset.id ? 6 : 0); li.parentElement.insertBefore(li, prev); base -= h; li.style.transform = `translateY(${e.clientY - y0 - base}px)`;
+    } else if (dy > 0 && movable(next) && e.clientY > next.getBoundingClientRect().top + next.offsetHeight / 2) {
+      const h = next.offsetHeight + (next.dataset.id ? 6 : 0); li.parentElement.insertBefore(next, li); base += h; li.style.transform = `translateY(${e.clientY - y0 - base}px)`;
+    }
   });
   li.addEventListener("touchmove", e => { if (drag) e.preventDefault(); }, { passive: false });
   const end = () => {
     cancel(); if (!drag) return;
     drag = false; li._drag = false; li.dataset.dragged = "1"; setTimeout(() => delete li.dataset.dragged, 400);
     li.classList.remove("lift"); li.style.transform = "";
-    const ids = [...li.parentElement.querySelectorAll(`li[data-g="${li.dataset.g}"]`)].map(x => x.dataset.id);
-    const group = ids.map(id => tasks.find(x => x.id === id)).filter(Boolean);
-    const before = tasks.filter(x => x.status === "open" && prioRank(x) === +li.dataset.g).map(x => x.id).join();
-    if (before !== ids.join()) {
-      const first = tasks.findIndex(x => prioRank(x) === +li.dataset.g && x.status === "open");
-      const rest = tasks.filter(x => !ids.includes(x.id));
-      tasks = [...rest.slice(0, first), ...group, ...rest.slice(first)];
-      saveOrder(group); toast("Ordre enregistré");
+    const ul = li.parentElement, items = domOrder(ul);
+    const before = tasks.map(t => t.id + ":" + (t.section_id || "")).join();
+    if (before !== items.map(x => x.id + ":" + (x.section_id || "")).join()) {
+      applyOrder(items); saveOrder(items); renderList(); toast("Ordre enregistré");
     }
   };
   row.addEventListener("pointerup", end); row.addEventListener("pointercancel", end);
   row.addEventListener("contextmenu", e => { if (drag || timer) e.preventDefault(); });
+}
+// Créer, renommer, déplacer ou supprimer une section
+function openSection(sc){
+  const i = sc ? sections.findIndex(x => x.id === sc.id) : -1;
+  $("#panel").innerHTML = `<h3>${sc ? "Section" : "Nouvelle section"}</h3>
+    <label>Nom</label><input id="sname" value="${esc(sc?.name || "")}" placeholder="Ex. Chantiers, Admin, Cette semaine" maxlength="60" autocomplete="off">
+    ${sc ? `<div class="chips" style="margin-top:12px"><button id="sup" ${i <= 0 ? "disabled" : ""}>↑ Monter la section</button><button id="sdown" ${i >= sections.length - 1 ? "disabled" : ""}>↓ Descendre la section</button></div>
+      <p>Supprimer la section garde ses tâches : elles remontent en haut de la liste, sans section.</p>` : ""}
+    <div class="actions">${sc ? `<button class="danger" id="sdel">Supprimer</button>` : `<button id="cancel">Annuler</button>`}<button class="primary" id="ssave">${sc ? "Enregistrer" : "Créer"}</button></div>`;
+  const save = async () => {
+    const name = $("#sname").value.replace(/\s+/g, " ").trim(); if (!name) { $("#sname").focus(); return; }
+    try {
+      if (sc) { if (name !== sc.name) await api(`/sections/${sc.id}`, { method:"PATCH", body: JSON.stringify({ name }) }); toast("Section enregistrée"); }
+      else { await api("/sections", { method:"POST", body: JSON.stringify({ name }) }); toast(`Section créée : ${name}`); }
+      closeSheet(); load();
+    } catch(e){ toast(e.message); }
+  };
+  $("#ssave").onclick = save;
+  $("#sname").onkeydown = e => { if (e.key === "Enter") { e.preventDefault(); save(); } };
+  if ($("#cancel")) $("#cancel").onclick = closeSheet;
+  const shift = async d => {
+    const ids = sections.map(x => x.id); const j = i + d; [ids[i], ids[j]] = [ids[j], ids[i]];
+    try { await api("/sections/reorder", { method:"POST", body: JSON.stringify({ ids }) }); closeSheet(); load(); } catch(e){ toast(e.message); }
+  };
+  if ($("#sup")) { $("#sup").onclick = () => shift(-1); $("#sdown").onclick = () => shift(1); }
+  if ($("#sdel")) $("#sdel").onclick = async () => {
+    const b = $("#sdel");
+    if (b.dataset.arm !== "1") { b.dataset.arm = "1"; b.textContent = "Confirmer la suppression"; return; }
+    try { await api(`/sections/${sc.id}`, { method:"DELETE" }); toast("Section supprimée, tâches gardées"); closeSheet(); load(); } catch(e){ toast(e.message); }
+  };
+  openSheet(); setTimeout(() => $("#sname")?.focus(), 60);
 }
 
 // ---------- Projets ----------
@@ -1327,18 +1477,22 @@ async function openAccount(){
   if (legacy()) return showLogin();
   const u = meInfo.user;
   $("#panel").innerHTML = `<h3>Mon compte</h3><p><b style="color:var(--ink)">${esc(u.name || "")}</b> ${esc(u.email)}</p>
+    <h4>Équipe</h4><p>Les personnes à qui tu peux transférer une tâche.</p><div id="tlist"><p>Chargement…</p></div>
+    <form class="newp" id="tadd"><input id="tan" placeholder="Prénom Nom" maxlength="80"><input id="tae" type="email" placeholder="E-mail"><button>Ajouter</button></form>
     <h4>Clés d'accès</h4><p>Pour Siri, Claude, ChatGPT ou un autre appareil. Une clé donne accès à toute ta liste : garde-la pour toi.</p>
     <div id="klist"><p>Chargement…</p></div>
     <form class="newp" id="newk"><input id="kl" placeholder="Nom de la clé (ex. Siri iPhone)" maxlength="60"><button>Créer</button></form>
     <div id="knew"></div>
     ${u.role === "admin" ? `<h4>Accès sans connexion</h4><div class="toggle"><span style="font-size:14px">${meInfo.legacy_open ? "Ouvert : l'ancienne app et Siri sans clé voient ta liste." : "Fermé : seule une connexion ou une clé donne accès."}</span>
       <button class="btn" id="legacyBtn">${meInfo.legacy_open ? "Fermer" : "Rouvrir"}</button></div>
-      <h4>Inviter quelqu'un</h4><p>Crée un compte séparé : la personne aura sa propre liste, invisible pour toi, et toi pour elle.</p>
+      <h4>Inviter quelqu'un</h4><p>Crée un compte séparé : la personne a sa propre liste, et aucun de vous deux ne voit celle de l'autre.</p>
       <form class="newp" id="inv"><input id="ie" type="email" placeholder="E-mail" required><input id="in" placeholder="Prénom (optionnel)" maxlength="80"><button>Inviter</button></form>
       <div id="inew"></div>` : ""}
     <div class="actions"><button class="danger" id="lo">Se déconnecter</button><button class="primary" id="cancel">Fermer</button></div>`;
   $("#cancel").onclick = closeSheet;
   $("#lo").onclick = logout;
+  renderTeam();
+  $("#tadd").onsubmit = async e => { e.preventDefault(); try { await dapi("/team", { method:"POST", body: JSON.stringify({ name: $("#tan").value, email: $("#tae").value }) }); $("#tan").value = ""; $("#tae").value = ""; renderTeam(); } catch(er){ toast(er.message); } };
   if ($("#legacyBtn")) $("#legacyBtn").onclick = async () => {
     try { const r = await api("/admin/legacy", { method:"POST", body: JSON.stringify({ open: !meInfo.legacy_open }) }); meInfo.legacy_open = r.legacy_open; toast(r.legacy_open ? "Accès sans connexion rouvert" : "Accès sans connexion fermé"); openAccount(); }
     catch(e){ toast(e.message); }
