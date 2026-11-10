@@ -230,7 +230,7 @@ li.lift .grip{cursor:grabbing;opacity:1}
 .fchips button.on span{color:inherit;opacity:.7}
 .lsearch input{width:100%;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;padding:9px 36px 9px 34px;font:inherit;font-size:14px}
 .lsearch input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
-.lsearch .lsi{position:absolute;left:13px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:15px}
+.lsearch .lsi{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--muted);display:flex}
 .lsearch input::-webkit-search-cancel-button{display:none}
 .lsearch .lsx{position:absolute;right:6px;top:50%;transform:translateY(-50%);border:0;background:transparent;color:var(--muted);width:28px;height:28px;border-radius:50%;cursor:pointer}
 .lsearch .lsx:hover{background:var(--hover);color:var(--ink)}
@@ -265,7 +265,34 @@ li.secadd button:hover{color:var(--ink);border-color:var(--muted)}
 .mailbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:4px 0 10px}
 .mailbar .grow{flex:1}
 .btn{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:10px;padding:8px 12px;font-size:14px;cursor:pointer;white-space:nowrap}
+.btn{display:inline-flex;align-items:center;gap:6px;min-height:36px;transition:background .12s,border-color .12s}
+.btn:hover{background:var(--hover)}
 .btn.primary{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
+.btn.primary:hover{background:#1a6a43;border-color:#1a6a43}
+.btn.quiet{border-color:transparent;background:transparent;color:var(--muted)}
+.btn.quiet:hover{background:var(--hover);color:var(--ink)}
+.btn.on{background:var(--ink);border-color:var(--ink);color:var(--card)}
+.btn:disabled{opacity:.55;cursor:default}
+.i{flex:none;vertical-align:-3px}
+.src .i{vertical-align:-2px}
+.snav .ic .i{display:block}
+nav.tabs .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+nav.tabs button{display:inline-flex;align-items:center;gap:6px}
+.stitle button .i{display:block}
+.rpanel{margin-top:10px;padding:12px;border:1px solid var(--line);border-radius:12px;background:var(--bg);animation:drop .14s ease-out}
+@keyframes drop{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+.rpanel .rdesc{margin:8px 0 0;font-size:13px;color:var(--muted)}
+.rpanel .rinst{margin-top:10px}
+.rpanel .rbox textarea{min-height:74px;background:var(--card);font:inherit;font-size:14.5px;color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:10px 48px 10px 12px;width:100%;resize:vertical}
+.rpanel .rbox textarea:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.rpanel .ract{display:flex;justify-content:flex-end;gap:8px;margin-top:10px}
+.rslot:empty{display:none}
+.tools button,.ntools button,.ntools label,.chips button,.tbtn{display:inline-flex;align-items:center;gap:6px}
+.ntools button,.ntools label{min-width:34px;justify-content:center;padding:0 9px}
+.actions button,.actions a.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px}
+.mail .ma .btn{min-height:34px;padding:7px 11px}
+.mail .ma .btn.quiet{padding:7px 9px}
+.mail .ma a{display:inline-flex;align-items:center;gap:4px}
 .btn[disabled]{opacity:.5;cursor:not-allowed}
 .accts{display:flex;flex-direction:column;gap:6px;margin-bottom:10px}
 .acc{display:flex;align-items:center;gap:10px;border:1px solid var(--line);background:var(--card);border-radius:12px;padding:9px 12px;font-size:13.5px}
@@ -420,7 +447,7 @@ details.maccts>summary::-webkit-details-marker{display:none}
 .sheethead .xbtn{border:0;background:transparent;color:var(--muted);width:34px;height:34px;border-radius:50%;font-size:15px;cursor:pointer;padding:0}
 .sheethead .xbtn:hover{background:var(--hover);color:var(--ink)}
 .actions .sm,.ma .sm{display:none}
-@media (max-width:600px){.ma .lg{display:none}.ma .sm{display:inline}.ma{flex-wrap:wrap;row-gap:8px}}
+@media (max-width:600px){.ma .lg{display:none}.ma .sm{display:inline}.ma{flex-wrap:nowrap;row-gap:8px}.mail .ma .btn.quiet{padding:7px 8px}}
 @media (max-width:600px){.actions .lg{display:none}.actions .sm{display:inline}}
 .mailbody{color:var(--ink);min-height:180px;max-height:42dvh;overflow:auto;font-size:14.5px;line-height:1.5}
 .mailbody p{margin:0 0 10px;color:inherit;font-size:inherit}
@@ -652,7 +679,43 @@ function renderBanner(){
 
 // ---------- Navigation ----------
 const VIEWS = { today:"To Do", mail:"Mail", done:"Fait récemment", search:"Rechercher" };
-const ICONS = { today:"☀", mail:"✉", done:"✓", search:"⌕" };
+// Icônes vectorielles cohérentes (trait 1.75, couleur du texte)
+const IC = {
+  todo:'<circle cx="12" cy="12" r="9"/><path d="m8.5 12 2.5 2.5 4.5-5"/>',
+  mail:'<rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="m3.5 7 8.5 6 8.5-6"/>',
+  check:'<path d="m5 12.5 4.5 4.5L19 7.5"/>',
+  search:'<circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.3-4.3"/>',
+  reply:'<path d="M9 14 4 9l5-5"/><path d="M4 9h9a7 7 0 0 1 7 7v4"/>',
+  forward:'<path d="m15 14 5-5-5-5"/><path d="M20 9h-9a7 7 0 0 0-7 7v4"/>',
+  clip:'<path d="m21 11.5-8.6 8.6a5 5 0 0 1-7-7l8.9-8.9a3.3 3.3 0 0 1 4.7 4.7L10.2 17.8a1.7 1.7 0 0 1-2.4-2.4l8-8"/>',
+  camera:'<path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/>',
+  mic:'<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/>',
+  spark:'<path d="M12 3v4M12 17v4M3 12h4M17 12h4M5.6 5.6l2.8 2.8M15.6 15.6l2.8 2.8M5.6 18.4l2.8-2.8M15.6 8.4l2.8-2.8"/>',
+  more:'<circle cx="5" cy="12" r="1.4"/><circle cx="12" cy="12" r="1.4"/><circle cx="19" cy="12" r="1.4"/>',
+  ext:'<path d="M14 4h6v6M20 4l-9 9"/><path d="M19 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h5"/>',
+  link:'<path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/>',
+  plus:'<path d="M12 5v14M5 12h14"/>',
+  x:'<path d="M6 6l12 12M18 6 6 18"/>',
+  chev:'<path d="m6 9 6 6 6-6"/>',
+  trash:'<path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/>',
+  clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+  up:'<path d="M12 19V5M5 12l7-7 7 7"/>',
+  down:'<path d="M12 5v14M5 12l7 7 7-7"/>',
+  bell:'<path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15z"/><path d="M10 21h4"/>',
+  info:'<circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/>',
+  inbox:'<path d="M4 13h4l2 3h4l2-3h4"/><path d="M5 5h14l2 8v6H3v-6z"/>',
+  bold:'<path d="M7 5h6a3.5 3.5 0 0 1 0 7H7zM7 12h7a3.5 3.5 0 0 1 0 7H7z"/>',
+  italic:'<path d="M14 5h5M5 19h5M14 5l-4 14"/>',
+  under:'<path d="M7 4v6a5 5 0 0 0 10 0V4M5 20h14"/>',
+  list:'<path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/>',
+  olist:'<path d="M10 6h10M10 12h10M10 18h10M4 5l1.5-1v5M3.5 14.5a1.5 1.5 0 0 1 3 0c0 1.2-3 2-3 3.5h3"/>',
+  file:'<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/>',
+  send:'<path d="m4 4 16 8-16 8 3-8z"/><path d="M7 12h13"/>',
+  back:'<path d="M19 12H5M12 19l-7-7 7-7"/>',
+  gmail:'<rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="m3.5 7 8.5 6 8.5-6"/>',
+};
+const ic = (n, sz = 18, cls = "") => `<svg class="i ${cls}" width="${sz}" height="${sz}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${IC[n]}</svg>`;
+const ICONS = { today: ic("todo"), mail: ic("mail"), done: ic("check"), search: ic("search") };
 function viewBadge(k){
   if (k === "mail") return counts.mail ? `<span class="n hot">${counts.mail}</span>` : "";
   const n = k === "today" ? (counts.open ?? counts.today) : counts[k]; return n != null && k !== "search" ? `<span class="n">${n}</span>` : "";
@@ -661,11 +724,11 @@ function renderSide(){
   const s = $("#side"); if (!s) return;
   const cur = searching ? "search" : view;
   const who = [["","Tous"],["moi","Moi"],["agent","Agents IA"]];
-  s.innerHTML = `<div class="brand"><span class="lg">✓</span><b>Klaar</b></div>
+  s.innerHTML = `<div class="brand"><span class="lg">${ic("check", 16)}</span><b>Klaar</b></div>
     <div class="snav">${["today","mail","done","search"].map(k => `<button data-v="${k}" class="${cur===k?"on":""}"><span class="ic">${ICONS[k]}</span>${VIEWS[k]}${viewBadge(k)}</button>`).join("")}</div>
     <div class="stitle">Qui fait</div>
     <div class="swho">${who.map(([k,l]) => `<button data-w="${k}" class="${fWho===k?"on":""} ${k==="agent"?"ag":""}">${l}${k==="agent" && counts.agent ? ` ${counts.agent}`:""}</button>`).join("")}</div>
-    <div class="stitle">Projets<button id="sManage" title="Gérer les projets">+</button></div>
+    <div class="stitle">Projets<button id="sManage" title="Gérer les projets" aria-label="Gérer les projets">${ic("plus", 14)}</button></div>
     <div class="sproj">
       <button data-p="" class="${!fProject?"on":""}"><span class="dot" style="background:var(--muted)"></span><span class="nm">Tous les projets</span></button>
       ${projects.map(p => `<button data-p="${p.id}" class="${fProject===p.id?"on":""}"><span class="dot" style="background:${p.color}"></span><span class="nm">${esc(p.name)}</span>${p.open_count?`<span class="n">${p.open_count}</span>`:""}</button>`).join("")}
@@ -685,7 +748,7 @@ function renderSide(){
 }
 function renderTabs(){
   const cur = searching ? "search" : view;
-  $("#tabs").innerHTML = ["today","mail","done","search"].map(k => `<button data-v="${k}" class="${cur===k?"on":""}">${VIEWS[k]}${viewBadge(k)}</button>`).join("");
+  $("#tabs").innerHTML = ["today","mail","done","search"].map(k => `<button data-v="${k}" class="${cur===k?"on":""}">${k === "search" ? ic("search", 15) : ""}${k === "search" ? `<span class="sr">${VIEWS[k]}</span>` : VIEWS[k]}${viewBadge(k)}</button>`).join("");
   $$("#tabs button").forEach(b => b.onclick = () => setView(b.dataset.v));
   const box = $("#pfilter");
   if (view === "mail" && !searching) { box.innerHTML = ""; return; }
@@ -748,7 +811,7 @@ function renderList(){
       if (urg) meta.push(`<span class="pill u">Urgent</span>`);
       else if (t.priority === "faible") meta.push(`<span class="pill f">Faible</span>`);
       if (t.due_date && !(view === "today" && !searching && t.due_date === todayISO(0))) meta.push(fmtDue(t.due_date));
-      if (t.assignee === "agent") meta.push(`<span class="agtag">✦ ${AGENT_LABEL(t.agent_name)}</span>`);
+      if (t.assignee === "agent") meta.push(`<span class="agtag">${ic("spark", 12)} ${AGENT_LABEL(t.agent_name)}</span>`);
     } else {
       meta.push(`Fermée ${fmtAgo(t.closed_at)}`);
       if (t.closed_by && t.closed_by !== "ben") meta.push(`<span class="auto">par ${t.closed_by === "auto" ? "l'IA" : "un agent"}</span>`);
@@ -756,8 +819,8 @@ function renderList(){
     const pr = projById(t.project_id);
     if (pr && fProject !== pr.id) meta.push(`<span class="ptag"><span class="dot" style="background:${pr.color}"></span>${esc(pr.name)}</span>`);
     (t.tags || []).filter(x => x !== fTag).slice(0, 2).forEach(x => meta.push(`<span class="tg">#${esc(x)}</span>`));
-    if (t.created_via === "mail" || (open && safeUrl(t.link_url))) meta.push(`<span class="src" title="Vient d'un mail">✉</span>`);
-    if (t.files_count) meta.push(`<span class="src" title="Pièces jointes">📎 ${t.files_count}</span>`);
+    if (t.created_via === "mail" || (open && safeUrl(t.link_url))) meta.push(`<span class="src" title="Vient d'un mail">${ic("mail", 13)}</span>`);
+    if (t.files_count) meta.push(`<span class="src" title="Pièces jointes">${ic("clip", 13)} ${t.files_count}</span>`);
     return `<li data-id="${t.id}"><div class="bgR">✓ Fait</div><div class="bgL">Reporter →</div>
       <div class="row ${t.status === "done" ? "done":""} ${urg ? "urg" : ""}">
         <div class="body"><div class="title">${esc(t.title)}</div>${meta.length?`<div class="meta">${meta.map(m=>`<span>${m}</span>`).join("")}</div>`:""}</div>
@@ -770,14 +833,14 @@ function renderList(){
     const inSec = id => tasks.filter(t => t.section_id === id || (!t.section_id && id === sections[0].id));
     tabs = document.createElement("div"); tabs.className = "stabs"; tabs.setAttribute("role", "tablist");
     tabs.innerHTML = sections.map(sc => { const n = inSec(sc.id).length; return `<button role="tab" class="stab${sc.id === curSec ? " on" : ""}" data-sid="${sc.id}" aria-selected="${sc.id === curSec}" title="${esc(sc.name)}"><b class="lg">${esc(sc.name)}</b><b class="sm">${esc(shortSec(sc.name))}</b>${n ? ` <span>${n}</span>` : ""}</button>`; }).join("")
-      + `<span class="grow"></span><button class="sbtn" id="secAdd" aria-label="Nouvelle section" title="Nouvelle section">+</button><button class="sbtn" id="secMore" aria-label="Options de la section" title="Options de la section">⋯</button>`;
+      + `<span class="grow"></span><button class="sbtn" id="secAdd" aria-label="Nouvelle section" title="Nouvelle section">${ic("plus", 16)}</button><button class="sbtn" id="secMore" aria-label="Options de la section" title="Options de la section">${ic("more", 18)}</button>`;
     const mine = tFilter ? tasks : inSec(curSec);
     ul.innerHTML = mine.length ? mine.map(taskLi).join("") : `<div class="empty"><b>Rien ici</b>${tFilter ? "" : "Glisse une tâche sur cet onglet avec ≡ pour l'y ranger."}</div>`;
   } else ul.innerHTML = tasks.map(taskLi).join("");
   ul.insertAdjacentHTML("beforeend", `<div class="foot">${canReorder() ? "Glisse ≡ pour réordonner, ou sur un onglet pour changer de section" : view === "today" && !searching ? "Retire les filtres et la recherche pour réordonner" : ""}<span class="mob"> · Glisse à droite pour terminer, à gauche pour reporter</span></div>`);
   if (view === "today" && !searching) {
     const bar = document.createElement("div"); bar.className = "lsearch";
-    bar.innerHTML = `<span class="lsi" aria-hidden="true">⌕</span><input id="tq" type="search" placeholder="Rechercher dans la To Do" value="${esc(tFilter)}" autocomplete="off" aria-label="Rechercher dans la To Do">${tFilter ? `<button type="button" class="lsx" aria-label="Effacer">✕</button>` : ""}`;
+    bar.innerHTML = `<span class="lsi" aria-hidden="true">${ic("search", 15)}</span><input id="tq" type="search" placeholder="Rechercher dans la To Do" value="${esc(tFilter)}" autocomplete="off" aria-label="Rechercher dans la To Do">${tFilter ? `<button type="button" class="lsx" aria-label="Effacer">✕</button>` : ""}`;
     if (tabs) $("#content").prepend(tabs);
     $("#content").prepend(bar);
     if (tabs) {
@@ -935,7 +998,7 @@ function renderMail(){
       <button class="btn" id="mOutlook" ${d.providers.outlook ? "" : "disabled title=\"Connexion directe pas encore configurée\""}>+ Outlook</button></div>
       ${noProv ? `<div class="hint" style="display:block;margin:-4px 4px 10px">Connexion directe de Gmail et Outlook : en cours de configuration.</div>` : ""}
     </details>${mailTab === "nouveau" ? `<span class="march">Classés : <button data-t="ajoute">dans la To Do${cnt.ajoute ? ` (${cnt.ajoute})` : ""}</button> · <button data-t="ignore">ignorés${cnt.ignore ? ` (${cnt.ignore})` : ""}</button></span>` : ""}</div>
-    <div class="lsearch"><span class="lsi" aria-hidden="true">⌕</span><input id="mq" type="search" placeholder="Rechercher un mail : expéditeur, objet, action" value="${esc(mQ)}" autocomplete="off" aria-label="Rechercher dans les mails">${mQ ? `<button type="button" class="lsx" aria-label="Effacer">✕</button>` : ""}</div>
+    <div class="lsearch"><span class="lsi" aria-hidden="true">${ic("search", 15)}</span><input id="mq" type="search" placeholder="Rechercher un mail : expéditeur, objet, action" value="${esc(mQ)}" autocomplete="off" aria-label="Rechercher dans les mails">${mQ ? `<button type="button" class="lsx" aria-label="Effacer">✕</button>` : ""}</div>
     <div id="mlist">${mailTab === "nouveau"
       ? (mView === "todo"
         ? (todo.length ? `<div class="mgh">À faire <span class="sub">${todo.length} · les plus importantes d'abord</span></div>` + todo.map(mailCard).join("") : `<div class="empty"><b>Aucune action en attente</b>Sur les ${days} derniers jours.</div>`)
@@ -961,7 +1024,7 @@ function renderMail(){
     op?.addEventListener("click", () => openMail(m));
     op?.addEventListener("keydown", e => { if (e.key === "Enter") openMail(m); });
     el.querySelector(".mign")?.addEventListener("click", () => mailStatus(m, "ignore"));
-    el.querySelector(".mrep")?.addEventListener("click", () => startReply({ mail: m }));
+    el.querySelector(".mrep")?.addEventListener("click", e => toggleReplyPanel(el, e.currentTarget, { mail: m }));
     el.querySelector(".mres")?.addEventListener("click", () => mailStatus(m, "restore"));
   });
 }
@@ -970,23 +1033,23 @@ const CATS = { client:"Client", fournisseur:"Fournisseur", facture:"Facture", in
 function mailCard(m){
   const [cls, lab] = prioCls(m.priority);
   const who = esc(m.from_name || m.from_email);
-  const btns = mailTab === "nouveau" ? `<button class="btn mign">Ignorer</button>${legacy() ? "" : `<button class="btn mrep">Répondre</button>`}<button class="btn primary madd">${m.info_only ? "+ To Do" : `<span class="lg">Ajouter à la To Do</span><span class="sm">+ To Do</span>`}</button>`
-    : mailTab === "ignore" ? `<button class="btn mres">Remettre à traiter</button>` : `<span class="ok">✓ Dans la To Do</span>`;
+  const btns = mailTab === "nouveau" ? `<button class="btn quiet mign" title="Ignorer ce mail">${ic("x", 15)}<span class="lg">Ignorer</span></button>${legacy() ? "" : `<button class="btn mrep" aria-expanded="false">${ic("reply", 15)}Répondre</button>`}<button class="btn primary madd">${ic("plus", 15)}${m.info_only ? "To Do" : `<span class="lg">Ajouter à la To Do</span><span class="sm">To Do</span>`}</button>`
+    : mailTab === "ignore" ? `<button class="btn mres">${ic("inbox", 15)}Remettre à traiter</button>` : `<span class="ok">${ic("check", 14)} Dans la To Do</span>`;
   const link = mailLink(m, m.provider === "outlook" ? "Outlook" : "Gmail") || `<span style="margin-right:auto"></span>`;
   if (mailTab === "nouveau" && m.info_only) return `<div class="mail info" data-id="${m.id}">
     <div class="mopen" role="button" tabindex="0" aria-label="Lire le mail"><div class="mh">${m.category ? `<span class="cat">${esc(CATS[m.category] || m.category)}</span>` : ""}<span class="from">${who}</span><span class="age">${fmtAgo(m.received_at)}</span></div>
     <div class="msm">${esc(m.subject || "(sans objet)")}</div></div>
-    <div class="ma">${link}${btns}</div></div>`;
+    <div class="ma">${link}${btns}</div><div class="rslot"></div></div>`;
   if (mailTab === "nouveau") return `<div class="mail act" data-id="${m.id}">
     <div class="mopen" role="button" tabindex="0" aria-label="Lire le mail">
       <div class="mh"><span class="prio ${cls}">${lab}</span>${m.category ? `<span class="cat">${esc(CATS[m.category] || m.category)}</span>` : ""}<span class="from">${who}</span><span class="age">${fmtAgo(m.received_at)}</span></div>
       <div class="mact" style="margin-top:5px">${esc(m.action || ("Répondre : " + (m.subject || "(sans objet)")))}</div>
-      <div class="msm">✉ ${esc(m.subject || "(sans objet)")}</div></div>
+      <div class="msm">${ic("mail", 12)} ${esc(m.subject || "(sans objet)")}</div></div>
     ${m.learned ? `<div class="mlearn">${esc(m.learned)}</div>` : ""}
-    <div class="ma">${link}${btns}</div></div>`;
+    <div class="ma">${link}${btns}</div><div class="rslot"></div></div>`;
   return `<div class="mail" data-id="${m.id}">
     <div class="mopen" role="button" tabindex="0" aria-label="Lire le mail"><div class="mh"><span class="from">${who}</span><span class="age">${fmtAgo(m.received_at)}</span></div>
-    <div class="msj">${esc(m.action || m.subject || "(sans objet)")}</div>${m.action ? `<div class="msm">✉ ${esc(m.subject || "")}</div>` : ""}</div>
+    <div class="msj">${esc(m.action || m.subject || "(sans objet)")}</div>${m.action ? `<div class="msm">${ic("mail", 12)} ${esc(m.subject || "")}</div>` : ""}</div>
     <div class="ma">${link}${btns}</div></div>`;
 }
 // Tri par l'IA des nouveaux mails, uniquement après un clic sur « Mettre à jour » : action, priorité, et « Pour info » pour le reste
@@ -1049,7 +1112,7 @@ const gmailAppUrl = m => { const id = (m.provider === "claude" || m.provider ===
 function mailLink(m, label){
   const app = isIOS ? gmailAppUrl(m) : null;
   if (app) return `<a href="${esc(app)}">${label}</a>`;
-  return safeUrl(m.url) ? `<a href="${esc(m.url)}" target="_blank" rel="noopener">${label} ↗</a>` : "";
+  return safeUrl(m.url) ? `<a href="${esc(m.url)}" target="_blank" rel="noopener">${label} ${ic("ext", 13)}</a>` : "";
 }
 const listAddr = v => Array.isArray(v) ? v.join(", ") : (v || "");
 async function openMail(m){
@@ -1079,7 +1142,7 @@ async function openMail(m){
   $("#rIgn")?.addEventListener("click", () => { closeSheet(); mailStatus(m, "ignore"); });
   $("#rRes")?.addEventListener("click", () => { closeSheet(); mailStatus(m, "restore"); });
   $("#rAdd")?.addEventListener("click", () => openAddMail(m));
-  $("#rRep")?.addEventListener("click", () => startReply({ mail: m, back: () => openMail(m) }));
+  $("#rRep")?.addEventListener("click", () => { let h = $("#rdrep"); if (!h) { h = document.createElement("div"); h.className = "rslot"; h.id = "rdrep"; $("#panel .actions")?.before(h); } startReply({ mail: m, back: () => openMail(m), host: h }); });
 }
 // Titre court pour un mail : « Répondre à Prénom : sujet court », le sujet complet reste dans les détails
 function shortTitle(who, subject){
@@ -1320,7 +1383,7 @@ function openPostpone(t){
 function openEdit(t){
   confirmDelete = false;
   const open = t.status === "open";
-  $("#panel").innerHTML = `<div class="sheethead"><h3>${open ? "Détails" : "Tâche fermée"}</h3>${open ? `<button class="donebtn" id="cmpTop">✓ Done</button>` : `<button id="ropTop" class="btn">Rouvrir</button>`}</div>
+  $("#panel").innerHTML = `<div class="sheethead"><h3>${open ? "Détails" : "Tâche fermée"}</h3>${open ? `<button class="donebtn" id="cmpTop">${ic("check", 15)}Done</button>` : `<button id="ropTop" class="btn">Rouvrir</button>`}</div>
     <textarea id="et" class="ttl" rows="1" aria-label="Titre">${esc(t.title)}</textarea>
     ${t.source_subject ? `<div class="orig">✉ ${esc(t.source_subject)}</div>` : ""}
     <div class="props">
@@ -1330,14 +1393,14 @@ function openEdit(t){
       <span class="pl">Projet</span><div class="pv"><select id="eproj" class="pill"><option value="">Sans projet</option>${projects.map(p => `<option value="${p.id}" ${p.id===t.project_id?"selected":""}>${esc(p.name)}</option>`).join("")}</select></div>
       <span class="pl">Qui fait</span><div class="seg" id="ewho"><button type="button" data-w="moi" class="${t.assignee!=="agent"?"on":""}">Moi</button><button type="button" data-w="agent" class="ag ${t.assignee==="agent"?"on":""}">Agent IA</button></div>
       <span class="pl">Étiquettes</span><div class="pv"><input id="etg" class="pill wide" value="${esc((t.tags||[]).join(", "))}" placeholder="compta, chantier…" autocomplete="off" list="tagopts"><datalist id="tagopts">${tagList.map(x => `<option value="${esc(x.tag)}">`).join("")}</datalist></div>
-      ${safeUrl(t.link_url) ? `<span class="pl">Mail lié</span><div class="pv linkrow"><a href="${esc(t.link_url)}" id="elink" target="_blank" rel="noopener" title="Voir le dernier message du fil">✉ ${esc(t.link_label || "Voir le mail")}</a><button type="button" id="unlink">Retirer</button></div>` : ""}
+      ${safeUrl(t.link_url) ? `<span class="pl">Mail lié</span><div class="pv linkrow"><a href="${esc(t.link_url)}" id="elink" target="_blank" rel="noopener" title="Voir le dernier message du fil">${ic("mail", 14)} ${esc(t.link_label || "Voir le mail")}</a><button type="button" id="unlink">Retirer</button></div>` : ""}
     </div>
     <label>Notes</label>
-    <div class="ntools"><button type="button" data-cmd="bold" title="Gras"><b>G</b></button><button type="button" data-cmd="italic" title="Italique"><i>I</i></button><button type="button" data-cmd="insertUnorderedList" title="Liste">• Liste</button>
-      ${legacy() ? "" : `<label title="Joindre un fichier">📎 Fichier<input type="file" id="fAdd" multiple></label><label title="Prendre ou joindre une photo">📷 Photo<input type="file" id="fCam" accept="image/*" capture="environment"></label>`}</div>
+    <div class="ntools"><button type="button" data-cmd="bold" title="Gras" aria-label="Gras">${ic("bold", 16)}</button><button type="button" data-cmd="italic" title="Italique" aria-label="Italique">${ic("italic", 16)}</button><button type="button" data-cmd="insertUnorderedList" title="Liste" aria-label="Liste">${ic("list", 16)}</button>
+      ${legacy() ? "" : `<label title="Joindre un fichier">${ic("clip", 16)}Fichier<input type="file" id="fAdd" multiple></label><label title="Prendre ou joindre une photo">${ic("camera", 16)}Photo<input type="file" id="fCam" accept="image/*" capture="environment"></label>`}</div>
     <div id="en" class="rich" contenteditable="true" data-ph="Notes, détails, liens…">${mdToHtml(t.notes || "")}</div>
     <div class="files" id="files"></div>
-    ${open ? `<div class="tools">${legacy() ? "" : `${t.link_url ? `<button type="button" id="rep">↩ Répondre</button>` : ""}<button type="button" id="fwd">↗ Transférer</button>`}<button type="button" id="pp">Reporter</button>${canReorder() && tasks.some(x => x.id === t.id) ? `<button type="button" id="mvUp" aria-label="Monter">↑ Monter</button><button type="button" id="mvDown" aria-label="Descendre">↓ Descendre</button>` : ""}</div>` : ""}
+    ${open ? `<div class="tools">${legacy() ? "" : `${t.link_url ? `<button type="button" id="rep">${ic("reply", 15)}Répondre</button>` : ""}<button type="button" id="fwd">${ic("forward", 15)}Transférer</button>`}<button type="button" id="pp">${ic("clock", 15)}Reporter</button>${canReorder() && tasks.some(x => x.id === t.id) ? `<button type="button" id="mvUp" aria-label="Monter">${ic("up", 15)}Monter</button><button type="button" id="mvDown" aria-label="Descendre">${ic("down", 15)}Descendre</button>` : ""}</div><div class="rslot" id="erep"></div>` : ""}
     <div class="actions foot"><button class="danger ghost" id="del">Supprimer</button><span class="sp"></span>${open ? "" : `<button id="rop">Rouvrir</button>`}<button class="primary" id="save">Enregistrer</button></div>`;
   let ewho = t.assignee === "agent" ? "agent" : "moi", epri = t.priority || "moyen";
   $$("#epri button").forEach(b => b.onclick = () => { epri = b.dataset.p; $$("#epri button").forEach(x => x.classList.toggle("on", x === b)); });
@@ -1361,7 +1424,7 @@ function openEdit(t){
   if (open){
     $("#cmpTop").onclick = done;
     $("#pp").onclick = () => openPostpone(t);
-    if ($("#rep")) $("#rep").onclick = () => startReply({ task: t, back: () => openEdit(t) });
+    if ($("#rep")) $("#rep").onclick = () => startReply({ task: t, back: () => openEdit(t), host: $("#erep") });
     if ($("#fwd")) $("#fwd").onclick = async () => {
       const f = fields(); const changed = f.title !== t.title || (f.notes || null) !== (t.notes || null);
       if (changed) { try { Object.assign(t, await api(`/tasks/${t.id}`, { method:"PATCH", body: JSON.stringify(f) })); } catch(e){ toast(e.message); return; } }
@@ -1383,7 +1446,7 @@ function openEdit(t){
 let team = null;
 async function loadTeam(force){ if (!team || force) team = await dapi("/team"); return team; }
 async function openTransfer(t){
-  $("#panel").innerHTML = `<div class="sheethead"><h3>Transférer</h3><button class="xbtn" aria-label="Fermer">✕</button></div>
+  $("#panel").innerHTML = `<div class="sheethead"><h3>Transférer</h3><button class="xbtn" aria-label="Fermer">${ic("x", 16)}</button></div>
     <div class="orig" style="margin-bottom:12px">${esc(t.title)}</div><label>À qui ?</label><div class="chips" id="tteam"><span class="hint" style="display:block">Chargement…</span></div>
     <form class="newp" id="tother"><input id="toe" type="email" placeholder="Autre adresse e-mail" autocomplete="email"><button>OK</button></form>`;
   $("#panel .xbtn").onclick = () => openEdit(t);
@@ -1404,35 +1467,86 @@ async function prepareTransfer(t, who, person){
 }
 // Aperçu rapide du dernier message du fil lié à une tâche
 async function openThread(t){
-  $("#panel").innerHTML = `<div class="sheethead"><h3>Dernier message</h3><button class="xbtn" aria-label="Retour à la tâche">✕</button></div><div class="empty" style="padding:36px 8px"><b>Chargement du fil…</b></div>`;
+  $("#panel").innerHTML = `<div class="sheethead"><h3>Dernier message</h3><button class="xbtn" aria-label="Retour à la tâche">${ic("x", 16)}</button></div><div class="empty" style="padding:36px 8px"><b>Chargement du fil…</b></div>`;
   $("#panel .xbtn").onclick = () => openEdit(t); openSheet();
   let d;
   try { d = await api(`?task=${encodeURIComponent(t.id)}`, { base: TAPI }); } catch(e){ d = { error: e.message }; }
   if (!$("#panel").isConnected) return;
-  if (d.error) { $("#panel").innerHTML = `<div class="sheethead"><h3>Dernier message</h3><button class="xbtn" aria-label="Retour">✕</button></div><div class="empty"><b>Aperçu indisponible</b>${esc(d.error)}</div><div class="actions foot"><button class="ghost" id="tb">← Tâche</button><span class="sp"></span><a class="btn primary" href="${esc(t.link_url)}" target="_blank" rel="noopener">Ouvrir dans Gmail ↗</a></div>`; $("#panel .xbtn").onclick = $("#tb").onclick = () => openEdit(t); return; }
+  if (d.error) { $("#panel").innerHTML = `<div class="sheethead"><h3>Dernier message</h3><button class="xbtn" aria-label="Retour">${ic("x", 16)}</button></div><div class="empty"><b>Aperçu indisponible</b>${esc(d.error)}</div><div class="actions foot"><button class="ghost" id="tb">${ic("back", 15)}Tâche</button><span class="sp"></span><a class="btn primary" href="${esc(t.link_url)}" target="_blank" rel="noopener">Ouvrir dans Gmail ${ic("ext", 13)}</a></div>`; $("#panel .xbtn").onclick = $("#tb").onclick = () => openEdit(t); return; }
   const who = String(d.from).replace(/<[^>]+>/, "").replace(/"/g, "").trim() || d.from;
   const when = d.date ? new Date(d.date).toLocaleString("fr-BE", { weekday:"short", day:"numeric", month:"short", hour:"2-digit", minute:"2-digit" }) : "";
-  $("#panel").innerHTML = `<div class="sheethead"><h3>Dernier message</h3><button class="xbtn" aria-label="Retour à la tâche">✕</button></div>
+  $("#panel").innerHTML = `<div class="sheethead"><h3>Dernier message</h3><button class="xbtn" aria-label="Retour à la tâche">${ic("x", 16)}</button></div>
     <div class="thd"><div class="thfrom"><b>${d.mine ? "Toi" : esc(who)}</b><span>${esc(when)}</span></div>
       <div class="thsub">${esc(d.subject)}</div>
       ${d.to ? `<div class="thto">À : ${esc(d.to)}${d.cc ? ` · Cc : ${esc(d.cc)}` : ""}</div>` : ""}
       ${d.count > 1 ? `<div class="thto">${d.count} messages dans le fil${d.mine ? " · tu as répondu en dernier" : ""}</div>` : ""}</div>
-    ${d.files?.length ? `<div class="files">${d.files.map(f => `<span class="fchip">📎 ${esc(f)}</span>`).join("")}</div>` : ""}
+    ${d.files?.length ? `<div class="files">${d.files.map(f => `<span class="fchip">${ic("clip", 13)} ${esc(f)}</span>`).join("")}</div>` : ""}
     <div class="rbody thbody">${esc(String(d.text || "").replace(/\n{3,}/g, "\n\n"))}</div>
-    <div class="actions foot"><button class="ghost" id="tb">← Tâche</button><span class="sp"></span><a class="btn" href="${esc(d.url || t.link_url)}" target="_blank" rel="noopener">Gmail ↗</a><button class="primary" id="trep">↩ Répondre</button></div>`;
+    <div class="rslot" id="threp"></div>
+    <div class="actions foot"><button class="ghost" id="tb">${ic("back", 15)}Tâche</button><span class="sp"></span><a class="btn" href="${esc(d.url || t.link_url)}" target="_blank" rel="noopener">Gmail ${ic("ext", 13)}</a><button class="primary" id="trep">${ic("reply", 15)}Répondre</button></div>`;
   $("#panel .xbtn").onclick = $("#tb").onclick = () => openEdit(t);
-  $("#trep").onclick = () => startReply({ task: t, back: () => openThread(t) });
+  $("#trep").onclick = () => startReply({ task: t, back: () => openThread(t), host: $("#threp") });
 }
-// Choix du mode de réponse : Auto, Auto + indications, Indications (texte ou dictée)
+// Panneau de réponse en ligne : trois modes sous le bouton, pas de nouvelle fenêtre
+const RMODES = [["auto","Auto","L'IA propose une réponse complète au mail."],["plus","Auto + indications","L'IA répond au mail en tenant compte de tes indications."],["indic","Indications","L'IA rédige seulement ce que tu lui dis, avec le minimum de contexte."]];
+const rmodeGet = () => { try { return store.get("todo_rmode") || "auto"; } catch { return "auto"; } };
+function replyPanelHtml(){
+  return `<div class="rpanel" role="group" aria-label="Mode de réponse">
+    <div class="pills rmodes">${RMODES.map(([k,l]) => `<button type="button" role="radio" data-m="${k}">${l}</button>`).join("")}</div>
+    <p class="rdesc"></p>
+    <div class="rinst" hidden><div class="rbox"><textarea rows="3" placeholder="Ex. accepter jeudi 10 h, demander le devis signé, rappeler le délai de paiement"></textarea><button type="button" class="micbtn" aria-label="Dicter les indications" title="Dicter">${ic("mic", 17)}</button></div><p class="hint rhint" style="display:block;margin:6px 0 0">Écris ou dicte, puis « Rédiger ».</p></div>
+    <div class="ract"><button type="button" class="btn quiet rcancel">Annuler</button><button type="button" class="btn primary rgo">${ic("spark", 15)}Rédiger</button></div></div>`;
+}
+function wireReplyPanel(box, ctx, onClose){
+  let mode = rmodeGet();
+  const set = m => { mode = m; box.querySelectorAll(".rmodes button").forEach(b => { const on = b.dataset.m === m; b.classList.toggle("on", on); b.setAttribute("aria-checked", on); });
+    box.querySelector(".rdesc").textContent = RMODES.find(x => x[0] === m)[2]; const ri = box.querySelector(".rinst"); ri.hidden = m === "auto"; if (m !== "auto") setTimeout(() => ri.querySelector("textarea").focus(), 30); };
+  box.querySelectorAll(".rmodes button").forEach(b => b.onclick = () => set(b.dataset.m));
+  set(mode);
+  const ta = box.querySelector("textarea"), mic = box.querySelector(".micbtn"), hint = box.querySelector(".rhint");
+  hint.id = "rh" + Math.random().toString(36).slice(2, 7);
+  mic.onclick = () => { recSink = { hint: "#" + hint.id, done: txt => { ta.value = (ta.value.trim() ? ta.value.trim() + " " : "") + txt; ta.focus(); } }; toggleMic(mic); };
+  box.querySelector(".rcancel").onclick = onClose;
+  box.querySelector(".rgo").onclick = () => {
+    const txt = ta.value.trim();
+    if (mode !== "auto" && !txt) { ta.focus(); return toast("Ajoute tes indications, à l'écrit ou à l'oral"); }
+    try { store.set("todo_rmode", mode); } catch {}
+    const instructions = mode === "auto" ? "" : mode === "plus" ? txt
+      : `Rédige la réponse uniquement à partir de mes indications ci-dessous, courte et fidèle. N'utilise le mail reçu que pour le prénom, le registre (tu ou vous) et le contexte minimal ; ne réponds à aucun autre point du mail. Indications : ${txt}`;
+    onClose(); startReply({ ...ctx, mode, instructions });
+  };
+}
+// Dans une carte mail : le panneau se déplie sous les boutons
+function toggleReplyPanel(card, btn, ctx){
+  const slot = card.querySelector(".rslot");
+  const close = () => { slot.innerHTML = ""; btn.setAttribute("aria-expanded", "false"); btn.classList.remove("on"); };
+  if (slot.firstChild) return close();
+  document.querySelectorAll(".mail .rslot").forEach(x => { if (x !== slot) { x.innerHTML = ""; const b = x.parentElement.querySelector(".mrep"); if (b) { b.setAttribute("aria-expanded", "false"); b.classList.remove("on"); } } });
+  slot.innerHTML = replyPanelHtml(); btn.setAttribute("aria-expanded", "true"); btn.classList.add("on");
+  wireReplyPanel(slot.firstElementChild, { ...ctx, back: null }, close);
+  slot.scrollIntoView({ block: "nearest", behavior: "smooth" });
+}
+// Dans une feuille (tâche, fil) : même panneau, inséré sous les actions
 function openReplyMode(ctx){
+  const host = ctx.host && ctx.host.isConnected ? ctx.host : null;
+  if (host) {
+    if (host.firstChild) { host.innerHTML = ""; return; }
+    host.innerHTML = replyPanelHtml();
+    wireReplyPanel(host.firstElementChild, ctx, () => { host.innerHTML = ""; });
+    host.scrollIntoView({ block: "nearest", behavior: "smooth" });
+    return;
+  }
+  openReplyModeSheet(ctx);
+}
+function openReplyModeSheet(ctx){
   let mode = (() => { try { return store.get("todo_rmode") || "auto"; } catch { return "auto"; } })();
   const MODES = [["auto","Auto","L'IA propose une réponse au mail."],["plus","Auto + indications","L'IA répond au mail en tenant compte de tes indications."],["indic","Indications","L'IA rédige seulement ce que tu lui dis, avec le minimum de contexte."]];
-  $("#panel").innerHTML = `<div class="sheethead"><h3>Répondre</h3><button class="xbtn" aria-label="Fermer">✕</button></div>
+  $("#panel").innerHTML = `<div class="sheethead"><h3>Répondre</h3><button class="xbtn" aria-label="Fermer">${ic("x", 16)}</button></div>
     <div class="seg rmodes" role="radiogroup" aria-label="Mode de réponse">${MODES.map(([k,l]) => `<button type="button" role="radio" data-m="${k}">${l}</button>`).join("")}</div>
     <p class="hint rdesc" style="display:block;margin:10px 0 0"></p>
     <div class="rinst"><label for="rinst">Tes indications</label>
       <div class="rbox"><textarea id="rinst" rows="4" placeholder="Ex. accepter jeudi 10 h, demander le devis signé, rappeler le délai de paiement"></textarea>
-      <button type="button" class="micbtn" id="rmic" aria-label="Dicter les indications" title="Dicter">🎙</button></div>
+      <button type="button" class="micbtn" id="rmic" aria-label="Dicter les indications" title="Dicter">${ic("mic", 17)}</button></div>
       <p class="hint" id="rhint" style="display:block;margin:6px 0 0">Écris ou dicte, puis « Rédiger ».</p></div>
     <div class="actions foot"><button class="ghost" id="rback">Annuler</button><span class="sp"></span><button class="primary" id="rgo">Rédiger</button></div>`;
   const set = m => { mode = m; $$(".rmodes button").forEach(b => { const on = b.dataset.m === m; b.classList.toggle("on", on); b.setAttribute("aria-checked", on); });
@@ -1461,7 +1575,7 @@ async function startReply(ctx){
   openComposer({ ...ctx, kind:"reply", title:"Répondre", to: d.to, cc: d.cc, others: d.others, subject: d.subject, body: d.body, mode: d.mode, can_send: d.can_send, ai: d.ai, original: d.original });
 }
 function composerLoading(msg, back){
-  $("#panel").innerHTML = `<div class="sheethead"><h3>${msg.startsWith("Rédaction de la réponse") ? "Répondre" : "Transférer"}</h3><button class="xbtn" aria-label="Fermer">✕</button></div><div class="empty" style="padding:36px 8px"><b>${esc(msg)}</b>Quelques secondes.</div>`;
+  $("#panel").innerHTML = `<div class="sheethead"><h3>${msg.startsWith("Rédaction de la réponse") ? "Répondre" : "Transférer"}</h3><button class="xbtn" aria-label="Fermer">${ic("x", 16)}</button></div><div class="empty" style="padding:36px 8px"><b>${esc(msg)}</b>Quelques secondes.</div>`;
   $("#panel .xbtn").onclick = back; openSheet();
 }
 let sigCache = null;
@@ -1470,7 +1584,7 @@ const txtToHtml = t => esc(t).split(/\n{2,}/).map(p => `<p>${p.replace(/\n/g, "<
 const addrStr = l => (l || []).map(x => x.email).join(", ");
 async function openComposer(c){
   const files = [];
-  $("#panel").innerHTML = `<div class="sheethead"><h3>${c.title}</h3><button class="xbtn" aria-label="Fermer">✕</button></div>
+  $("#panel").innerHTML = `<div class="sheethead"><h3>${c.title}</h3><button class="xbtn" aria-label="Fermer">${ic("x", 16)}</button></div>
     <div class="props cmp">
       <span class="pl">À</span><div class="pv"><input id="cto" class="pill wide" type="text" inputmode="email" value="${esc(addrStr(c.to))}" placeholder="adresse, adresse"></div>
       <span class="pl">Cc</span><div class="pv"><input id="ccc" class="pill wide" type="text" inputmode="email" value="${esc(addrStr(c.cc))}" placeholder="Optionnel">${c.kind === "reply" && c.others?.length ? `<button type="button" class="tbtn" id="rall" title="Ajouter les autres destinataires">${c.cc?.length ? "Retirer les autres" : "Répondre à tous"}</button>` : ""}</div>
@@ -1478,20 +1592,20 @@ async function openComposer(c){
     </div>
     ${c.person && !c.person.verified ? `<p class="hint" style="display:block;margin:0 0 6px">Adresse déduite du nom, à vérifier.</p>` : ""}
     <div class="ntools ctools">
-      <button type="button" data-cmd="bold" title="Gras"><b>G</b></button><button type="button" data-cmd="italic" title="Italique"><i>I</i></button><button type="button" data-cmd="underline" title="Souligné"><u>S</u></button>
-      <button type="button" data-cmd="insertUnorderedList" title="Liste à puces">• Liste</button><button type="button" data-cmd="insertOrderedList" title="Liste numérotée">1. Liste</button>
+      <button type="button" data-cmd="bold" title="Gras" aria-label="Gras">${ic("bold", 16)}</button><button type="button" data-cmd="italic" title="Italique" aria-label="Italique">${ic("italic", 16)}</button><button type="button" data-cmd="underline" title="Souligné" aria-label="Souligné">${ic("under", 16)}</button>
+      <button type="button" data-cmd="insertUnorderedList" title="Liste à puces" aria-label="Liste à puces">${ic("list", 16)}</button><button type="button" data-cmd="insertOrderedList" title="Liste numérotée" aria-label="Liste numérotée">${ic("olist", 16)}</button>
       <select id="cfont" class="pill" title="Police"><option value="">Police</option><option value="Arial">Arial</option><option value="Calibri, Carlito, sans-serif">Calibri</option><option value="Georgia">Georgia</option><option value="Verdana">Verdana</option><option value="Courier New">Courier</option></select>
-      <button type="button" id="clink" title="Lien">🔗</button>
-      <label title="Joindre des fichiers">📎 Joindre<input type="file" id="cfile" multiple></label>
+      <button type="button" id="clink" title="Lien" aria-label="Insérer un lien">${ic("link", 16)}</button>
+      <label title="Joindre des fichiers">${ic("clip", 16)}Joindre<input type="file" id="cfile" multiple></label>
     </div>
     <div id="cbody" class="rich mailbody" contenteditable="true">${txtToHtml(c.body || "")}</div>
     <div class="files" id="cfiles"></div>
     ${c.attach ? `<label class="tick"><input type="checkbox" id="catt" checked> Joindre le mail d'origine de ${esc(c.attach)}, avec ses pièces jointes</label>` : ""}
     <details class="sigprev"><summary>Signature ajoutée automatiquement</summary><div id="csig">Chargement…</div></details>
-    ${c.ai ? `<div class="aibar"><input id="cinst" class="pill wide" placeholder="Consigne pour l'IA (ex. accepter jeudi 10 h, demander le devis)"><button type="button" class="tbtn" id="cregen">✨ Réécrire</button></div>` : ""}
+    ${c.ai ? `<div class="aibar"><input id="cinst" class="pill wide" placeholder="Consigne pour l'IA (ex. accepter jeudi 10 h, demander le devis)"><button type="button" class="tbtn" id="cregen">${ic("spark", 14)} Réécrire</button></div>` : ""}
     ${c.mode === "ia" ? `<p class="hint" style="display:block">Rédigé par l'IA : relis avant d'envoyer.${c.kind === "reply" ? " Les [à compléter] sont à remplir." : ""}</p>` : ""}
     ${c.can_send ? "" : `<p class="hint" style="display:block">Envoi depuis Klaar : connecte Gmail (Mail, Boîtes et réglages, + Gmail). En attendant, « Ouvrir dans ma messagerie » reprend le texte.</p>`}
-    <div class="actions foot"><button class="ghost" id="cmail" title="Ouvrir dans ma messagerie"><span class="lg">Ouvrir dans ma messagerie</span><span class="sm">✉ Messagerie</span></button><span class="sp"></span>${c.can_send ? `<button id="cdraft">Brouillon</button><button class="primary" id="csend">Envoyer</button>` : ""}</div>`;
+    <div class="actions foot"><button class="ghost" id="cmail" title="Ouvrir dans ma messagerie">${ic("ext", 15)}<span class="lg">Ma messagerie</span><span class="sm">Messagerie</span></button><span class="sp"></span>${c.can_send ? `<button id="cdraft">${ic("file", 15)}Brouillon</button><button class="primary" id="csend">${ic("send", 15)}Envoyer</button>` : ""}</div>`;
   $("#panel .xbtn").onclick = c.back || closeSheet;
   openSheet();
   const ed = $("#cbody");
@@ -1500,7 +1614,7 @@ async function openComposer(c){
   $("#clink").onmousedown = e => e.preventDefault();
   $("#clink").onclick = () => { const sel = String(window.getSelection() || ""); if (!sel) return toast("Sélectionne d'abord le texte à lier"); const u = window.prompt("Adresse du lien", "https://"); if (u && /^(https?:|mailto:|tel:)/.test(u)) document.execCommand("createLink", false, u); };
   ed.addEventListener("paste", e => { e.preventDefault(); document.execCommand("insertText", false, (e.clipboardData || window.clipboardData).getData("text/plain")); });
-  const showFiles = () => { $("#cfiles").innerHTML = files.map((f, i) => `<span class="fchip">📎 ${esc(f.name)} <small>${fmtSize(f.size)}</small><button type="button" data-i="${i}" aria-label="Retirer">✕</button></span>`).join("");
+  const showFiles = () => { $("#cfiles").innerHTML = files.map((f, i) => `<span class="fchip">${ic("clip", 13)} ${esc(f.name)} <small>${fmtSize(f.size)}</small><button type="button" data-i="${i}" aria-label="Retirer">${ic("x", 12)}</button></span>`).join("");
     $$("#cfiles button").forEach(b => b.onclick = () => { files.splice(+b.dataset.i, 1); showFiles(); }); };
   $("#cfile").onchange = e => { for (const f of e.target.files) { if (files.reduce((n, x) => n + x.size, 0) + f.size > 18 * 1048576) { toast("18 Mo au maximum au total"); break; } files.push(f); } e.target.value = ""; showFiles(); };
   if ($("#rall")) $("#rall").onclick = () => { const on = !$("#ccc").value.trim(); $("#ccc").value = on ? addrStr(c.others) : ""; $("#rall").textContent = on ? "Retirer les autres" : "Répondre à tous"; };
@@ -1512,7 +1626,7 @@ async function openComposer(c){
       const d = await dapi("/draft", { method:"POST", body: JSON.stringify(body) });
       ed.innerHTML = txtToHtml(d.body);
     } catch(e){ toast(e.message); }
-    b.disabled = false; b.textContent = "✨ Réécrire";
+    b.disabled = false; b.innerHTML = `${ic("spark", 14)} Réécrire`;
   };
   (sigCache ? Promise.resolve(sigCache) : dapi("/signature").then(r => sigCache = r.html)).then(h => { if ($("#csig")) $("#csig").innerHTML = h || "Aucune signature enregistrée."; }).catch(() => { if ($("#csig")) $("#csig").textContent = "Signature indisponible."; });
   $("#cmail").onclick = () => { location.href = `mailto:${encodeURIComponent($("#cto").value.trim())}?cc=${encodeURIComponent($("#ccc").value.trim())}&subject=${encodeURIComponent($("#csub").value.trim())}&body=${encodeURIComponent(ed.innerText.trim())}`; };
@@ -1521,7 +1635,7 @@ async function openComposer(c){
     if (!to.length) return toast("Ajoute un destinataire");
     if (!$("#csub").value.trim() || !ed.innerText.trim()) return toast("Objet et message requis");
     const btns = $$("#panel .actions button"); btns.forEach(b => b.disabled = true);
-    $("#csend") && ($("#csend").textContent = mode === "send" ? "Envoi…" : "Envoyer");
+    $("#csend") && ($("#csend").innerHTML = mode === "send" ? "Envoi…" : `${ic("send", 15)}Envoyer`);
     try {
       const enc64 = f => new Promise((ok, ko) => { const r = new FileReader(); r.onload = () => ok(String(r.result).split(",")[1]); r.onerror = ko; r.readAsDataURL(f); });
       const payload = { mode, kind: c.kind, subject: $("#csub").value.trim(), html: ed.innerHTML,
@@ -1534,7 +1648,7 @@ async function openComposer(c){
       if (mode === "draft") toast("Brouillon enregistré dans Gmail");
       else if (c.kind === "reply") { toast("Réponse envoyée"); if (view === "mail") { await loadMail(); renderMail(); } refreshCounts(); }
       else { toast(`Envoyé à ${r.to.name || r.to.email}${r.attached ? ", mail d'origine joint" : ""}`, () => complete(c.task), "Marquer fait"); load(); }
-    } catch(e){ toast(e.message); btns.forEach(b => b.disabled = false); $("#csend") && ($("#csend").textContent = "Envoyer"); }
+    } catch(e){ toast(e.message); btns.forEach(b => b.disabled = false); $("#csend") && ($("#csend").innerHTML = `${ic("send", 15)}Envoyer`); }
   };
   if ($("#csend")) { $("#csend").onclick = () => go("send"); $("#cdraft").onclick = () => go("draft"); }
 }
