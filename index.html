@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>To Do</title>
 <meta name="theme-color" content="#f6f5f1" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#151514" media="(prefers-color-scheme: dark)">
@@ -497,6 +497,25 @@ details.maccts>summary::-webkit-details-marker{display:none}
 .sugg button.on,.sugg button:hover{background:var(--hover)}
 .tick{display:flex;gap:8px;align-items:center;font-size:14px;color:var(--ink);margin-top:12px}
 .tick input{width:auto;margin:0}
+.ctools #cslot{font-size:13.5px}
+.ctools #cslot.on{background:var(--ink);border-color:var(--ink);color:var(--card)}
+.slots .slhead{display:flex;flex-wrap:wrap;gap:4px 10px;align-items:baseline}
+.slots .slhead .hint{display:inline}
+.slots .slopts{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:10px}
+.slots .sday{margin-top:12px}
+.slots .sdl{font-size:13px;font-weight:600;margin-bottom:6px}
+.slots .sdl::first-letter{text-transform:uppercase}
+.slots .sday .hint{display:inline;font-size:13px}
+.slots .sfree button{font-size:13px;padding:5px 10px;min-height:30px;font-variant-numeric:tabular-nums}
+.slots .calm{padding:10px 12px;border:1px dashed var(--line);border-radius:10px;font-size:13.5px}
+.fchip.meet{display:flex;width:100%;box-sizing:border-box;margin:10px 0 0;border-radius:12px;padding:8px 8px 8px 12px;background:var(--accent-soft);border-color:transparent;color:var(--ink)}
+.fchip.meet .t{flex:1;min-width:0}
+.fchip.meet button{flex:none}
+.rbox.big textarea{min-height:120px}
+.exs{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:14px}
+.exs .hint{display:inline;margin-right:4px}
+.exs button{border:1px solid var(--line);background:transparent;color:var(--ink);border-radius:999px;padding:5px 11px;font:inherit;font-size:13px;cursor:pointer}
+.exs button:hover{background:var(--hover)}
 .newp input{flex:1;min-width:0}
 #inv{flex-wrap:wrap}#inv input{flex:1 1 160px}#inv button{min-height:42px}
 .newp button{flex:none;border:0;background:var(--accent);color:#fff;border-radius:10px;padding:0 14px;font-weight:600;cursor:pointer}
@@ -698,6 +717,8 @@ const VIEWS = { today:"To Do", mail:"Mail", done:"Fait récemment", search:"Rech
 const IC = {
   todo:'<circle cx="12" cy="12" r="9"/><path d="m8.5 12 2.5 2.5 4.5-5"/>',
   mail:'<rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="m3.5 7 8.5 6 8.5-6"/>',
+  cal:'<rect x="3" y="5" width="18" height="16" rx="2.5"/><path d="M3 10h18M8 3v4M16 3v4"/>',
+  video:'<rect x="3" y="7" width="13" height="10" rx="2"/><path d="m16 11 5-3v8l-5-3"/>',
   check:'<path d="m5 12.5 4.5 4.5L19 7.5"/>',
   search:'<circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.3-4.3"/>',
   reply:'<path d="M9 14 4 9l5-5"/><path d="M4 9h9a7 7 0 0 1 7 7v4"/>',
@@ -836,7 +857,8 @@ function renderList(){
     (t.tags || []).filter(x => x !== fTag).slice(0, 2).forEach(x => meta.push(`<span class="tg">#${esc(x)}</span>`));
     if (t.created_via === "mail" || (open && safeUrl(t.link_url))) meta.push(`<span class="src" title="Vient d'un mail">${ic("mail", 13)}</span>`);
     if (t.files_count) meta.push(`<span class="src" title="Pièces jointes">${ic("clip", 13)} ${t.files_count}</span>`);
-    return `<li data-id="${t.id}"><div class="bgR">✓ Fait</div><div class="bgL">Reporter →</div>
+    const nx = nextSection(t);
+    return `<li data-id="${t.id}"><div class="bgR">✓ Fait</div><div class="bgL">${nx ? esc(shortSec(nx.name)) + " →" : "Reporter →"}</div>
       <div class="row ${t.status === "done" ? "done":""} ${urg ? "urg" : ""}">
         <div class="body"><div class="title">${esc(t.title)}</div>${meta.length?`<div class="meta">${meta.map(m=>`<span>${m}</span>`).join("")}</div>`:""}</div>
         <button class="check" aria-label="${t.status==="done"?"Rouvrir":"Marquer comme fait"}" title="${t.status==="done"?"Rouvrir":"Done"}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></button>${open && canReorder() ? `<span class="grip" role="button" aria-label="Glisser pour déplacer" title="Glisser pour déplacer"><i></i><i></i></span>` : ""}</div></li>`;
@@ -852,7 +874,7 @@ function renderList(){
     const mine = tFilter ? tasks : inSec(curSec);
     ul.innerHTML = mine.length ? mine.map(taskLi).join("") : `<div class="empty"><b>Rien ici</b>${tFilter ? "" : "Glisse une tâche sur cet onglet avec ≡ pour l'y ranger."}</div>`;
   } else ul.innerHTML = tasks.map(taskLi).join("");
-  ul.insertAdjacentHTML("beforeend", `<div class="foot">${canReorder() ? "Glisse ≡ pour réordonner, ou sur un onglet pour changer de section" : view === "today" && !searching ? "Retire les filtres et la recherche pour réordonner" : ""}<span class="mob"> · Glisse à droite pour terminer, à gauche pour reporter</span></div>`);
+  ul.insertAdjacentHTML("beforeend", `<div class="foot">${canReorder() ? "Glisse ≡ pour réordonner, ou sur un onglet pour changer de section" : view === "today" && !searching ? "Retire les filtres et la recherche pour réordonner" : ""}<span class="mob"> · Glisse à droite pour terminer, à gauche pour passer à la section suivante</span></div>`);
   if (view === "today" && !searching) {
     const bar = document.createElement("div"); bar.className = "lsearch";
     bar.innerHTML = `<span class="lsi" aria-hidden="true">${ic("search", 15)}</span><input id="tq" type="search" placeholder="Rechercher dans la To Do" value="${esc(tFilter)}" autocomplete="off" aria-label="Rechercher dans la To Do">${tFilter ? `<button type="button" class="lsx" aria-label="Effacer">✕</button>` : ""}`;
@@ -878,6 +900,20 @@ function renderList(){
 }
 
 // Recherche dans la To Do : filtre la liste affichée (titre, notes, étiquettes, projet), sections dépliées
+// Section suivante dans l'ordre des onglets (la dernière revient à la première) : cible du glissement vers la gauche
+function nextSection(t){
+  if (sections.length < 2) return null;
+  const i = sections.findIndex(x => x.id === (t.section_id || sections[0].id));
+  return sections[(i + 1) % sections.length];
+}
+function swipeToSection(t){
+  const sc = nextSection(t);
+  if (!sc) return openPostpone(t);
+  const prev = t.section_id || sections[0].id;
+  t.section_id = sc.id; renderList();
+  api(`/tasks/${t.id}`, { method:"PATCH", body: JSON.stringify({ section_id: sc.id }) }).then(() => load()).catch(er => { toast(er.message); load(); });
+  toast(`Déplacée dans « ${sc.name} »`, () => { api(`/tasks/${t.id}`, { method:"PATCH", body: JSON.stringify({ section_id: prev }) }).then(() => load()).catch(er => toast(er.message)); }, "Annuler");
+}
 const shortSec = n => { const r = String(n).replace(/^à faire\s+/i, ""); return r === n ? n : r.charAt(0).toUpperCase() + r.slice(1); };
 let tFilter = "", curSec = (() => { try { return store.get("todo_sec") || ""; } catch { return ""; } })();
 let collapsed = new Set((() => { try { return JSON.parse(store.get("todo_collapsed") || "[]"); } catch { return []; } })());
@@ -1004,6 +1040,7 @@ function renderMail(){
       ${mailTab === "nouveau" ? `<div class="msub" style="margin:0" role="tablist">${[["todo","À traiter",todo.length && !words.length ? todo.length : (cnt.a_faire ?? 0)],["info","Pour information",nInfo],["notif","Notifications",nNotif]].map(([k,l,n]) => `<button role="tab" data-v="${k}" aria-selected="${mView===k}" class="${mView===k?"on":""}">${l}${n?` <span>${n}</span>`:""}</button>`).join("")}</div>`
         : `<div class="msub" style="margin:0"><button class="mback" data-back="1">← Retour</button><span class="mtitle">${mailTab === "ajoute" ? "Mails mis dans la To Do" : "Mails ignorés"}</span></div>`}
       <span class="grow"></span>
+      ${d.accounts.some(a => a.provider === "gmail") ? `<button class="btn" id="mNew" title="Dicte ou écris : « Envoie un mail à … »">${ic("spark", 15)}Nouveau mail</button>` : ""}
       <button class="btn primary" id="mRefresh" ${mailPending ? "disabled" : ""}>${mailPending ? "Mise à jour en cours…" : "Mettre à jour"}</button></div>
     ${pendTxt}
     <div class="mmeta"><details class="maccts"><summary>Boîtes et réglages · ${esc(syncTxt)} ▾</summary>
@@ -1021,6 +1058,7 @@ function renderMail(){
       : (items.length ? items.map(mailCard).join("") : `<div class="empty"><b>Rien ici</b></div>`)}</div>`;
   $("#mDays").onchange = async () => { try { await api("/mail/settings", { method:"PATCH", body: JSON.stringify({ lookback_days: +$("#mDays").value }) }); toast("Période enregistrée, appliquée à la prochaine mise à jour"); } catch(e){ toast(e.message); } };
   $("#mRefresh").onclick = refreshMail;
+  $("#mNew")?.addEventListener("click", () => openAssistant());
   const mq = $("#mq");
   mq.oninput = () => { mQ = mq.value; renderMail(); const n = $("#mq"); n.focus(); n.setSelectionRange(n.value.length, n.value.length); };
   c.querySelector(".lsearch .lsx")?.addEventListener("click", () => { mQ = ""; renderMail(); });
@@ -1460,25 +1498,70 @@ function openEdit(t){
 // ---------- Transfert à l'équipe : brouillon rédigé, relu, puis envoyé ou rangé dans les brouillons Gmail ----------
 let team = null;
 async function loadTeam(force){ if (!team || force) team = await dapi("/team"); return team; }
+const TMODES = [["auto","Auto","L'IA rédige le mail de transfert à partir de la tâche et du mail lié."],["plus","Auto + indications","L'IA rédige le mail en tenant compte de tes indications."],["indic","Indications","L'IA rédige seulement ce que tu lui dis, avec le minimum de contexte."]];
 async function openTransfer(t){
   $("#panel").innerHTML = `<div class="sheethead"><h3>Transférer</h3><button class="xbtn" aria-label="Fermer">${ic("x", 16)}</button></div>
     <div class="orig" style="margin-bottom:12px">${esc(t.title)}</div><label>À qui ?</label><div class="chips" id="tteam"><span class="hint" style="display:block">Chargement…</span></div>
-    <form class="newp" id="tother"><input id="toe" type="email" placeholder="Autre adresse e-mail" autocomplete="email"><button>OK</button></form>`;
+    <form class="newp" id="tother"><input id="toe" type="email" placeholder="Autre adresse e-mail" autocomplete="email"><button>OK</button></form>
+    <div class="rslot" id="tslot"></div>`;
   $("#panel .xbtn").onclick = () => openEdit(t);
   openSheet();
   try { await loadTeam(); } catch(e){ toast(e.message); team = []; }
+  if (!$("#tteam")) return;
   $("#tteam").innerHTML = team.length ? team.map(p => `<button data-id="${p.id}" title="${esc(p.email)}">${esc(p.name)}${p.verified ? "" : " ?"}</button>`).join("")
     : `<span class="hint" style="display:block">Ajoute ton équipe dans Mon compte.</span>`;
-  $$("#tteam button").forEach(b => b.onclick = () => prepareTransfer(t, { to_id: b.dataset.id }, team.find(p => p.id === b.dataset.id)));
-  $("#tother").onsubmit = e => { e.preventDefault(); const v = $("#toe").value.trim(); if (v) prepareTransfer(t, { to_email: v }, null); };
+  // Après le choix de la personne : Auto, Auto + indications ou Indications (avec dictée), comme pour une réponse
+  const choose = (who, person, label) => {
+    $$("#tteam button").forEach(b => b.classList.toggle("on", b.dataset.id === who.to_id));
+    const slot = $("#tslot");
+    slot.innerHTML = `<p class="hint" style="display:block;margin:12px 0 0">Pour ${esc(label)}</p>` + replyPanelHtml(TMODES, "Mode de rédaction");
+    wireReplyPanel(slot.lastElementChild, {}, () => { slot.innerHTML = ""; $$("#tteam button").forEach(b => b.classList.remove("on")); },
+      { modes: TMODES, indic: "Rédige le mail uniquement à partir de mes indications ci-dessous, court et fidèle. N'utilise la tâche et le mail lié que pour le contexte minimal (de quoi il s'agit) ; n'ajoute rien d'autre.",
+        go: ({ instructions }) => prepareTransfer(t, who, person, instructions) });
+    slot.scrollIntoView({ block: "nearest", behavior: "smooth" });
+  };
+  $$("#tteam button").forEach(b => b.onclick = () => { const p = team.find(x => x.id === b.dataset.id); choose({ to_id: b.dataset.id }, p, p.name); });
+  $("#tother").onsubmit = e => { e.preventDefault(); const v = $("#toe").value.trim(); if (v) choose({ to_email: v }, null, v); };
 }
-async function prepareTransfer(t, who, person){
-  composerLoading("Rédaction du mail…", () => openTransfer(t));
+async function prepareTransfer(t, who, person, instructions){
+  composerLoading("Rédaction du mail…", () => openTransfer(t), "Transférer");
   let d;
-  try { d = await dapi("/draft", { method:"POST", body: JSON.stringify({ task_id: t.id, ...who }) }); }
+  try { d = await dapi("/draft", { method:"POST", body: JSON.stringify({ task_id: t.id, ...who, instructions: instructions || "" }) }); }
   catch(e){ toast(e.message); return openTransfer(t); }
   openComposer({ kind:"forward", title:"Transférer", task:t, person, back: () => openTransfer(t),
     to: [d.to], cc: [], subject: d.subject, body: d.body, mode: d.mode, can_send: d.can_send, ai: d.ai, attach: d.attach_original ? (d.original?.from || "l'expéditeur") : null });
+}
+// « Envoie un mail à Valentin pour… » : une consigne écrite ou dictée devient un mail prêt à relire (nouveau fil ou réponse au dernier mail de la personne)
+let lastCommand = "";
+function openAssistant(){
+  $("#panel").innerHTML = `<div class="sheethead"><h3>Nouveau mail</h3><button class="xbtn" aria-label="Fermer">${ic("x", 16)}</button></div>
+    <p class="hint" style="display:block;margin:0 0 10px">Dis à qui écrire et quoi. L'IA retrouve l'adresse dans ton équipe et tes correspondants, puis prépare le mail à relire.</p>
+    <label for="acmd">Ta consigne</label>
+    <div class="rbox big"><textarea id="acmd" rows="4" placeholder="Envoie un mail à Valentin pour lui demander où en est le devis Lecomte">${esc(lastCommand)}</textarea>
+      <button type="button" class="micbtn" id="amic" aria-label="Dicter la consigne" title="Dicter">${ic("mic", 17)}</button></div>
+    <p class="hint" id="ahint" style="display:block;margin:6px 0 0">Écris ou dicte, puis « Rédiger ».</p>
+    <div class="exs"><span class="hint">Exemples</span>
+      <button type="button" data-x="Réponds au dernier mail de Marie : jeudi 10 h me convient, je lui envoie l'invitation.">Répondre au dernier mail de quelqu'un</button>
+      <button type="button" data-x="Envoie un mail à Yohan, Valentin en copie, pour lui rappeler que le rapport de chantier est attendu vendredi.">Mail avec quelqu'un en copie</button></div>
+    <div class="actions foot"><button class="ghost" id="aback">Annuler</button><span class="sp"></span><button class="primary" id="ago">${ic("spark", 15)}Rédiger</button></div>`;
+  $("#panel .xbtn").onclick = $("#aback").onclick = closeSheet;
+  openSheet();
+  const ta = $("#acmd");
+  $$(".exs button").forEach(b => b.onclick = () => { ta.value = b.dataset.x; ta.focus(); });
+  $("#amic").onclick = () => { recSink = { hint: "#ahint", done: txt => { ta.value = (ta.value.trim() ? ta.value.trim() + " " : "") + txt; ta.focus(); } }; toggleMic($("#amic")); };
+  $("#ago").onclick = async () => {
+    const text = ta.value.trim();
+    if (!text) { ta.focus(); return toast("Dis-moi à qui écrire et quoi"); }
+    lastCommand = text;
+    composerLoading("Rédaction du mail…", openAssistant, "Nouveau mail");
+    let d;
+    try { d = await dapi("/compose", { method:"POST", body: JSON.stringify({ text }) }); }
+    catch(e){ toast(e.message); return openAssistant(); }
+    openComposer({ kind: d.kind, title: d.kind === "reply" ? "Répondre" : "Nouveau mail", thread_key: d.thread_key, command: text, back: openAssistant,
+      to: d.to, cc: (d.cc || []).map(e => ({ email: e })), others: d.others, subject: d.subject, body: d.body, mode: d.mode, can_send: d.can_send, ai: d.ai, original: d.original });
+    if (d.unknown && !d.to?.length) { toast(`Adresse de ${d.unknown} introuvable : complète le champ À`); setTimeout(() => $("#cto")?.focus(), 50); }
+  };
+  setTimeout(() => ta.focus(), 60);
 }
 // Aperçu rapide du dernier message du fil lié à une tâche
 async function openThread(t){
@@ -1505,17 +1588,18 @@ async function openThread(t){
 // Panneau de réponse en ligne : trois modes sous le bouton, pas de nouvelle fenêtre
 const RMODES = [["auto","Auto","L'IA propose une réponse complète au mail."],["plus","Auto + indications","L'IA répond au mail en tenant compte de tes indications."],["indic","Indications","L'IA rédige seulement ce que tu lui dis, avec le minimum de contexte."]];
 const rmodeGet = () => { try { return store.get("todo_rmode") || "auto"; } catch { return "auto"; } };
-function replyPanelHtml(){
-  return `<div class="rpanel" role="group" aria-label="Mode de réponse">
-    <div class="pills rmodes">${RMODES.map(([k,l]) => `<button type="button" role="radio" data-m="${k}">${l}</button>`).join("")}</div>
+function replyPanelHtml(modes = RMODES, label = "Mode de réponse"){
+  return `<div class="rpanel" role="group" aria-label="${label}">
+    <div class="pills rmodes">${modes.map(([k,l]) => `<button type="button" role="radio" data-m="${k}">${l}</button>`).join("")}</div>
     <p class="rdesc"></p>
     <div class="rinst" hidden><div class="rbox"><textarea rows="3" placeholder="Ex. accepter jeudi 10 h, demander le devis signé, rappeler le délai de paiement"></textarea><button type="button" class="micbtn" aria-label="Dicter les indications" title="Dicter">${ic("mic", 17)}</button></div><p class="hint rhint" style="display:block;margin:6px 0 0">Écris ou dicte, puis « Rédiger ».</p></div>
     <div class="ract"><button type="button" class="btn quiet rcancel">Annuler</button><button type="button" class="btn primary rgo">${ic("spark", 15)}Rédiger</button></div></div>`;
 }
-function wireReplyPanel(box, ctx, onClose){
+function wireReplyPanel(box, ctx, onClose, opts = {}){
+  const modes = opts.modes || RMODES, go = opts.go || (c => startReply(c));
   let mode = rmodeGet();
   const set = m => { mode = m; box.querySelectorAll(".rmodes button").forEach(b => { const on = b.dataset.m === m; b.classList.toggle("on", on); b.setAttribute("aria-checked", on); });
-    box.querySelector(".rdesc").textContent = RMODES.find(x => x[0] === m)[2]; const ri = box.querySelector(".rinst"); ri.hidden = m === "auto"; if (m !== "auto") setTimeout(() => ri.querySelector("textarea").focus(), 30); };
+    box.querySelector(".rdesc").textContent = modes.find(x => x[0] === m)[2]; const ri = box.querySelector(".rinst"); ri.hidden = m === "auto"; if (m !== "auto") setTimeout(() => ri.querySelector("textarea").focus(), 30); };
   box.querySelectorAll(".rmodes button").forEach(b => b.onclick = () => set(b.dataset.m));
   set(mode);
   const ta = box.querySelector("textarea"), mic = box.querySelector(".micbtn"), hint = box.querySelector(".rhint");
@@ -1527,8 +1611,8 @@ function wireReplyPanel(box, ctx, onClose){
     if (mode !== "auto" && !txt) { ta.focus(); return toast("Ajoute tes indications, à l'écrit ou à l'oral"); }
     try { store.set("todo_rmode", mode); } catch {}
     const instructions = mode === "auto" ? "" : mode === "plus" ? txt
-      : `Rédige la réponse uniquement à partir de mes indications ci-dessous, courte et fidèle. N'utilise le mail reçu que pour le prénom, le registre (tu ou vous) et le contexte minimal ; ne réponds à aucun autre point du mail. Indications : ${txt}`;
-    onClose(); startReply({ ...ctx, mode, instructions });
+      : `${opts.indic || "Rédige la réponse uniquement à partir de mes indications ci-dessous, courte et fidèle. N'utilise le mail reçu que pour le prénom, le registre (tu ou vous) et le contexte minimal ; ne réponds à aucun autre point du mail."} Indications : ${txt}`;
+    onClose(); go({ ...ctx, mode, instructions });
   };
 }
 // Dans une carte mail : le panneau se déplie sous les boutons
@@ -1589,8 +1673,8 @@ async function startReply(ctx){
   catch(e){ toast(e.message); return (ctx.back || closeSheet)(); }
   openComposer({ ...ctx, kind:"reply", title:"Répondre", to: d.to, cc: d.cc, others: d.others, subject: d.subject, body: d.body, mode: d.mode, can_send: d.can_send, ai: d.ai, original: d.original });
 }
-function composerLoading(msg, back){
-  $("#panel").innerHTML = `<div class="sheethead"><h3>${msg.startsWith("Rédaction de la réponse") ? "Répondre" : "Transférer"}</h3><button class="xbtn" aria-label="Fermer">${ic("x", 16)}</button></div><div class="empty" style="padding:36px 8px"><b>${esc(msg)}</b>Quelques secondes.</div>`;
+function composerLoading(msg, back, title){
+  $("#panel").innerHTML = `<div class="sheethead"><h3>${title || (msg.startsWith("Rédaction de la réponse") ? "Répondre" : "Transférer")}</h3><button class="xbtn" aria-label="Fermer">${ic("x", 16)}</button></div><div class="empty" style="padding:36px 8px"><b>${esc(msg)}</b>Quelques secondes.</div>`;
   $("#panel .xbtn").onclick = back; openSheet();
 }
 let sigCache = null;
@@ -1612,8 +1696,11 @@ async function openComposer(c){
       <select id="cfont" class="pill" title="Police"><option value="">Police</option><option value="Arial">Arial</option><option value="Calibri, Carlito, sans-serif">Calibri</option><option value="Georgia">Georgia</option><option value="Verdana">Verdana</option><option value="Courier New">Courier</option></select>
       <button type="button" id="clink" title="Lien" aria-label="Insérer un lien">${ic("link", 16)}</button>
       <label title="Joindre des fichiers">${ic("clip", 16)}Joindre<input type="file" id="cfile" multiple></label>
+      ${c.can_send ? `<button type="button" id="cslot" class="lbl" title="Proposer mes disponibilités" aria-expanded="false">${ic("cal", 16)}Créneau</button>` : ""}
     </div>
     <div id="cbody" class="rich mailbody" contenteditable="true">${txtToHtml(c.body || "")}</div>
+    <div class="rslot" id="cslotbox"></div>
+    <div id="cmeet"></div>
     <div class="files" id="cfiles"></div>
     ${c.attach ? `<label class="tick"><input type="checkbox" id="catt" checked> Joindre le mail d'origine de ${esc(c.attach)}, avec ses pièces jointes</label>` : ""}
     <details class="sigprev"><summary>Signature ajoutée automatiquement</summary><div id="csig">Chargement…</div></details>
@@ -1637,12 +1724,66 @@ async function openComposer(c){
   if ($("#cregen")) $("#cregen").onclick = async () => {
     const b = $("#cregen"); b.disabled = true; b.textContent = "Rédaction…";
     try {
-      const body = c.kind === "reply" ? { kind:"reply", ...(c.mail ? { mail_id: c.mail.id } : { task_id: c.task.id }), instructions: $("#cinst").value }
-        : { task_id: c.task.id, ...(c.person ? { to_id: c.person.id } : { to_email: $("#cto").value.split(",")[0].trim() }), instructions: $("#cinst").value };
-      const d = await dapi("/draft", { method:"POST", body: JSON.stringify(body) });
+      let d;
+      if (c.command) d = await dapi("/compose", { method:"POST", body: JSON.stringify({ text: `${c.command}\nConsigne supplémentaire : ${$("#cinst").value}` }) });
+      else {
+        const body = c.kind === "reply" ? { kind:"reply", ...(c.mail ? { mail_id: c.mail.id } : c.thread_key ? { thread_key: c.thread_key } : { task_id: c.task.id }), instructions: $("#cinst").value }
+          : { task_id: c.task.id, ...(c.person ? { to_id: c.person.id } : { to_email: $("#cto").value.split(",")[0].trim() }), instructions: $("#cinst").value };
+        d = await dapi("/draft", { method:"POST", body: JSON.stringify(body) });
+      }
       ed.innerHTML = txtToHtml(d.body);
     } catch(e){ toast(e.message); }
     b.disabled = false; b.innerHTML = `${ic("spark", 14)} Réécrire`;
+  };
+  // Créneaux : disponibilités lues dans l'agenda Google, insérées dans le mail, avec invitation Google Meet si un seul créneau est retenu
+  let meeting = null;
+  const showMeet = () => { $("#cmeet").innerHTML = meeting ? `<span class="fchip meet">${ic("video", 14)}<span class="t">Invitation Google Meet · ${esc(meeting.when)}</span><button type="button" id="cmeetx" aria-label="Retirer l'invitation">${ic("x", 12)}</button></span>` : "";
+    if ($("#cmeetx")) $("#cmeetx").onclick = () => { meeting = null; showMeet(); }; };
+  if ($("#cslot")) $("#cslot").onclick = () => {
+    const box = $("#cslotbox"), btn = $("#cslot");
+    const close = () => { box.innerHTML = ""; btn.setAttribute("aria-expanded", "false"); btn.classList.remove("on"); };
+    if (box.firstChild) return close();
+    btn.setAttribute("aria-expanded", "true"); btn.classList.add("on");
+    let dur = 60, week = 1, picked = [];
+    box.innerHTML = `<div class="rpanel slots" role="group" aria-label="Proposer un créneau">
+      <div class="slhead"><b>Proposer un créneau</b><span class="hint">Lu dans ton agenda Google, 9 h à 18 h</span></div>
+      <div class="slopts"><div class="pills sweek">${[[1,"Semaine prochaine"],[0,"Cette semaine"]].map(([k,l]) => `<button type="button" data-w="${k}" class="${k===week?"on":""}">${l}</button>`).join("")}</div>
+      <div class="pills sdur">${[[30,"30 min"],[45,"45 min"],[60,"1 h"],[90,"1 h 30"]].map(([k,l]) => `<button type="button" data-d="${k}" class="${k===dur?"on":""}">${l}</button>`).join("")}</div></div>
+      <div class="sdays"><div class="hint" style="display:block">Lecture de l'agenda…</div></div>
+      <label class="tick"><input type="checkbox" id="smeet"> Créer l'invitation Google Meet pour le créneau retenu</label>
+      <div class="ract"><button type="button" class="btn quiet scancel">Annuler</button><button type="button" class="btn primary sgo" disabled>${ic("cal", 15)}Insérer</button></div></div>`;
+    const sgo = box.querySelector(".sgo"), days = box.querySelector(".sdays");
+    const load = async () => {
+      picked = []; sgo.disabled = true; days.innerHTML = `<div class="hint" style="display:block">Lecture de l'agenda…</div>`;
+      let d;
+      try { d = await dapi("/availability", { method:"POST", body: JSON.stringify({ duration: dur, week }) }); }
+      catch(e){ days.innerHTML = `<div class="calm"><b>Agenda non autorisé</b><br>${esc(e.message)}<br><button type="button" class="btn" id="srecon" style="margin-top:8px">${ic("mail", 14)}Reconnecter Gmail</button></div>`; if ($("#srecon")) $("#srecon").onclick = () => connectMail("gmail"); return; }
+      if (!box.isConnected) return;
+      days.innerHTML = d.days.map(x => `<div class="sday"><div class="sdl">${esc(x.label)}</div>${x.free.length ? `<div class="pills sfree">${x.free.map(f => `<button type="button" data-s="${f.start}" data-u="${f.until}" data-t="${esc(x.label)} de ${esc(f.text)}">${esc(f.text)}</button>`).join("")}</div>` : `<span class="hint">Complet</span>`}</div>`).join("") || `<div class="hint" style="display:block">Aucun créneau libre.</div>`;
+      days.querySelectorAll(".sfree button").forEach(b => b.onclick = () => { b.classList.toggle("on"); picked = [...days.querySelectorAll(".sfree button.on")].map(x => ({ start: x.dataset.s, until: x.dataset.u, text: x.dataset.t })); sgo.disabled = !picked.length; });
+    };
+    box.querySelectorAll(".sweek button").forEach(b => b.onclick = () => { week = +b.dataset.w; box.querySelectorAll(".sweek button").forEach(x => x.classList.toggle("on", x === b)); load(); });
+    box.querySelectorAll(".sdur button").forEach(b => b.onclick = () => { dur = +b.dataset.d; box.querySelectorAll(".sdur button").forEach(x => x.classList.toggle("on", x === b)); load(); });
+    box.querySelector(".scancel").onclick = close;
+    sgo.onclick = () => {
+      if (!picked.length) return;
+      const wantMeet = box.querySelector("#smeet").checked;
+      if (wantMeet && picked.length > 1) return toast("Retiens un seul créneau pour l'invitation Google Meet");
+      const fmtH = iso => new Date(iso).toLocaleTimeString("fr-BE", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Brussels" }).replace(":", " h ");
+      let html;
+      if (wantMeet) {
+        const p = picked[0], end = new Date(new Date(p.start).getTime() + dur * 6e4);
+        const when = `${p.text.split(" de ")[0]} de ${fmtH(p.start)} à ${fmtH(end.toISOString())}`;
+        meeting = { start: p.start, duration: dur, when }; showMeet();
+        html = `<p>Je propose un point ${esc(when)}, avec une invitation Google Meet.</p>`;
+      } else {
+        html = `<p>Voici mes disponibilités ${week ? "la semaine prochaine" : "cette semaine"} :</p><ul>${picked.map(p => `<li>${esc(p.text)}</li>`).join("")}</ul>`;
+      }
+      ed.insertAdjacentHTML("beforeend", html); close(); ed.focus();
+      toast(wantMeet ? "Créneau inséré, invitation créée à l'envoi" : "Disponibilités insérées dans le mail");
+    };
+    load();
+    box.scrollIntoView({ block: "nearest", behavior: "smooth" });
   };
   (sigCache ? Promise.resolve(sigCache) : dapi("/signature").then(r => sigCache = r.html)).then(h => { if ($("#csig")) $("#csig").innerHTML = h || "Aucune signature enregistrée."; }).catch(() => { if ($("#csig")) $("#csig").textContent = "Signature indisponible."; });
   $("#cmail").onclick = () => { location.href = `mailto:${encodeURIComponent($("#cto").value.trim())}?cc=${encodeURIComponent($("#ccc").value.trim())}&subject=${encodeURIComponent($("#csub").value.trim())}&body=${encodeURIComponent(ed.innerText.trim())}`; };
@@ -1654,16 +1795,25 @@ async function openComposer(c){
     $("#csend") && ($("#csend").innerHTML = mode === "send" ? "Envoi…" : `${ic("send", 15)}Envoyer`);
     try {
       const enc64 = f => new Promise((ok, ko) => { const r = new FileReader(); r.onload = () => ok(String(r.result).split(",")[1]); r.onerror = ko; r.readAsDataURL(f); });
-      const payload = { mode, kind: c.kind, subject: $("#csub").value.trim(), html: ed.innerHTML,
+      const cc = $("#ccc").value.split(/[,;]/).map(x => x.trim()).filter(Boolean);
+      let html = ed.innerHTML, meet = null;
+      if (meeting && mode === "send") {
+        $("#csend").innerHTML = "Invitation…";
+        meet = await dapi("/meeting", { method:"POST", body: JSON.stringify({ start: meeting.start, duration: meeting.duration, attendees: [...to, ...cc], title: $("#csub").value.trim().replace(/^re\s*:\s*/i, ""), meet: true, invite: true }) });
+        if (meet.meet) html += `<p>Lien Google Meet : <a href="${esc(meet.meet)}">${esc(meet.meet)}</a></p>`;
+        meeting = null; $("#csend").innerHTML = "Envoi…";
+      }
+      const payload = { mode, kind: c.kind, subject: $("#csub").value.trim(), html,
         to: to.map(e => ({ email: e, name: c.to?.find(x => x.email === e)?.name || (c.person?.email === e ? c.person.name : "") })),
-        cc: $("#ccc").value.split(/[,;]/).map(x => x.trim()).filter(Boolean),
-        files: await Promise.all(files.map(async f => ({ name: f.name, type: f.type, b64: await enc64(f) }))),
-        ...(c.mail ? { mail_id: c.mail.id } : {}), ...(c.task ? { task_id: c.task.id } : {}), attach_original: $("#catt") ? $("#catt").checked : false };
+        cc, files: await Promise.all(files.map(async f => ({ name: f.name, type: f.type, b64: await enc64(f) }))),
+        ...(c.mail ? { mail_id: c.mail.id } : {}), ...(c.task ? { task_id: c.task.id } : {}), ...(c.thread_key ? { thread_key: c.thread_key } : {}), attach_original: $("#catt") ? $("#catt").checked : false };
       const r = await dapi("/send", { method:"POST", body: JSON.stringify(payload) });
       closeSheet();
-      if (mode === "draft") toast("Brouillon enregistré dans Gmail");
-      else if (c.kind === "reply") { toast("Réponse envoyée"); if (view === "mail") { await loadMail(); renderMail(); } refreshCounts(); }
-      else { toast(`Envoyé à ${r.to.name || r.to.email}${r.attached ? ", mail d'origine joint" : ""}`, () => complete(c.task), "Marquer fait"); load(); }
+      const meetTxt = meet ? ", invitation Google Meet envoyée" : "";
+      if (mode === "draft") toast(meeting ? "Brouillon enregistré dans Gmail, sans l'invitation Meet (créée seulement à l'envoi)" : "Brouillon enregistré dans Gmail");
+      else if (c.kind === "reply") { toast("Réponse envoyée" + meetTxt); if (view === "mail") { await loadMail(); renderMail(); } refreshCounts(); }
+      else if (!c.task) toast(`Envoyé à ${r.to.name || r.to.email}${meetTxt}`);
+      else { toast(`Envoyé à ${r.to.name || r.to.email}${r.attached ? ", mail d'origine joint" : ""}${meetTxt}`, () => complete(c.task), "Marquer fait"); load(); }
     } catch(e){ toast(e.message); btns.forEach(b => b.disabled = false); $("#csend") && ($("#csend").innerHTML = `${ic("send", 15)}Envoyer`); }
   };
   if ($("#csend")) { $("#csend").onclick = () => go("send"); $("#cdraft").onclick = () => go("draft"); }
@@ -2075,7 +2225,7 @@ function swipe(li, t){
     if (!active) return; active=false; row.style.transition="";
     const w = row.offsetWidth * .3;
     if (dx > w){ row.style.transform = `translateX(100%)`; setTimeout(() => complete(t), 150); }
-    else if (dx < -w){ row.style.transform = ""; openPostpone(t); }
+    else if (dx < -w){ row.style.transform = `translateX(-100%)`; setTimeout(() => swipeToSection(t), 150); }
     else row.style.transform = "";
   };
   row.addEventListener("pointerup", end); row.addEventListener("pointercancel", end);
