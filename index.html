@@ -215,7 +215,7 @@ li.lift .grip{cursor:grabbing;opacity:1}
 .stab.on span{color:inherit;opacity:.7}
 .stab.drop{border-color:var(--accent);background:var(--accent-soft);color:var(--ink);transform:scale(1.04)}
 .stabs .grow{flex:1}
-.stabs{position:relative;z-index:30}
+.stabs{position:sticky;top:0;z-index:6;background:var(--bg);margin-left:-4px;margin-right:-4px;padding:8px 4px}
 .stab b{font-weight:inherit}
 .stab .sm{display:none}
 @media (max-width:600px){.stab .lg{display:none}.stab .sm{display:inline}.stab{padding:8px 12px}#secAdd{display:none}
@@ -360,6 +360,11 @@ details.maccts>summary::-webkit-details-marker{display:none}
 .props .pl{font-size:13px;color:var(--muted)}
 .props .pv{display:flex;align-items:center;gap:6px;min-width:0}
 .props .seg{justify-self:start}
+.pills{display:flex;flex-wrap:wrap;gap:6px}
+.pills button{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;padding:6px 12px;font:inherit;font-size:13.5px;min-height:32px;cursor:pointer}
+.pills button:hover{background:var(--hover)}
+.pills button.on{background:var(--ink);border-color:var(--ink);color:var(--card)}
+.thbody{white-space:pre-wrap;overflow-wrap:anywhere}
 .panel .pill{border-radius:999px;padding:7px 12px;font-size:14px;background-color:var(--bg)}
 .panel select.pill{padding-right:30px}
 .panel .pill.wide{width:100%;max-width:320px}
@@ -428,6 +433,22 @@ details.maccts>summary::-webkit-details-marker{display:none}
 .sigprev summary{cursor:pointer}
 .sigprev #csig{margin-top:8px;padding:10px 12px;border:1px dashed var(--line);border-radius:10px;color:var(--ink)}
 .sigprev img{max-width:140px;height:auto}
+.rmodes{display:flex;width:100%;margin-top:4px}
+.rmodes button{flex:1;min-height:38px;white-space:normal;line-height:1.2;padding:6px 8px}
+.rmodes button.on{background:var(--ink);color:var(--card)}
+.rinst{margin-top:12px}
+.rbox{position:relative}
+.rbox textarea{width:100%;padding-right:52px;min-height:96px}
+.micbtn{position:absolute;right:8px;bottom:8px;width:38px;height:38px;border-radius:50%;border:1px solid var(--line);background:var(--card);cursor:pointer;font-size:17px}
+.micbtn.rec{background:#c0392b;border-color:#c0392b;color:#fff;animation:pulse 1.2s infinite}
+.micbtn.busy{opacity:.5}
+.thd{border-bottom:1px solid var(--line);padding-bottom:10px;margin-bottom:10px}
+.thfrom{display:flex;justify-content:space-between;gap:10px;align-items:baseline}
+.thfrom span{color:var(--muted);font-size:13px;white-space:nowrap}
+.thsub{font-weight:600;margin-top:4px}
+.thto{color:var(--muted);font-size:12.5px;margin-top:4px;overflow-wrap:anywhere}
+.thbody{max-height:50dvh;overflow:auto;margin-top:10px}
+.actions a.btn{display:inline-flex;align-items:center;text-decoration:none}
 .aibar{display:flex;gap:8px;align-items:center;margin-top:12px}
 .tbtn{flex:none;border:1px solid var(--line);background:transparent;color:var(--ink);border-radius:999px;padding:7px 12px;font-size:13.5px;cursor:pointer;white-space:nowrap}
 .tbtn:hover{background:var(--hover)}
@@ -1194,8 +1215,8 @@ function openQuickAdd(secId){
 const VOICE_ENDPOINT = "https://qdepdtwrokazceyecege.supabase.co/functions/v1/transcribe-audio";
 const VOICE_SECRET = "xh6y8dlA9-6x1ziYD9kmIP7kmFut6r4F";
 let rec = null, recChunks = [], recStream = null, recTimer = null, recSec = 0;
-let micBtn = null;
-const setHint = t => { if ($("#hint")) $("#hint").textContent = t; if ($("#qhint")) $("#qhint").textContent = t; };
+let micBtn = null, recSink = null;
+const setHint = t => { if (recSink) { const h = $(recSink.hint); if (h) h.textContent = t; return; } if ($("#hint")) $("#hint").textContent = t; if ($("#qhint")) $("#qhint").textContent = t; };
 async function toggleMic(b){
   const btn = micBtn = (b instanceof HTMLElement ? b : null) || (rec && rec.state === "recording" ? micBtn : null) || $("#mic");
   if (rec && rec.state === "recording") { rec.stop(); return; }
@@ -1221,9 +1242,9 @@ async function onRecStop(){
     const r = await fetch(VOICE_ENDPOINT, { method: "POST", headers: { "x-app-key": VOICE_SECRET }, body: form });
     const j = await r.json();
     if (!r.ok || !j.transcript) throw new Error("Transcription impossible");
-    await runDictate(j.transcript);
+    if (recSink) recSink.done(j.transcript); else await runDictate(j.transcript);
   } catch(e){ toast(e.message); }
-  finally { btn.classList.remove("busy"); if ($("#hint")) $("#hint").textContent = HINT; micBtn = null; }
+  finally { btn.classList.remove("busy"); if (recSink) { const h = $(recSink.hint); if (h) h.textContent = "Écris ou dicte, puis « Rédiger »."; recSink = null; } else if ($("#hint")) $("#hint").textContent = HINT; micBtn = null; }
 }
 async function runDictate(texte){
   try { const r = await api("/dictate", { method: "POST", body: JSON.stringify({ texte }) }); openProposals(texte, r.proposals); }
@@ -1305,11 +1326,11 @@ function openEdit(t){
     <div class="props">
       <span class="pl">Urgence</span><div class="seg" id="epri">${PRIS.map(([k,l]) => `<button type="button" data-p="${k}" class="${(t.priority||"moyen")===k?"on":""} ${k==="urgent"?"ur":k==="faible"?"lo":""}">${l}</button>`).join("")}</div>
       <span class="pl">Échéance</span><div class="pv"><input type="date" id="ed" class="pill" value="${t.due_date||""}">${t.due_date ? `<button type="button" class="pclear" id="edx" aria-label="Retirer l'échéance">✕</button>` : ""}</div>
-      ${sections.length ? `<span class="pl">Section</span><div class="pv"><select id="esec" class="pill">${sections.map(x => `<option value="${x.id}" ${x.id===t.section_id?"selected":""}>${esc(x.name)}</option>`).join("")}</select></div>` : ""}
+      ${sections.length ? `<span class="pl">Section</span><div class="pills" id="esec" role="radiogroup" aria-label="Section">${sections.map(x => `<button type="button" role="radio" data-s="${x.id}" aria-checked="${x.id===(t.section_id||sections[0].id)}" class="${x.id===(t.section_id||sections[0].id)?"on":""}" title="${esc(x.name)}">${esc(shortSec(x.name))}</button>`).join("")}</div>` : ""}
       <span class="pl">Projet</span><div class="pv"><select id="eproj" class="pill"><option value="">Sans projet</option>${projects.map(p => `<option value="${p.id}" ${p.id===t.project_id?"selected":""}>${esc(p.name)}</option>`).join("")}</select></div>
       <span class="pl">Qui fait</span><div class="seg" id="ewho"><button type="button" data-w="moi" class="${t.assignee!=="agent"?"on":""}">Moi</button><button type="button" data-w="agent" class="ag ${t.assignee==="agent"?"on":""}">Agent IA</button></div>
       <span class="pl">Étiquettes</span><div class="pv"><input id="etg" class="pill wide" value="${esc((t.tags||[]).join(", "))}" placeholder="compta, chantier…" autocomplete="off" list="tagopts"><datalist id="tagopts">${tagList.map(x => `<option value="${esc(x.tag)}">`).join("")}</datalist></div>
-      ${safeUrl(t.link_url) ? `<span class="pl">Mail lié</span><div class="pv linkrow"><a href="${esc(t.link_url)}" target="_blank" rel="noopener">↗ ${esc(t.link_label || "Ouvrir le mail")}</a><button type="button" id="unlink">Retirer</button></div>` : ""}
+      ${safeUrl(t.link_url) ? `<span class="pl">Mail lié</span><div class="pv linkrow"><a href="${esc(t.link_url)}" id="elink" target="_blank" rel="noopener" title="Voir le dernier message du fil">✉ ${esc(t.link_label || "Voir le mail")}</a><button type="button" id="unlink">Retirer</button></div>` : ""}
     </div>
     <label>Notes</label>
     <div class="ntools"><button type="button" data-cmd="bold" title="Gras"><b>G</b></button><button type="button" data-cmd="italic" title="Italique"><i>I</i></button><button type="button" data-cmd="insertUnorderedList" title="Liste">• Liste</button>
@@ -1325,7 +1346,7 @@ function openEdit(t){
   const ed = $("#en");
   $$(".ntools [data-cmd]").forEach(b => { b.onmousedown = e => e.preventDefault(); b.onclick = () => { ed.focus(); document.execCommand(b.dataset.cmd); }; });
   ed.addEventListener("paste", e => { e.preventDefault(); document.execCommand("insertText", false, (e.clipboardData || window.clipboardData).getData("text/plain")); });
-  const fields = () => ({ title: $("#et").value.replace(/\s+/g, " ").trim() || t.title, notes: htmlToMd(ed).trim() || null, due_date: $("#ed").value || null, project_id: $("#eproj").value || null, assignee: ewho, priority: epri, tags: tagsOf($("#etg").value) , ...($("#esec") ? { section_id: $("#esec").value || null } : {}) });
+  const fields = () => ({ title: $("#et").value.replace(/\s+/g, " ").trim() || t.title, notes: htmlToMd(ed).trim() || null, due_date: $("#ed").value || null, project_id: $("#eproj").value || null, assignee: ewho, priority: epri, tags: tagsOf($("#etg").value) , ...($("#esec") ? { section_id: $("#esec .on")?.dataset.s || null } : {}) });
   $("#save").onclick = () => patch(t, fields(), "Enregistrée");
   const done = async () => {
     const f = fields(); const changed = f.title !== t.title || (f.notes || null) !== (t.notes || null) || f.priority !== (t.priority || "moyen");
@@ -1333,6 +1354,8 @@ function openEdit(t){
     closeSheet(); complete(t);
   };
   $("#del").onclick = () => remove(t);
+  if ($("#elink") && !legacy()) $("#elink").onclick = e => { if (e.metaKey || e.ctrlKey) return; e.preventDefault(); openThread(t); };
+  $$("#esec button").forEach(b => b.onclick = () => $$("#esec button").forEach(x => { const on = x === b; x.classList.toggle("on", on); x.setAttribute("aria-checked", on); }));
   if ($("#edx")) $("#edx").onclick = () => { $("#ed").value = ""; $("#edx").remove(); };
   if ($("#unlink")) $("#unlink").onclick = () => patch(t, { link_url: null }, "Lien retiré");
   if (open){
@@ -1379,7 +1402,58 @@ async function prepareTransfer(t, who, person){
   openComposer({ kind:"forward", title:"Transférer", task:t, person, back: () => openTransfer(t),
     to: [d.to], cc: [], subject: d.subject, body: d.body, mode: d.mode, can_send: d.can_send, ai: d.ai, attach: d.attach_original ? (d.original?.from || "l'expéditeur") : null });
 }
+// Aperçu rapide du dernier message du fil lié à une tâche
+async function openThread(t){
+  $("#panel").innerHTML = `<div class="sheethead"><h3>Dernier message</h3><button class="xbtn" aria-label="Retour à la tâche">✕</button></div><div class="empty" style="padding:36px 8px"><b>Chargement du fil…</b></div>`;
+  $("#panel .xbtn").onclick = () => openEdit(t); openSheet();
+  let d;
+  try { d = await api(`?task=${encodeURIComponent(t.id)}`, { base: TAPI }); } catch(e){ d = { error: e.message }; }
+  if (!$("#panel").isConnected) return;
+  if (d.error) { $("#panel").innerHTML = `<div class="sheethead"><h3>Dernier message</h3><button class="xbtn" aria-label="Retour">✕</button></div><div class="empty"><b>Aperçu indisponible</b>${esc(d.error)}</div><div class="actions foot"><button class="ghost" id="tb">← Tâche</button><span class="sp"></span><a class="btn primary" href="${esc(t.link_url)}" target="_blank" rel="noopener">Ouvrir dans Gmail ↗</a></div>`; $("#panel .xbtn").onclick = $("#tb").onclick = () => openEdit(t); return; }
+  const who = String(d.from).replace(/<[^>]+>/, "").replace(/"/g, "").trim() || d.from;
+  const when = d.date ? new Date(d.date).toLocaleString("fr-BE", { weekday:"short", day:"numeric", month:"short", hour:"2-digit", minute:"2-digit" }) : "";
+  $("#panel").innerHTML = `<div class="sheethead"><h3>Dernier message</h3><button class="xbtn" aria-label="Retour à la tâche">✕</button></div>
+    <div class="thd"><div class="thfrom"><b>${d.mine ? "Toi" : esc(who)}</b><span>${esc(when)}</span></div>
+      <div class="thsub">${esc(d.subject)}</div>
+      ${d.to ? `<div class="thto">À : ${esc(d.to)}${d.cc ? ` · Cc : ${esc(d.cc)}` : ""}</div>` : ""}
+      ${d.count > 1 ? `<div class="thto">${d.count} messages dans le fil${d.mine ? " · tu as répondu en dernier" : ""}</div>` : ""}</div>
+    ${d.files?.length ? `<div class="files">${d.files.map(f => `<span class="fchip">📎 ${esc(f)}</span>`).join("")}</div>` : ""}
+    <div class="rbody thbody">${esc(String(d.text || "").replace(/\n{3,}/g, "\n\n"))}</div>
+    <div class="actions foot"><button class="ghost" id="tb">← Tâche</button><span class="sp"></span><a class="btn" href="${esc(d.url || t.link_url)}" target="_blank" rel="noopener">Gmail ↗</a><button class="primary" id="trep">↩ Répondre</button></div>`;
+  $("#panel .xbtn").onclick = $("#tb").onclick = () => openEdit(t);
+  $("#trep").onclick = () => startReply({ task: t, back: () => openThread(t) });
+}
+// Choix du mode de réponse : Auto, Auto + indications, Indications (texte ou dictée)
+function openReplyMode(ctx){
+  let mode = (() => { try { return store.get("todo_rmode") || "auto"; } catch { return "auto"; } })();
+  const MODES = [["auto","Auto","L'IA propose une réponse au mail."],["plus","Auto + indications","L'IA répond au mail en tenant compte de tes indications."],["indic","Indications","L'IA rédige seulement ce que tu lui dis, avec le minimum de contexte."]];
+  $("#panel").innerHTML = `<div class="sheethead"><h3>Répondre</h3><button class="xbtn" aria-label="Fermer">✕</button></div>
+    <div class="seg rmodes" role="radiogroup" aria-label="Mode de réponse">${MODES.map(([k,l]) => `<button type="button" role="radio" data-m="${k}">${l}</button>`).join("")}</div>
+    <p class="hint rdesc" style="display:block;margin:10px 0 0"></p>
+    <div class="rinst"><label for="rinst">Tes indications</label>
+      <div class="rbox"><textarea id="rinst" rows="4" placeholder="Ex. accepter jeudi 10 h, demander le devis signé, rappeler le délai de paiement"></textarea>
+      <button type="button" class="micbtn" id="rmic" aria-label="Dicter les indications" title="Dicter">🎙</button></div>
+      <p class="hint" id="rhint" style="display:block;margin:6px 0 0">Écris ou dicte, puis « Rédiger ».</p></div>
+    <div class="actions foot"><button class="ghost" id="rback">Annuler</button><span class="sp"></span><button class="primary" id="rgo">Rédiger</button></div>`;
+  const set = m => { mode = m; $$(".rmodes button").forEach(b => { const on = b.dataset.m === m; b.classList.toggle("on", on); b.setAttribute("aria-checked", on); });
+    $(".rdesc").textContent = MODES.find(x => x[0] === m)[2]; $(".rinst").hidden = m === "auto"; if (m !== "auto") setTimeout(() => $("#rinst").focus(), 30); };
+  $$(".rmodes button").forEach(b => b.onclick = () => set(b.dataset.m));
+  set(mode);
+  const back = ctx.back || closeSheet;
+  $("#panel .xbtn").onclick = back; $("#rback").onclick = back;
+  $("#rmic").onclick = () => { recSink = { hint: "#rhint", done: txt => { const ta = $("#rinst"); if (ta) { ta.value = (ta.value.trim() ? ta.value.trim() + " " : "") + txt; ta.focus(); } } }; toggleMic($("#rmic")); };
+  $("#rgo").onclick = () => {
+    const txt = $("#rinst").value.trim();
+    if (mode !== "auto" && !txt) { $("#rinst").focus(); return toast("Ajoute tes indications, à l'écrit ou à l'oral"); }
+    try { store.set("todo_rmode", mode); } catch {}
+    const instructions = mode === "auto" ? "" : mode === "plus" ? txt
+      : `Rédige la réponse uniquement à partir de mes indications ci-dessous, courte et fidèle. N'utilise le mail reçu que pour le prénom, le registre (tu ou vous) et le contexte minimal ; ne réponds à aucun autre point du mail. Indications : ${txt}`;
+    startReply({ ...ctx, mode, instructions });
+  };
+  openSheet();
+}
 async function startReply(ctx){
+  if (!ctx.mode) return openReplyMode(ctx);
   composerLoading("Rédaction de la réponse…", ctx.back || closeSheet);
   let d;
   try { d = await dapi("/draft", { method:"POST", body: JSON.stringify({ kind:"reply", ...(ctx.mail ? { mail_id: ctx.mail.id } : { task_id: ctx.task.id }), instructions: ctx.instructions || "" }) }); }
@@ -1588,10 +1662,13 @@ function moveTask(t, dir){
 }
 // Appui long (0,45 s) puis glisser n'importe où dans la liste, y compris d'une section à l'autre
 function longDrag(li){
-  const row = li.querySelector(".row"); let timer = null, drag = false, y0 = 0, x0 = 0, base = 0, pid = null;
+  const row = li.querySelector(".row"); let timer = null, drag = false, y0 = 0, x0 = 0, base = 0, pid = null, px = 0, py = 0, grabOff = 0, raf = 0;
   const cancel = () => { clearTimeout(timer); timer = null; };
   const movable = el => el && el.tagName === "LI" && !el.classList.contains("secadd");
-  const startDrag = () => { timer = null; drag = true; li._drag = true; base = 0; li.classList.add("lift"); navigator.vibrate?.(12); try { row.setPointerCapture(pid); } catch {} };
+  const docMove = e => { if (drag && e.pointerId === pid) { px = e.clientX; py = e.clientY; place(); } };
+  const docUp = e => { if (e.pointerId === pid) end(e.type === "pointercancel" ? null : e); };
+  const startDrag = () => { timer = null; drag = true; li._drag = true; base = 0; px = x0; py = y0; li.classList.add("lift"); navigator.vibrate?.(12); try { row.setPointerCapture(pid); } catch {}
+    document.addEventListener("pointermove", docMove); document.addEventListener("pointerup", docUp); document.addEventListener("pointercancel", docUp); begin(); };
   const grip = li.querySelector(".grip");
   if (grip) grip.addEventListener("pointerdown", e => {
     if (e.pointerType === "mouse" && e.button !== 0) return;
@@ -1601,29 +1678,38 @@ function longDrag(li){
   row.addEventListener("pointerdown", e => {
     if (e.target.closest(".check") || e.target.closest(".grip") || tFilter || (e.pointerType === "mouse" && e.button !== 0)) return;
     x0 = e.clientX; y0 = e.clientY; pid = e.pointerId;
-    timer = setTimeout(() => {
-      timer = null; drag = true; li._drag = true; base = 0;
-      li.classList.add("lift"); navigator.vibrate?.(12);
-      try { row.setPointerCapture(pid); } catch {}
-    }, 450);
+    timer = setTimeout(startDrag, 450);
   });
+  // Suit le doigt ou la souris : l'élément reste sous le pointeur, la liste défile seule près des bords
+  const place = () => {
+    li.style.transform = ""; const nat = li.getBoundingClientRect().top;
+    let prev = li.previousElementSibling, next = li.nextElementSibling;
+    // On déplace toujours le voisin, jamais l'élément tenu : sinon le navigateur perd le suivi du pointeur
+    if (movable(prev) && py - grabOff < prev.getBoundingClientRect().top + prev.offsetHeight / 2) li.parentElement.insertBefore(prev, li.nextSibling);
+    else if (movable(next) && py - grabOff + li.offsetHeight > next.getBoundingClientRect().top + next.offsetHeight / 2) li.parentElement.insertBefore(next, li);
+    const now = li.getBoundingClientRect().top;
+    li.style.transform = `translateY(${py - grabOff - now}px)`;
+    const over = document.elementsFromPoint(px, py).find(x => x.classList?.contains("stab"));
+    document.querySelectorAll(".stab").forEach(x => x.classList.toggle("drop", x === over && x.dataset.sid !== curSec));
+  };
+  const tick = () => {
+    if (!drag) { raf = 0; return; }
+    const h = window.innerHeight, tb = Math.max(0, document.querySelector(".stabs")?.getBoundingClientRect().bottom ?? 0), top = tb + 70, bot = h - 80;
+    // Au-dessus des onglets : pas de défilement, pour pouvoir y déposer la tâche
+    const v = py > tb && py < top ? -Math.ceil((top - py) / 5) : py > bot ? Math.ceil((py - bot) / 5) : 0;
+    if (v) { window.scrollBy(0, v); place(); }
+    raf = requestAnimationFrame(tick);
+  };
+  const begin = () => { grabOff = py - li.getBoundingClientRect().top; if (!raf) raf = requestAnimationFrame(tick); };
   row.addEventListener("pointermove", e => {
     if (timer && (Math.abs(e.clientX - x0) > 8 || Math.abs(e.clientY - y0) > 8)) cancel();
     if (!drag) return;
-    e.preventDefault();
-    const dy = e.clientY - y0 - base; li.style.transform = `translateY(${dy}px)`;
-    const over = document.elementsFromPoint(e.clientX, e.clientY).find(x => x.classList?.contains("stab"));
-    document.querySelectorAll(".stab").forEach(x => x.classList.toggle("drop", x === over && x.dataset.sid !== curSec));
-    const prev = li.previousElementSibling, next = li.nextElementSibling;
-    if (dy < 0 && movable(prev) && e.clientY < prev.getBoundingClientRect().top + prev.offsetHeight / 2) {
-      const h = prev.offsetHeight + (prev.dataset.id ? 6 : 0); li.parentElement.insertBefore(li, prev); base -= h; li.style.transform = `translateY(${e.clientY - y0 - base}px)`;
-    } else if (dy > 0 && movable(next) && e.clientY > next.getBoundingClientRect().top + next.offsetHeight / 2) {
-      const h = next.offsetHeight + (next.dataset.id ? 6 : 0); li.parentElement.insertBefore(next, li); base += h; li.style.transform = `translateY(${e.clientY - y0 - base}px)`;
-    }
+    e.preventDefault(); px = e.clientX; py = e.clientY; place();
   });
   li.addEventListener("touchmove", e => { if (drag) e.preventDefault(); }, { passive: false });
   const end = e => {
-    cancel(); if (!drag) return;
+    cancel(); document.removeEventListener("pointermove", docMove); document.removeEventListener("pointerup", docUp); document.removeEventListener("pointercancel", docUp);
+    if (!drag) return;
     const tab = e && document.elementsFromPoint(e.clientX, e.clientY).find(x => x.classList?.contains("stab"));
     document.querySelectorAll(".stab.drop").forEach(x => x.classList.remove("drop"));
     if (tab && tab.dataset.sid !== curSec) {
