@@ -162,7 +162,9 @@ li.lift .bgL,li.lift .bgR{display:none}
 .tlink{display:block;margin-top:6px;font-size:13px;color:var(--accent);text-decoration:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .tlink:hover{text-decoration:underline}
 .donebtn{background:var(--accent) !important;border-color:var(--accent) !important;color:#fff !important;font-weight:700}
-.sheethead{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 0 12px}
+.sheethead{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 0 12px;min-height:36px}
+.sheethead h3{margin:0;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.actions.foot button:not(.primary):not(.ghost):not(.danger){border:1px solid var(--line);background:transparent}
 .sheethead h3{margin:0}
 .sheethead .donebtn{border:1px solid;border-radius:999px;padding:8px 16px;font-size:15px;cursor:pointer}
 .ntools{display:flex;gap:6px;flex-wrap:wrap;margin:2px 0 6px}
@@ -330,7 +332,12 @@ nav.tabs button{display:inline-flex;align-items:center;gap:6px}
 .mail .mopen{cursor:pointer}
 .mail .mopen:hover .msj{text-decoration:underline}
 .mail .mread{font-size:13px;color:var(--accent);margin-top:4px}
-.mail.act{padding:10px 12px}
+.mail.act{padding:10px 12px 10px 14px;box-shadow:var(--shadow),inset 3px 0 0 transparent}
+.mail.act.p-h{box-shadow:var(--shadow),inset 3px 0 0 var(--late)}
+.mail.act.p-m{box-shadow:var(--shadow),inset 3px 0 0 var(--warn)}
+.mail.act.p-l{box-shadow:var(--shadow),inset 3px 0 0 var(--line)}
+.mail.act .mact{margin-top:3px}
+.mail.act .msm{margin-top:1px}
 .mail .mact{font-weight:600;font-size:15px;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .mail .msm{font-size:12.5px;color:var(--muted);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .mail .mlearn{font-size:12px;color:var(--warn);margin-top:4px}
@@ -480,6 +487,14 @@ details.maccts>summary::-webkit-details-marker{display:none}
 .tbtn{flex:none;border:1px solid var(--line);background:transparent;color:var(--ink);border-radius:999px;padding:7px 12px;font-size:13.5px;cursor:pointer;white-space:nowrap}
 .tbtn:hover{background:var(--hover)}
 .props.cmp{margin-top:6px}
+.props.cmp .pv{position:relative;flex-wrap:wrap}
+.sugg{position:absolute;left:0;top:calc(100% + 4px);z-index:5;min-width:min(360px,100%);max-width:100%;background:var(--card);border:1px solid var(--line);border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.12);padding:4px;max-height:240px;overflow:auto}
+.sugg button{display:grid;grid-template-columns:28px minmax(0,1fr) auto;align-items:center;column-gap:10px;width:100%;border:0;background:transparent;color:var(--ink);text-align:left;border-radius:8px;padding:6px 8px;font:inherit;font-size:14px;cursor:pointer}
+.sugg button .em{grid-column:2;font-size:12.5px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sugg button .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sugg button .av{grid-row:1/3;width:28px;height:28px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;font-size:12px;font-weight:700}
+.sugg button .tm{grid-column:3;grid-row:1/3;font-size:11px;color:var(--muted);border:1px solid var(--line);border-radius:5px;padding:0 6px;line-height:17px}
+.sugg button.on,.sugg button:hover{background:var(--hover)}
 .tick{display:flex;gap:8px;align-items:center;font-size:14px;color:var(--ink);margin-top:12px}
 .tick input{width:auto;margin:0}
 .newp input{flex:1;min-width:0}
@@ -1040,11 +1055,11 @@ function mailCard(m){
     <div class="mopen" role="button" tabindex="0" aria-label="Lire le mail"><div class="mh">${m.category ? `<span class="cat">${esc(CATS[m.category] || m.category)}</span>` : ""}<span class="from">${who}</span><span class="age">${fmtAgo(m.received_at)}</span></div>
     <div class="msm">${esc(m.subject || "(sans objet)")}</div></div>
     <div class="ma">${link}${btns}</div><div class="rslot"></div></div>`;
-  if (mailTab === "nouveau") return `<div class="mail act" data-id="${m.id}">
+  if (mailTab === "nouveau") return `<div class="mail act p-${cls}" data-id="${m.id}">
     <div class="mopen" role="button" tabindex="0" aria-label="Lire le mail">
-      <div class="mh"><span class="prio ${cls}">${lab}</span>${m.category ? `<span class="cat">${esc(CATS[m.category] || m.category)}</span>` : ""}<span class="from">${who}</span><span class="age">${fmtAgo(m.received_at)}</span></div>
-      <div class="mact" style="margin-top:5px">${esc(m.action || ("Répondre : " + (m.subject || "(sans objet)")))}</div>
-      <div class="msm">${ic("mail", 12)} ${esc(m.subject || "(sans objet)")}</div></div>
+      <div class="mh"><span class="from">${who}</span>${m.category ? `<span class="cat">${esc(CATS[m.category] || m.category)}</span>` : ""}<span class="age">${fmtAgo(m.received_at)}</span></div>
+      <div class="mact">${esc(m.action || ("Répondre : " + (m.subject || "(sans objet)")))}</div>
+      <div class="msm" title="${esc(lab)}">${esc(m.subject || "(sans objet)")}</div></div>
     ${m.learned ? `<div class="mlearn">${esc(m.learned)}</div>` : ""}
     <div class="ma">${link}${btns}</div><div class="rslot"></div></div>`;
   return `<div class="mail" data-id="${m.id}">
@@ -1608,6 +1623,7 @@ async function openComposer(c){
     <div class="actions foot"><button class="ghost" id="cmail" title="Ouvrir dans ma messagerie">${ic("ext", 15)}<span class="lg">Ma messagerie</span><span class="sm">Messagerie</span></button><span class="sp"></span>${c.can_send ? `<button id="cdraft">${ic("file", 15)}Brouillon</button><button class="primary" id="csend">${ic("send", 15)}Envoyer</button>` : ""}</div>`;
   $("#panel .xbtn").onclick = c.back || closeSheet;
   openSheet();
+  addrSuggest($("#cto")); addrSuggest($("#ccc"));
   const ed = $("#cbody");
   $$(".ctools [data-cmd]").forEach(b => { b.onmousedown = e => e.preventDefault(); b.onclick = () => { ed.focus(); document.execCommand(b.dataset.cmd); }; });
   $("#cfont").onchange = e => { if (e.target.value) { ed.focus(); document.execCommand("fontName", false, e.target.value); } e.target.value = ""; };
@@ -1651,6 +1667,45 @@ async function openComposer(c){
     } catch(e){ toast(e.message); btns.forEach(b => b.disabled = false); $("#csend") && ($("#csend").innerHTML = `${ic("send", 15)}Envoyer`); }
   };
   if ($("#csend")) { $("#csend").onclick = () => go("send"); $("#cdraft").onclick = () => go("draft"); }
+}
+// Suggestions d'adresses (équipe + correspondants récents) pendant la saisie, comme dans une messagerie
+function contactsPool(){
+  const seen = new Map();
+  (team || []).forEach(p => seen.set(p.email.toLowerCase(), { name: p.name, email: p.email.toLowerCase(), team: true }));
+  (mailData?.items || []).forEach(m => { const e = String(m.from_email || "").toLowerCase(); if (e && !seen.has(e)) seen.set(e, { name: m.from_name || "", email: e }); });
+  return [...seen.values()];
+}
+function addrSuggest(input){
+  if (!input) return;
+  const box = document.createElement("div"); box.className = "sugg"; box.hidden = true; input.parentElement.appendChild(box);
+  let items = [], idx = -1;
+  const parts = () => { const v = input.value; const i = Math.max(v.lastIndexOf(","), v.lastIndexOf(";")); return { head: i >= 0 ? v.slice(0, i + 1) + " " : "", q: v.slice(i + 1).trim() }; };
+  const close = () => { box.hidden = true; box.innerHTML = ""; items = []; idx = -1; };
+  const pick = p => { const { head } = parts(); input.value = head + p.email + ", "; close(); input.focus(); input.dispatchEvent(new Event("input", { bubbles: true })); };
+  const render = () => {
+    box.innerHTML = items.map((p, i) => `<button type="button" class="${i === idx ? "on" : ""}" data-i="${i}"><span class="av">${esc((p.name || p.email)[0].toUpperCase())}</span><span class="nm">${esc(p.name || p.email)}</span><span class="em">${p.name ? esc(p.email) : ""}</span>${p.team ? `<span class="tm">équipe</span>` : ""}</button>`).join("");
+    box.hidden = !items.length;
+    box.querySelectorAll("button").forEach(b => { b.onmousedown = e => e.preventDefault(); b.onclick = () => pick(items[+b.dataset.i]); });
+  };
+  const update = () => {
+    const { q } = parts(); const k = norm(q);
+    if (k.length < 1) return close();
+    const used = input.value.toLowerCase();
+    items = contactsPool().filter(p => !used.includes(p.email) && (norm(p.name).includes(k) || p.email.includes(k)))
+      .sort((a, b) => (b.team ? 1 : 0) - (a.team ? 1 : 0) || (norm(a.name).startsWith(k) ? -1 : 0) - (norm(b.name).startsWith(k) ? -1 : 0)).slice(0, 6);
+    idx = items.length ? 0 : -1; render();
+  };
+  input.addEventListener("input", update);
+  input.addEventListener("focus", () => { if (!team) loadTeam().then(update).catch(() => {}); });
+  input.addEventListener("blur", () => setTimeout(close, 120));
+  input.addEventListener("keydown", e => {
+    if (box.hidden) return;
+    if (e.key === "ArrowDown") { e.preventDefault(); idx = (idx + 1) % items.length; render(); }
+    else if (e.key === "ArrowUp") { e.preventDefault(); idx = (idx - 1 + items.length) % items.length; render(); }
+    else if (e.key === "Enter" || e.key === "Tab") { if (idx >= 0) { e.preventDefault(); pick(items[idx]); } }
+    else if (e.key === "Escape") close();
+  });
+  if (!team) loadTeam().catch(() => {});
 }
 function teamRows(){
   return team.map(p => `<div class="trow" data-id="${p.id}"><input class="tn" value="${esc(p.name)}" maxlength="80"><input class="te${p.verified ? "" : " unv"}" type="email" value="${esc(p.email)}" title="${p.verified ? "" : "Adresse déduite, à vérifier"}"><button class="tdel" aria-label="Retirer">✕</button></div>`).join("");
@@ -1981,7 +2036,28 @@ async function loadKeys(){
   } catch(e){ $("#klist").innerHTML = `<p>${esc(e.message)}</p>`; }
 }
 
-function openSheet(){ $("#toast").classList.remove("on"); $("#sheet").classList.add("on"); }
+function openSheet(){ $("#toast").classList.remove("on"); $("#sheet").classList.add("on"); polishSheet(); }
+let polishQueued = false;
+new MutationObserver(() => { if (polishQueued) return; polishQueued = true; queueMicrotask(() => { polishQueued = false; polishSheet(); }); }).observe($("#panel"), { childList: true });
+function polishSheet(){
+  const panel = $("#panel"), h = panel.firstElementChild;
+  // Toutes les fiches partagent le même en-tête (titre + fermer) et le même pied (secondaire à gauche, principal à droite)
+  if (h && h.tagName === "H3") {
+    const head = document.createElement("div"); head.className = "sheethead";
+    panel.insertBefore(head, h); head.appendChild(h);
+    const x = document.createElement("button"); x.className = "xbtn"; x.setAttribute("aria-label", "Fermer"); x.innerHTML = ic("x", 16);
+    x.onclick = () => { const re = $("#plist") || $("#fw"); closeSheet(); if (re) load(); };
+    head.appendChild(x);
+  }
+  const acts = [...panel.querySelectorAll(":scope > .actions")].pop();
+  if (acts && !acts.classList.contains("foot")) {
+    acts.classList.add("foot");
+    let prim = acts.querySelector(".primary"); const btns = [...acts.children];
+    if (prim && btns.length === 1 && /^fermer$/i.test(prim.textContent.trim())) { prim.classList.remove("primary"); prim = null; }
+    btns.forEach(b => { if (b !== prim && b.tagName === "BUTTON" && /^(fermer|annuler|retour)$/i.test(b.textContent.trim()) && !b.classList.contains("danger") && btns.length > 1) b.classList.add("ghost"); });
+    if (!acts.querySelector(".sp")) { const sp = document.createElement("span"); sp.className = "sp"; const anchor = prim || acts.lastElementChild; acts.insertBefore(sp, anchor); }
+  }
+}
 function closeSheet(){ $("#sheet").classList.remove("on"); $("#panel").classList.remove("read"); }
 $("#sheet").onclick = e => { if (e.target.id === "sheet") { const re = $("#plist") || $("#fw"); closeSheet(); if (re) load(); } };
 
