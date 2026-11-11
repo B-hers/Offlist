@@ -470,6 +470,16 @@ details.maccts>summary::-webkit-details-marker{display:none}
 .mailbody ul,.mailbody ol{margin:0 0 10px;padding-left:22px}
 .fchip{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:999px;padding:4px 6px 4px 10px;font-size:13px;margin:6px 6px 0 0;max-width:100%}
 .fchip small{color:var(--muted)}
+.pjlist{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 2px}
+.pjlist .pj{display:inline-flex;align-items:center;gap:6px;max-width:220px;border:1px solid var(--line);border-radius:10px;padding:6px 11px;font-size:13px;color:var(--ink);background:var(--bg)}
+.pjlist .pj>svg{flex:none;color:var(--muted)}
+.pjlist .pj>span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.statrow{margin:2px 0 10px}
+.statut{display:inline-flex;align-items:center;gap:5px;border-radius:999px;padding:3px 10px;font-size:12px;font-weight:600;border:1px solid transparent}
+.statut>svg{flex:none}
+.statut.fwd{background:var(--accent-soft);color:var(--accent)}
+.statut.rep{background:var(--accent-soft);color:var(--accent)}
+.meta .statut{padding:1px 8px}
 .fchip button{border:0;background:transparent;color:var(--muted);cursor:pointer;width:22px;height:22px;border-radius:50%}
 .fchip button:hover{background:var(--hover);color:var(--ink)}
 .sigprev{margin-top:12px;font-size:13px;color:var(--muted)}
@@ -870,6 +880,7 @@ function renderList(){
     (t.tags || []).filter(x => x !== fTag).slice(0, 2).forEach(x => meta.push(`<span class="tg">#${esc(x)}</span>`));
     if (t.created_via === "mail" || (open && safeUrl(t.link_url))) meta.push(`<span class="src" title="Vient d'un mail">${ic("mail", 13)}</span>`);
     if (t.files_count) meta.push(`<span class="src" title="Pièces jointes">${ic("clip", 13)} ${t.files_count}</span>`);
+    const sb = stateBadge(t); if (sb) meta.unshift(sb);
     const nx = nextSection(t);
     return `<li data-id="${t.id}"><div class="bgR">✓ Fait</div><div class="bgL">${nx ? esc(shortSec(nx.name)) + " →" : "Reporter →"}</div>
       <div class="row ${t.status === "done" ? "done":""} ${urg ? "urg" : ""}">
@@ -1197,7 +1208,7 @@ async function openMail(m){
   const st = d.status || mailTab;
   $("#panel").innerHTML = head(d) + `<div class="rh">${esc(when)}${listAddr(meta.a) ? `<br>À : ${esc(listAddr(meta.a))}` : ""}${listAddr(meta.cc) ? `<br>Cc : ${esc(listAddr(meta.cc))}` : ""}${meta.messages > 1 ? `<br>${meta.messages} messages dans la conversation` : ""}</div>
     <div class="rbody${b && b.html && mailHtml(b.html) ? " html" : ""}">${b ? (b.html && mailHtml(b.html) ? mailHtml(b.html) : esc(cleanMailText(b.text) || "(message sans texte)")) : esc(d.snippet || "")}</div>
-    ${files.length ? `<div class="rfiles">Pièces jointes : ${files.map(esc).join(", ")}</div>` : ""}
+    ${files.length ? `<div class="rfiles">${files.length} pièce${files.length > 1 ? "s" : ""} jointe${files.length > 1 ? "s" : ""}</div>${pjChips(files)}` : ""}
     ${!b ? `<div class="rnote">${d.body_error ? `Texte complet indisponible : ${esc(d.body_error)}.` : "Aperçu seulement : le texte complet arrive au prochain passage de Claude (chaque heure)."}</div>`
       : b.a_jour === false ? `<div class="rnote">Un message plus récent est arrivé dans ce fil : texte mis à jour au prochain passage.</div>` : ""}
     <div class="rlinks">${mailLink(d, `Ouvrir dans ${d.provider === "outlook" ? "Outlook" : "Gmail"}`)}</div>
@@ -1452,6 +1463,7 @@ function openEdit(t){
   $("#panel").innerHTML = `<div class="sheethead"><h3>${open ? "Détails" : "Tâche fermée"}</h3>${open ? `<button class="donebtn" id="cmpTop">${ic("check", 15)}Done</button>` : `<button id="ropTop" class="btn">Rouvrir</button>`}</div>
     <textarea id="et" class="ttl" rows="1" aria-label="Titre">${esc(t.title)}</textarea>
     ${t.source_subject ? `<div class="orig">✉ ${esc(t.source_subject)}</div>` : ""}
+    ${stateBadge(t) ? `<div class="statrow">${stateBadge(t)}</div>` : ""}
     <div class="props">
       <span class="pl">Urgence</span><div class="seg" id="epri">${PRIS.map(([k,l]) => `<button type="button" data-p="${k}" class="${(t.priority||"moyen")===k?"on":""} ${k==="urgent"?"ur":k==="faible"?"lo":""}">${l}</button>`).join("")}</div>
       <span class="pl">Échéance</span><div class="pv"><input type="date" id="ed" class="pill" value="${t.due_date||""}">${t.due_date ? `<button type="button" class="pclear" id="edx" aria-label="Retirer l'échéance">✕</button>` : ""}</div>
@@ -1463,7 +1475,9 @@ function openEdit(t){
     </div>
     <label>Notes</label>
     <div class="ntools"><button type="button" data-cmd="bold" title="Gras" aria-label="Gras">${ic("bold", 16)}</button><button type="button" data-cmd="italic" title="Italique" aria-label="Italique">${ic("italic", 16)}</button><button type="button" data-cmd="insertUnorderedList" title="Liste" aria-label="Liste">${ic("list", 16)}</button>
+      <button type="button" id="nmic" title="Dicter une note" aria-label="Dicter une note">${ic("mic", 16)}</button>
       ${legacy() ? "" : `<label title="Joindre un fichier">${ic("clip", 16)}Fichier<input type="file" id="fAdd" multiple></label><label title="Prendre ou joindre une photo">${ic("camera", 16)}Photo<input type="file" id="fCam" accept="image/*" capture="environment"></label>`}</div>
+    <p class="hint nhint" id="nhint" hidden></p>
     <div id="en" class="rich" contenteditable="true" data-ph="Notes, détails, liens…">${mdToHtml(t.notes || "")}</div>
     <div class="files" id="files"></div>
     ${open ? `<div class="tools">${legacy() ? "" : `${t.link_url ? `<button type="button" id="rep">${ic("reply", 15)}Répondre</button>` : ""}<button type="button" id="fwd">${ic("forward", 15)}Transférer</button>`}<button type="button" id="pp">${ic("clock", 15)}Reporter</button>${canReorder() && tasks.some(x => x.id === t.id) ? `<button type="button" id="mvUp" aria-label="Monter">${ic("up", 15)}Monter</button><button type="button" id="mvDown" aria-label="Descendre">${ic("down", 15)}Descendre</button>` : ""}</div><div class="rslot" id="erep"></div>` : ""}
@@ -1475,6 +1489,15 @@ function openEdit(t){
   const ed = $("#en");
   $$(".ntools [data-cmd]").forEach(b => { b.onmousedown = e => e.preventDefault(); b.onclick = () => { ed.focus(); document.execCommand(b.dataset.cmd); }; });
   ed.addEventListener("paste", e => { e.preventDefault(); document.execCommand("insertText", false, (e.clipboardData || window.clipboardData).getData("text/plain")); });
+  // Note vocale : la dictée s'ajoute dans les notes, à l'endroit du curseur
+  $("#nmic").onclick = () => { $("#nhint").hidden = false; recSink = { hint: "#nhint", done: txt => {
+    ed.focus();
+    const sel = window.getSelection();
+    if (!sel.rangeCount || !ed.contains(sel.anchorNode)) { const r = document.createRange(); r.selectNodeContents(ed); r.collapse(false); sel.removeAllRanges(); sel.addRange(r); }
+    const pre = (ed.textContent || "").trim();
+    document.execCommand("insertText", false, (pre ? " " : "") + txt);
+    setTimeout(() => { const h = $("#nhint"); if (h) { h.hidden = true; h.textContent = ""; } }, 1600);
+  } }; toggleMic($("#nmic")); };
   const fields = () => ({ title: $("#et").value.replace(/\s+/g, " ").trim() || t.title, notes: htmlToMd(ed).trim() || null, due_date: $("#ed").value || null, project_id: $("#eproj").value || null, assignee: ewho, priority: epri, tags: tagsOf($("#etg").value) , ...($("#esec") ? { section_id: $("#esec .on")?.dataset.s || null } : {}) });
   $("#save").onclick = () => patch(t, fields(), "Enregistrée");
   const done = async () => {
@@ -1591,7 +1614,7 @@ async function openThread(t){
       <div class="thsub">${esc(d.subject)}</div>
       ${d.to ? `<div class="thto">À : ${esc(d.to)}${d.cc ? ` · Cc : ${esc(d.cc)}` : ""}</div>` : ""}
       ${d.count > 1 ? `<div class="thto">${d.count} messages dans le fil${d.mine ? " · tu as répondu en dernier" : ""}</div>` : ""}</div>
-    ${d.files?.length ? `<div class="files">${d.files.map(f => `<span class="fchip">${ic("clip", 13)} ${esc(f)}</span>`).join("")}</div>` : ""}
+    ${pjChips(d.files)}
     <div class="rbody thbody">${esc(cleanMailText(d.text) || "(message sans texte)")}</div>
     <div class="rslot" id="threp"></div>
     <div class="actions foot"><button class="ghost" id="tb">${ic("back", 15)}Tâche</button><span class="sp"></span><a class="btn" href="${esc(d.url || t.link_url)}" target="_blank" rel="noopener">Gmail ${ic("ext", 13)}</a><button class="primary" id="trep">${ic("reply", 15)}Répondre</button></div>`;
@@ -1917,6 +1940,26 @@ async function renderTeam(){
   });
 }
 
+// État d'une tâche (transférée ou répondue), lu depuis les notes laissées par le serveur
+function taskState(t){
+  const n = String(t.notes || "");
+  const tr = n.match(/Transf[eé]r[eé]e? à ([^\n]+?) le /i);
+  if (tr){ const who = tr[1].trim(); return { kind: "fwd", who: who.includes("@") ? "" : who.split(/\s+/)[0] }; }
+  const rp = n.match(/R[eé]pondu(?: à ([^\n]+?))? le /i);
+  if (rp){ const who = (rp[1] || "").trim(); return { kind: "rep", who: who && !who.includes("@") ? who.split(/\s+/)[0] : "" }; }
+  return null;
+}
+function stateBadge(t){
+  const s = taskState(t); if (!s) return "";
+  return s.kind === "fwd"
+    ? `<span class="statut fwd" title="Transféré${s.who ? " à " + esc(s.who) : ""}">${ic("forward", 12)} Transféré${s.who ? " " + esc(s.who) : ""}</span>`
+    : `<span class="statut rep" title="Répondu${s.who ? " à " + esc(s.who) : ""}">${ic("reply", 12)} Répondu${s.who ? " " + esc(s.who) : ""}</span>`;
+}
+// Pièces jointes : pastilles compactes avec nom tronqué (plus de gros ronds)
+function pjChips(files){
+  const fs = (files || []).filter(Boolean);
+  return fs.length ? `<div class="pjlist">${fs.map(f => `<span class="pj">${ic("clip", 13)}<span>${esc(f)}</span></span>`).join("")}</div>` : "";
+}
 // ---------- Notes : gras, italique, listes (enregistrées en texte simple : **gras**, *italique*, - liste) ----------
 function mdInline(x){ return esc(x).replace(/\*\*(.+?)\*\*/g, "<b>$1</b>").replace(/(^|[^*])\*([^*\n]+?)\*(?!\*)/g, "$1<i>$2</i>").replace(/(https:\/\/[^\s<]+)/g, '<a href="$1" target="_blank" rel="noopener">$1</a>'); }
 function mdToHtml(md){
