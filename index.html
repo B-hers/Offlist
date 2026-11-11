@@ -566,6 +566,41 @@ details.maccts>summary::-webkit-details-marker{display:none}
 .toast.on{display:flex}
 .toast button{border:0;background:transparent;color:var(--accent);font-weight:700;cursor:pointer;white-space:nowrap;flex:none}
 #toastMsg{flex:1;min-width:0}
+
+/* ===== Refonte design : listes groupées, contrôles calibrés (Linear / Things / Vercel) ===== */
+/* Contrôles de propriété jamais en pleine largeur : date, projet et sélecteurs se dimensionnent au contenu */
+.panel .props input.pill,.panel .props select.pill{width:auto;max-width:100%;flex:0 0 auto}
+.panel input[type=date]{width:auto}
+.panel .props input[type=date].pill{width:162px;max-width:100%}
+.panel .props .pv{flex-wrap:wrap}
+/* Liste To Do : un seul panneau clair, lignes séparées par un filet fin, plus de cartes isolées */
+#list.listp{background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden;box-shadow:var(--shadow);margin-top:2px}
+#list.listp li{margin:0;border-radius:0}
+#list.listp .row{background:var(--card);border:0;border-radius:0;box-shadow:inset 0 -1px 0 var(--line);padding:12px 14px}
+#list.listp li:last-child .row{box-shadow:none}
+#list.listp .row.urg{box-shadow:inset 3px 0 0 var(--late),inset 0 -1px 0 var(--line)}
+#list.listp li:last-child .row.urg{box-shadow:inset 3px 0 0 var(--late)}
+#list.listp li.lift .row{box-shadow:0 12px 28px rgba(0,0,0,.20)}
+@media (min-width:980px){#list.listp .row:hover{background:var(--hover)}}
+#list.listp li.sechead{margin:0;padding:11px 14px 9px;border-bottom:1px solid var(--line);background:var(--side)}
+#list.listp li.secadd{margin:0}
+#list.listp li.secadd button{border:0;border-top:1px solid var(--line);border-radius:0;color:var(--muted)}
+#list.listp li.secempty{border:0;border-radius:0;box-shadow:inset 0 -1px 0 var(--line)}
+/* Coche plus discrète, grip visible au survol sur desktop */
+.check{width:26px;height:26px;border-width:1.5px}
+.check svg{width:15px;height:15px}
+@media (min-width:980px){.grip{opacity:0}#list.listp li:hover .grip,.grip:focus-visible{opacity:.8}}
+/* Mails : cartes allégées, sans ombre appuyée, et ligne meta qui ne déborde plus */
+.mail{box-shadow:none}
+.mail.act,.mail.info{box-shadow:inset 3px 0 0 transparent}
+.mail.act.p-h{box-shadow:inset 3px 0 0 var(--late)}
+.mail.act.p-m{box-shadow:inset 3px 0 0 var(--warn)}
+.mail.act.p-l{box-shadow:inset 3px 0 0 var(--line)}
+.mmeta{align-items:baseline}
+.mmeta .march{white-space:normal;display:flex;gap:4px 12px;flex-wrap:wrap}
+@media (max-width:600px){.mmeta{flex-direction:column;gap:4px}.mmeta .march{padding-top:0}}
+/* Onglets du haut : marge de défilement pour ne jamais couper une puce en deux */
+nav.tabs{scroll-padding-right:16px;padding-right:4px}
 </style>
 </head>
 <body>
@@ -899,6 +934,7 @@ function renderList(){
     ul.innerHTML = mine.length ? mine.map(taskLi).join("") : `<div class="empty"><b>Rien ici</b>${tFilter ? "" : "Glisse une tâche sur cet onglet avec ≡ pour l'y ranger."}</div>`;
   } else ul.innerHTML = tasks.map(taskLi).join("");
   ul.insertAdjacentHTML("beforeend", `<div class="foot">${canReorder() ? "Glisse ≡ pour réordonner, ou sur un onglet pour changer de section" : view === "today" && !searching ? "Retire les filtres et la recherche pour réordonner" : ""}<span class="mob"> · Glisse à droite pour terminer, à gauche pour passer à la section suivante</span></div>`);
+  ul.classList.add("listp");
   if (view === "today" && !searching) {
     const bar = document.createElement("div"); bar.className = "lsearch";
     bar.innerHTML = `<span class="lsi" aria-hidden="true">${ic("search", 15)}</span><input id="tq" type="search" placeholder="Rechercher dans la To Do" value="${esc(tFilter)}" autocomplete="off" aria-label="Rechercher dans la To Do">${tFilter ? `<button type="button" class="lsx" aria-label="Effacer">✕</button>` : ""}`;
