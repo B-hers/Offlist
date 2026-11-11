@@ -363,6 +363,15 @@ details.maccts>summary::-webkit-details-marker{display:none}
 .rd .rh b{color:var(--ink);font-weight:600}
 .rd h3{margin:4px 0 8px;word-wrap:break-word}
 .rd .rbody{white-space:pre-wrap;word-wrap:break-word;font-size:14.5px;line-height:1.55;background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin:12px 0;max-height:52dvh;overflow:auto}
+.rd .rbody.html{white-space:normal}
+.rd .rbody.html img{max-width:100%;height:auto;border-radius:6px}
+.rd .rbody.html a{color:var(--accent);text-decoration:underline;word-break:break-word}
+.rd .rbody.html p,.rd .rbody.html div{margin:0 0 8px;max-width:100%}
+.rd .rbody.html div:empty{display:none}
+.rd .rbody.html ul,.rd .rbody.html ol{margin:0 0 8px;padding-left:20px}
+.rd .rbody.html h1,.rd .rbody.html h2,.rd .rbody.html h3,.rd .rbody.html h4{font-size:15px;margin:10px 0 6px}
+.rd .rbody.html *{font-size:inherit!important;line-height:1.5!important;color:inherit;max-width:100%;letter-spacing:normal}
+.rd .rbody.html blockquote{margin:6px 0;padding-left:10px;border-left:2px solid var(--line);color:var(--muted)}
 .rd .rfiles{font-size:13px;color:var(--muted)}
 .rd .rnote{font-size:13px;color:var(--muted);margin-top:8px}
 .rd .rlinks{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
@@ -508,6 +517,10 @@ details.maccts>summary::-webkit-details-marker{display:none}
 .slots .sday .hint{display:inline;font-size:13px}
 .slots .sfree button{font-size:13px;padding:5px 10px;min-height:30px;font-variant-numeric:tabular-nums}
 .slots .calm{padding:10px 12px;border:1px dashed var(--line);border-radius:10px;font-size:13.5px}
+.slots .slieu{margin-top:14px;border-top:1px solid var(--line);padding-top:12px}
+.slots .slieu .hint{display:block;margin-bottom:6px}
+.slots .slopt{display:flex;flex-wrap:wrap;gap:6px}
+.slots .slopt button{font-size:13px;padding:6px 11px}
 .fchip.meet{display:flex;width:100%;box-sizing:border-box;margin:10px 0 0;border-radius:12px;padding:8px 8px 8px 12px;background:var(--accent-soft);border-color:transparent;color:var(--ink)}
 .fchip.meet .t{flex:1;min-width:0}
 .fchip.meet button{flex:none}
@@ -1183,7 +1196,7 @@ async function openMail(m){
   const files = (meta.pieces_jointes || []).filter(Boolean);
   const st = d.status || mailTab;
   $("#panel").innerHTML = head(d) + `<div class="rh">${esc(when)}${listAddr(meta.a) ? `<br>À : ${esc(listAddr(meta.a))}` : ""}${listAddr(meta.cc) ? `<br>Cc : ${esc(listAddr(meta.cc))}` : ""}${meta.messages > 1 ? `<br>${meta.messages} messages dans la conversation` : ""}</div>
-    <div class="rbody">${b ? esc(b.text || "(message sans texte)") : esc(d.snippet || "")}</div>
+    <div class="rbody${b && b.html && mailHtml(b.html) ? " html" : ""}">${b ? (b.html && mailHtml(b.html) ? mailHtml(b.html) : esc(cleanMailText(b.text) || "(message sans texte)")) : esc(d.snippet || "")}</div>
     ${files.length ? `<div class="rfiles">Pièces jointes : ${files.map(esc).join(", ")}</div>` : ""}
     ${!b ? `<div class="rnote">${d.body_error ? `Texte complet indisponible : ${esc(d.body_error)}.` : "Aperçu seulement : le texte complet arrive au prochain passage de Claude (chaque heure)."}</div>`
       : b.a_jour === false ? `<div class="rnote">Un message plus récent est arrivé dans ce fil : texte mis à jour au prochain passage.</div>` : ""}
@@ -1579,7 +1592,7 @@ async function openThread(t){
       ${d.to ? `<div class="thto">À : ${esc(d.to)}${d.cc ? ` · Cc : ${esc(d.cc)}` : ""}</div>` : ""}
       ${d.count > 1 ? `<div class="thto">${d.count} messages dans le fil${d.mine ? " · tu as répondu en dernier" : ""}</div>` : ""}</div>
     ${d.files?.length ? `<div class="files">${d.files.map(f => `<span class="fchip">${ic("clip", 13)} ${esc(f)}</span>`).join("")}</div>` : ""}
-    <div class="rbody thbody">${esc(String(d.text || "").replace(/\n{3,}/g, "\n\n"))}</div>
+    <div class="rbody thbody">${esc(cleanMailText(d.text) || "(message sans texte)")}</div>
     <div class="rslot" id="threp"></div>
     <div class="actions foot"><button class="ghost" id="tb">${ic("back", 15)}Tâche</button><span class="sp"></span><a class="btn" href="${esc(d.url || t.link_url)}" target="_blank" rel="noopener">Gmail ${ic("ext", 13)}</a><button class="primary" id="trep">${ic("reply", 15)}Répondre</button></div>`;
   $("#panel .xbtn").onclick = $("#tb").onclick = () => openEdit(t);
@@ -1680,6 +1693,35 @@ function composerLoading(msg, back, title){
 let sigCache = null;
 const fmtSize = n => n > 1048576 ? (n / 1048576).toFixed(1).replace(".", ",") + " Mo" : Math.max(1, Math.round(n / 1024)) + " Ko";
 const txtToHtml = t => esc(t).split(/\n{2,}/).map(p => `<p>${p.replace(/\n/g, "<br>")}</p>`).join("");
+// Rend lisible le HTML d'un mail reçu : on retire tout ce qui casse la mise en page ou piste, on garde la structure
+function mailHtml(html){
+  let doc;
+  try { doc = new DOMParser().parseFromString(html, "text/html"); } catch(_) { return ""; }
+  doc.querySelectorAll("script,style,link,meta,title,head,noscript,iframe,object,embed,form,input,button").forEach(n => n.remove());
+  doc.querySelectorAll("*").forEach(n => {
+    [...n.attributes].forEach(a => {
+      const k = a.name.toLowerCase();
+      if (k.startsWith("on") || (["href","src"].includes(k) && /^\s*javascript:/i.test(a.value))) n.removeAttribute(a.name);
+      else if (["width","height","align","bgcolor","background","class","id"].includes(k)) n.removeAttribute(a.name);
+      else if (k === "style") { const keep = (a.value.match(/(font-weight|font-style|text-align|text-decoration|list-style)\s*:[^;]+/gi) || []).join(";"); keep ? n.setAttribute("style", keep) : n.removeAttribute("style"); }
+    });
+    if (n.tagName === "A"){ n.setAttribute("target", "_blank"); n.setAttribute("rel", "noopener noreferrer"); }
+    if (n.tagName === "IMG"){ const s = n.getAttribute("src") || ""; if (!/^https?:|^cid:/i.test(s) || /track|pixel|open|beacon|\b1x1\b/i.test(s)) n.remove(); else if (/^cid:/i.test(s)) n.remove(); }
+  });
+  // Tableaux de mise en page (Odoo, newsletters) : on les aplatit en blocs pour éviter les colonnes étroites
+  doc.querySelectorAll("table,tbody,thead,tr,td,th,center").forEach(n => { const d = doc.createElement("div"); while (n.firstChild) d.appendChild(n.firstChild); n.replaceWith(d); });
+  return (doc.body?.innerHTML || "").replace(/(\s*<div>\s*<\/div>\s*){2,}/g, "<div></div>").trim();
+}
+// Nettoie le texte brut d'un mail (ex. notifications Odoo) : marqueurs de liens [12], listes de références, lignes vides en trop
+function cleanMailText(t){
+  let s = String(t || "").replace(/\r/g, "");
+  s = s.replace(/\n[ \t]*\[\d+\][ \t]+https?:\/\/\S+/g, "");   // liste de références en bas
+  s = s.replace(/^[ \t]*\[\d+\][ \t]*$/gm, "");               // marqueur de référence seul sur sa ligne
+  s = s.replace(/[ \t]*\[\d+\]/g, "");                        // marqueur de référence en fin de libellé
+  s = s.replace(/^[ \t]*[-_=•*]{3,}[ \t]*$/gm, "");           // lignes de séparation décoratives
+  s = s.replace(/[ \t]+$/gm, "").replace(/\n{3,}/g, "\n\n");  // espaces de fin et lignes vides multiples
+  return s.trim();
+}
 const addrStr = l => (l || []).map(x => x.email).join(", ");
 async function openComposer(c){
   const files = [];
@@ -1737,7 +1779,7 @@ async function openComposer(c){
   };
   // Créneaux : disponibilités lues dans l'agenda Google, insérées dans le mail, avec invitation Google Meet si un seul créneau est retenu
   let meeting = null;
-  const showMeet = () => { $("#cmeet").innerHTML = meeting ? `<span class="fchip meet">${ic("video", 14)}<span class="t">Invitation Google Meet · ${esc(meeting.when)}</span><button type="button" id="cmeetx" aria-label="Retirer l'invitation">${ic("x", 12)}</button></span>` : "";
+  const showMeet = () => { $("#cmeet").innerHTML = meeting ? `<span class="fchip meet">${ic(meeting.location === "office" ? "cal" : "video", 14)}<span class="t">${meeting.location === "office" ? "Réunion au bureau" : "Invitation Google Meet"} · ${esc(meeting.when)}</span><button type="button" id="cmeetx" aria-label="Retirer l'invitation">${ic("x", 12)}</button></span>` : "";
     if ($("#cmeetx")) $("#cmeetx").onclick = () => { meeting = null; showMeet(); }; };
   if ($("#cslot")) $("#cslot").onclick = () => {
     const box = $("#cslotbox"), btn = $("#cslot");
@@ -1750,7 +1792,7 @@ async function openComposer(c){
       <div class="slopts"><div class="pills sweek">${[[1,"Semaine prochaine"],[0,"Cette semaine"]].map(([k,l]) => `<button type="button" data-w="${k}" class="${k===week?"on":""}">${l}</button>`).join("")}</div>
       <div class="pills sdur">${[[30,"30 min"],[45,"45 min"],[60,"1 h"],[90,"1 h 30"]].map(([k,l]) => `<button type="button" data-d="${k}" class="${k===dur?"on":""}">${l}</button>`).join("")}</div></div>
       <div class="sdays"><div class="hint" style="display:block">Lecture de l'agenda…</div></div>
-      <label class="tick"><input type="checkbox" id="smeet"> Créer l'invitation Google Meet pour le créneau retenu</label>
+      <div class="slieu"><span class="hint">Pour le créneau retenu</span><div class="pills slopt">${[["","Proposer, sans invitation"],["meet","Visio Google Meet"],["office","Au bureau (Zaventem)"]].map(([k,l]) => `<button type="button" data-l="${k}" class="${k===""?"on":""}">${l}</button>`).join("")}</div></div>
       <div class="ract"><button type="button" class="btn quiet scancel">Annuler</button><button type="button" class="btn primary sgo" disabled>${ic("cal", 15)}Insérer</button></div></div>`;
     const sgo = box.querySelector(".sgo"), days = box.querySelector(".sdays");
     const load = async () => {
@@ -1762,25 +1804,27 @@ async function openComposer(c){
       days.innerHTML = d.days.map(x => `<div class="sday"><div class="sdl">${esc(x.label)}</div>${x.free.length ? `<div class="pills sfree">${x.free.map(f => `<button type="button" data-s="${f.start}" data-u="${f.until}" data-t="${esc(x.label)} de ${esc(f.text)}">${esc(f.text)}</button>`).join("")}</div>` : `<span class="hint">Complet</span>`}</div>`).join("") || `<div class="hint" style="display:block">Aucun créneau libre.</div>`;
       days.querySelectorAll(".sfree button").forEach(b => b.onclick = () => { b.classList.toggle("on"); picked = [...days.querySelectorAll(".sfree button.on")].map(x => ({ start: x.dataset.s, until: x.dataset.u, text: x.dataset.t })); sgo.disabled = !picked.length; });
     };
+    let lieu = "";
     box.querySelectorAll(".sweek button").forEach(b => b.onclick = () => { week = +b.dataset.w; box.querySelectorAll(".sweek button").forEach(x => x.classList.toggle("on", x === b)); load(); });
     box.querySelectorAll(".sdur button").forEach(b => b.onclick = () => { dur = +b.dataset.d; box.querySelectorAll(".sdur button").forEach(x => x.classList.toggle("on", x === b)); load(); });
+    box.querySelectorAll(".slopt button").forEach(b => b.onclick = () => { lieu = b.dataset.l; box.querySelectorAll(".slopt button").forEach(x => x.classList.toggle("on", x === b)); });
     box.querySelector(".scancel").onclick = close;
     sgo.onclick = () => {
       if (!picked.length) return;
-      const wantMeet = box.querySelector("#smeet").checked;
-      if (wantMeet && picked.length > 1) return toast("Retiens un seul créneau pour l'invitation Google Meet");
+      if (lieu && picked.length > 1) return toast("Retiens un seul créneau pour créer l'invitation");
       const fmtH = iso => new Date(iso).toLocaleTimeString("fr-BE", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Brussels" }).replace(":", " h ");
       let html;
-      if (wantMeet) {
+      if (lieu) {
         const p = picked[0], end = new Date(new Date(p.start).getTime() + dur * 6e4);
         const when = `${p.text.split(" de ")[0]} de ${fmtH(p.start)} à ${fmtH(end.toISOString())}`;
-        meeting = { start: p.start, duration: dur, when }; showMeet();
-        html = `<p>Je propose un point ${esc(when)}, avec une invitation Google Meet.</p>`;
+        meeting = { start: p.start, duration: dur, when, location: lieu }; showMeet();
+        html = lieu === "office" ? `<p>Je propose un point ${esc(when)}, à notre bureau (Ikaroslaan 83, Zaventem).</p>`
+          : `<p>Je propose un point ${esc(when)}, en visio. Vous recevrez une invitation avec le lien Google Meet.</p>`;
       } else {
         html = `<p>Voici mes disponibilités ${week ? "la semaine prochaine" : "cette semaine"} :</p><ul>${picked.map(p => `<li>${esc(p.text)}</li>`).join("")}</ul>`;
       }
       ed.insertAdjacentHTML("beforeend", html); close(); ed.focus();
-      toast(wantMeet ? "Créneau inséré, invitation créée à l'envoi" : "Disponibilités insérées dans le mail");
+      toast(lieu ? "Créneau inséré, invitation créée à l'envoi" : "Disponibilités insérées dans le mail");
     };
     load();
     box.scrollIntoView({ block: "nearest", behavior: "smooth" });
@@ -1799,8 +1843,9 @@ async function openComposer(c){
       let html = ed.innerHTML, meet = null;
       if (meeting && mode === "send") {
         $("#csend").innerHTML = "Invitation…";
-        meet = await dapi("/meeting", { method:"POST", body: JSON.stringify({ start: meeting.start, duration: meeting.duration, attendees: [...to, ...cc], title: $("#csub").value.trim().replace(/^re\s*:\s*/i, ""), meet: true, invite: true }) });
+        meet = await dapi("/meeting", { method:"POST", body: JSON.stringify({ start: meeting.start, duration: meeting.duration, attendees: [...to, ...cc], title: $("#csub").value.trim().replace(/^re\s*:\s*/i, ""), location: meeting.location || "meet", meet: meeting.location !== "office", invite: true }) });
         if (meet.meet) html += `<p>Lien Google Meet : <a href="${esc(meet.meet)}">${esc(meet.meet)}</a></p>`;
+        else if (meet.location) html += `<p>Lieu : ${esc(meet.location)}</p>`;
         meeting = null; $("#csend").innerHTML = "Envoi…";
       }
       const payload = { mode, kind: c.kind, subject: $("#csub").value.trim(), html,
@@ -1809,7 +1854,7 @@ async function openComposer(c){
         ...(c.mail ? { mail_id: c.mail.id } : {}), ...(c.task ? { task_id: c.task.id } : {}), ...(c.thread_key ? { thread_key: c.thread_key } : {}), attach_original: $("#catt") ? $("#catt").checked : false };
       const r = await dapi("/send", { method:"POST", body: JSON.stringify(payload) });
       closeSheet();
-      const meetTxt = meet ? ", invitation Google Meet envoyée" : "";
+      const meetTxt = meet ? (meet.meet ? ", invitation Google Meet envoyée" : ", invitation au bureau envoyée") : "";
       if (mode === "draft") toast(meeting ? "Brouillon enregistré dans Gmail, sans l'invitation Meet (créée seulement à l'envoi)" : "Brouillon enregistré dans Gmail");
       else if (c.kind === "reply") { toast("Réponse envoyée" + meetTxt); if (view === "mail") { await loadMail(); renderMail(); } refreshCounts(); }
       else if (!c.task) toast(`Envoyé à ${r.to.name || r.to.email}${meetTxt}`);
