@@ -601,6 +601,61 @@ details.maccts>summary::-webkit-details-marker{display:none}
 @media (max-width:600px){.mmeta{flex-direction:column;gap:4px}.mmeta .march{padding-top:0}}
 /* Onglets du haut : marge de défilement pour ne jamais couper une puce en deux */
 nav.tabs{scroll-padding-right:16px;padding-right:4px}
+
+/* ---------- Assistant Odoo ---------- */
+.hbtn.iab{display:inline-flex;align-items:center;gap:6px;color:var(--agent);border-color:var(--agent-soft);background:var(--agent-soft);font-weight:600}
+.hbtn.iab:hover{border-color:var(--agent)}
+.panel.ia{display:flex;flex-direction:column;height:88dvh;overflow:hidden}
+@media (min-width:980px){.panel.ia{max-width:760px;height:min(780px,86dvh)}}
+.panel.ia .sheethead{flex:none}
+.panel.ia .sheethead .sub{font-size:12.5px;color:var(--muted);font-weight:400;margin-top:2px}
+.panel.ia .sheethead .hbtn{white-space:nowrap;display:inline-flex;align-items:center;gap:6px;min-height:34px}
+.iath{flex:1;min-height:0;overflow-y:auto;margin:0 -16px;padding:4px 16px 12px;display:flex;flex-direction:column;gap:12px;overscroll-behavior:contain}
+.iaempty{margin:auto 0;padding:12px 0}
+.iaempty b{display:block;font-size:16px;margin-bottom:4px}
+.iaempty p{margin:0 0 14px}
+.iasugg{display:flex;flex-direction:column;align-items:flex-start;gap:6px}
+.iasugg button{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;padding:7px 14px;font:inherit;font-size:14px;cursor:pointer;text-align:left;max-width:100%}
+.iasugg button:hover{background:var(--hover)}
+.iamsg{max-width:88%;line-height:1.5;font-size:15px;overflow-wrap:anywhere}
+.iamsg.me{align-self:flex-end;background:var(--hover);border-radius:14px 14px 4px 14px;padding:9px 13px;white-space:pre-wrap}
+.iamsg.ai{align-self:flex-start;max-width:100%}
+.iamsg.ai p{margin:0 0 8px;color:var(--ink);font-size:15px}
+.iamsg.ai p:last-child,.iamsg.ai ul:last-child{margin-bottom:0}
+.iamsg.ai ul{margin:0 0 8px;padding-left:20px;list-style:disc}
+.iamsg.ai li{display:list-item;overflow:visible;margin:2px 0;border-radius:0;position:static}
+.iamsg.ai a{color:var(--accent);font-weight:600;text-decoration:none;display:inline-flex;align-items:center;gap:3px}
+.iamsg.ai a:hover{text-decoration:underline}
+.iamsg.err{align-self:flex-start;color:var(--danger);font-size:14px}
+.iamsg.wait{align-self:flex-start;color:var(--muted);font-size:14px;display:flex;align-items:center;gap:8px}
+.iadots{display:inline-flex;gap:3px}
+.iadots i{width:5px;height:5px;border-radius:50%;background:var(--agent);opacity:.3;animation:iad 1.2s infinite}
+.iadots i:nth-child(2){animation-delay:.2s}.iadots i:nth-child(3){animation-delay:.4s}
+@keyframes iad{0%,80%,100%{opacity:.25}40%{opacity:1}}
+.iaev{align-self:flex-start;font-size:13px;color:var(--muted);display:flex;align-items:center;gap:6px}
+.iaev.ok{color:var(--accent)}
+.iapend{border:1px solid var(--agent);background:var(--card);border-radius:14px;padding:12px 14px;align-self:stretch}
+.iapend .ph{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;color:var(--agent);text-transform:uppercase;letter-spacing:.04em}
+.iapend .pa{padding:10px 0 2px}
+.iapend .pa + .pa{border-top:1px solid var(--line);margin-top:6px}
+.iapend .pt{font-weight:600;font-size:15px}
+.iapend .pw{display:inline-block;margin-left:6px;font-size:12px;font-weight:600;color:var(--warn);background:var(--warn-soft);border-radius:999px;padding:2px 8px;vertical-align:1px}
+.iapend .props{margin:8px 0 0;padding:8px 0 0;border-bottom:0;row-gap:6px;align-items:start}
+.iapend .props .pv{font-size:14px;display:block;overflow-wrap:anywhere}
+.iapend .pbody{white-space:pre-wrap;background:var(--bg);border-radius:10px;padding:8px 10px;font-size:14px;max-height:180px;overflow:auto}
+.iapend .pb{display:flex;justify-content:flex-end;gap:8px;margin-top:12px}
+.iapend .pb button{border:1px solid var(--line);background:transparent;color:var(--ink);border-radius:10px;padding:8px 14px;font:inherit;font-size:14px;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+.iapend .pb button:hover{background:var(--hover)}
+.iapend .pb .yes{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600;min-width:120px;justify-content:center}
+.iapend .pb .yes:hover{background:#1a6a43}
+.iapend.busy{opacity:.55;pointer-events:none}
+.panel.ia .actions.foot.iafoot{position:static;flex:none;gap:8px;align-items:flex-end}
+.iafoot textarea{flex:1;min-height:42px;max-height:160px;resize:none;border-radius:12px;padding:10px 12px;line-height:1.4;font-size:15px}
+.iafoot textarea:focus{outline:none;border-color:var(--agent)}
+.panel.ia .actions.foot.iafoot .primary{min-width:0;flex:none;height:42px;padding:0 16px}
+.iafoot .primary:disabled{opacity:.45;cursor:default}
+.iafoot .note{display:none}
+@media (max-width:600px){.panel.ia .actions.foot.iafoot .primary{flex:none;width:42px;padding:0}.iafoot .primary .lbl{display:none}.panel.ia .sheethead .hbtn .lbl{display:none}}
 </style>
 </head>
 <body>
@@ -718,7 +773,7 @@ function renderShell(){
     <aside class="side" id="side"></aside>
     <main class="main">
       <header class="top"><div><h1>Klaar</h1><div class="sub">${d}</div></div>
-        <div class="hright"><button class="hbtn" id="sumBtn">Résumé</button><button class="avatar mob" id="acctBtn" aria-label="Compte">${legacy() ? "?" : esc(initials())}</button></div></header>
+        <div class="hright"><button class="hbtn iab" id="iaBtn" aria-label="Assistant Odoo">${ic("spark", 15)}Assistant</button><button class="hbtn" id="sumBtn">Résumé</button><button class="avatar mob" id="acctBtn" aria-label="Compte">${legacy() ? "?" : esc(initials())}</button></div></header>
       <div id="banner"></div>
       <div id="addZone" class="desk">
         <form class="add" id="add"><input id="new" placeholder="Nouvelle tâche…" enterkeyhint="done" autocomplete="off">
@@ -749,6 +804,7 @@ function renderShell(){
   $("#q").oninput = debounce(onSearch, 250);
   $("#mic").onclick = toggleMic;
   $("#sumBtn").onclick = openSummary;
+  $("#iaBtn").onclick = openOdooAssistant;
   $("#acctBtn").onclick = () => legacy() ? showLogin() : openAccount();
   $("#nProj").onchange = () => { if ($("#nProj").value === "__new") { $("#nProj").value = ""; openProjects(true); } renderNewProj(); };
   $$("#nWho button").forEach(b => b.onclick = () => { newWho = b.dataset.w; renderNewWho(); });
@@ -1445,6 +1501,151 @@ function openProposals(texte, props){
     toast(`${n} tâche${n>1?"s":""} ajoutée${n>1?"s":""}`); resetNewOpts(); load();
   };
   openSheet();
+}
+
+// ---------- Assistant Odoo ----------
+// L'assistant cherche et prépare. Toute action qui écrit dans Odoo passe par une carte de validation.
+const IAPI = "https://rorwnacthttwxyqemkgv.supabase.co/functions/v1/todo-ask";
+const ia = { msgs: [], view: [], pending: null, busy: false, draft: "" };
+const IA_SUGG = [
+  ["Retrouve le projet PV de Marie Hers", true],
+  ["Quelles factures clients sont encore ouvertes ?", true],
+  ["Le bon de commande S04471 est-il payé ?", true],
+  ["Quel est le stock disponible des onduleurs DEYE ?", true],
+  ["Ajoute une note interne sur la tâche ", false],
+];
+const IA_ACT = {
+  odoo_post_note: ["Note interne", ""],
+  odoo_post_message: ["Message au client", "Visible par le client"],
+  odoo_log_activity: ["Planifier une activité", ""],
+  odoo_create_task: ["Créer une tâche", ""],
+  odoo_create_lead: ["Créer une opportunité", ""],
+  odoo_create_or_update_email_template: ["Modèle d'e-mail", "Modifie Odoo"],
+  odoo_set_template_translation: ["Traduction de modèle d'e-mail", "Modifie Odoo"],
+};
+const IA_FIELD = { model:"Sur", record_id:"Réf. Odoo", subject:"Sujet", activity_type:"Type", summary:"Résumé", date_deadline:"Échéance",
+  name:"Nom", partner_name:"Client", contact_name:"Contact", email:"E-mail", phone:"Téléphone", project_id:"Projet", project:"Projet",
+  user:"Assigné à", user_id:"Assigné à", expected_revenue:"Montant", description:"Description", lang:"Langue", template_id:"Modèle", partner_ids:"Notifier" };
+const IA_LONG = ["body", "note", "description", "body_html"];
+const IA_MODEL = { task:"Tâche", tache:"Tâche", "project.task":"Tâche", lead:"Opportunité", opportunite:"Opportunité", opportunity:"Opportunité", "crm.lead":"Opportunité",
+  invoice:"Facture", facture:"Facture", "account.move":"Facture", sale:"Devis / BC", devis:"Devis / BC", bc:"Devis / BC", "sale.order":"Devis / BC",
+  purchase:"Achat", achat:"Achat", "purchase.order":"Achat", contact:"Contact", partner:"Contact", "res.partner":"Contact" };
+const IA_ACTIVITY = { email:"E-mail", call:"Appel", meeting:"Réunion", todo:"À faire" };
+const noDash = s => String(s ?? "").replace(/\s*[\u2014\u2013]\s*/g, ", ");
+const stripHtml = s => String(s ?? "").replace(/<br\s*\/?>/gi, "\n").replace(/<\/p>/gi, "\n").replace(/<[^>]*>/g, "").replace(/&nbsp;/g, " ").trim();
+
+// Rendu léger du texte de Claude : gras, listes, liens https uniquement
+function iaRich(s){
+  const links = [];
+  const keep = (url, label) => { links.push(`<a href="${esc(url)}" target="_blank" rel="noopener">${esc(label)}${ic("ext", 12)}</a>`); return `\u0001${links.length - 1}\u0001`; };
+  const linkLabel = u => /odoo\.com/.test(u) ? "Ouvrir dans Odoo" : u.replace(/^https:\/\//, "").split("/")[0];
+  let t = noDash(s).replace(/\[([^\]\n]+)\]\((https:\/\/[^)\s]+)\)/g, (_, l, u) => keep(u, l)).replace(/https:\/\/[^\s<>)\]]+/g, u => keep(u.replace(/[.,;:]+$/, ""), linkLabel(u)));
+  const inline = x => esc(x).replace(/\*\*(.+?)\*\*/g, "<b>$1</b>").replace(/\u0001(\d+)\u0001/g, (_, i) => links[+i]);
+  const out = []; let list = null;
+  for (const raw of t.split("\n")) {
+    const line = raw.trim();
+    const m = line.match(/^(?:[-*•]|\d+[.)])\s+(.*)$/);
+    if (m) { (list ||= []).push(`<li>${inline(m[1])}</li>`); continue; }
+    if (list) { out.push(`<ul>${list.join("")}</ul>`); list = null; }
+    if (!line) continue;
+    const h = line.match(/^#{1,4}\s+(.*)$/);
+    out.push(`<p>${h ? `<b>${inline(h[1])}</b>` : inline(line)}</p>`);
+  }
+  if (list) out.push(`<ul>${list.join("")}</ul>`);
+  return out.join("");
+}
+
+function iaValue(k, v){
+  if (v == null || v === "") return "";
+  if (k === "model") return IA_MODEL[String(v).toLowerCase()] || String(v);
+  if (k === "activity_type") return IA_ACTIVITY[String(v).toLowerCase()] || String(v);
+  if (k === "date_deadline" && /^\d{4}-\d{2}-\d{2}/.test(v)) return new Date(String(v).slice(0, 10) + "T12:00:00").toLocaleDateString("fr-BE", { weekday:"short", day:"numeric", month:"long" });
+  if (k === "record_id") return "#" + v;
+  if (Array.isArray(v)) return v.join(", ");
+  if (typeof v === "object") return JSON.stringify(v);
+  return String(v);
+}
+function iaActionHtml(a){
+  const [label, warn] = IA_ACT[a.name] || [a.name.replace(/^odoo_/, "").replace(/_/g, " "), ""];
+  const inp = a.input || {};
+  const rows = Object.keys(inp).filter(k => !IA_LONG.includes(k) && iaValue(k, inp[k]) !== "")
+    .map(k => `<span class="pl">${esc(IA_FIELD[k] || k)}</span><span class="pv">${esc(noDash(iaValue(k, inp[k])))}</span>`).join("");
+  const long = IA_LONG.filter(k => inp[k]).map(k => `<span class="pl">${k === "body" || k === "body_html" ? "Contenu" : IA_FIELD[k] || "Note"}</span><span class="pv"><div class="pbody">${esc(noDash(stripHtml(inp[k])))}</div></span>`).join("");
+  return `<div class="pa"><div class="pt">${esc(label)}${warn ? `<span class="pw">${esc(warn)}</span>` : ""}</div>${rows || long ? `<div class="props">${rows}${long}</div>` : ""}</div>`;
+}
+
+function iaRender(){
+  const th = $("#iaThread"); if (!th) return;
+  const p = ia.pending;
+  th.innerHTML = !ia.view.length && !ia.busy ? `<div class="iaempty"><b>Que veux-tu faire dans Odoo ?</b>
+      <p>Je cherche, je croise et je prépare les actions. Rien n'est modifié dans Odoo sans ta validation.</p>
+      <div class="iasugg">${IA_SUGG.map(([s, go], i) => `<button data-i="${i}">${esc(s.trim())}${go ? "" : "…"}</button>`).join("")}</div></div>`
+    : ia.view.map(v =>
+      v.who === "me" ? `<div class="iamsg me">${esc(v.text)}</div>`
+      : v.who === "ai" ? `<div class="iamsg ai">${iaRich(v.text)}</div>`
+      : v.who === "ev" ? `<div class="iaev ${v.ok ? "ok" : ""}">${ic(v.ok ? "check" : "x", 14)}${esc(v.text)}</div>`
+      : `<div class="iamsg err">${esc(v.text)}</div>`).join("")
+      + (p ? `<div class="iapend" id="iaPend"><div class="ph">${ic("spark", 14)}À valider</div>${p.actions.map(iaActionHtml).join("")}
+          <div class="pb"><button id="iaNo">Refuser</button><button class="yes" id="iaYes">${ic("check", 15)}Valider${p.actions.length > 1 ? ` (${p.actions.length})` : ""}</button></div></div>` : "")
+      + (ia.busy ? `<div class="iamsg wait"><span class="iadots"><i></i><i></i><i></i></span>${esc(ia.busy)}</div>` : "");
+  $$("#iaThread .iasugg button").forEach(b => b.onclick = () => {
+    const [s, go] = IA_SUGG[+b.dataset.i];
+    if (go) return iaSend(s);
+    const inp = $("#iaIn"); inp.value = s; inp.focus(); inp.setSelectionRange(s.length, s.length); iaGrow();
+  });
+  if ($("#iaYes")) { $("#iaYes").onclick = () => iaConfirm(true); $("#iaNo").onclick = () => iaConfirm(false); }
+  const go = $("#iaGo"); if (go) go.disabled = !!ia.busy;
+  $("#iaReset").style.visibility = ia.view.length && !ia.busy ? "visible" : "hidden";
+  th.scrollTop = th.scrollHeight;
+}
+function iaGrow(){ const t = $("#iaIn"); if (!t) return; t.style.height = "auto"; t.style.height = Math.min(t.scrollHeight + 2, 160) + "px"; $("#iaGo").disabled = !!ia.busy || !t.value.trim(); }
+
+async function iaCall(body, waitMsg){
+  ia.busy = waitMsg; iaRender();
+  try {
+    const r = await api("", { method:"POST", base: IAPI, body: JSON.stringify(body) });
+    ia.msgs = Array.isArray(r.messages) ? r.messages : ia.msgs;
+    ia.pending = r.pending && r.pending.actions?.length ? r.pending : null;
+    if (r.answer && !(ia.pending && /^\(pas de réponse\)$/.test(r.answer))) ia.view.push({ who:"ai", text: r.answer });
+  } catch(e){
+    ia.view.push({ who:"err", text: e.status === 401 ? "Session expirée, reconnecte-toi." : "Impossible de joindre l'assistant : " + noDash(e.message) });
+  }
+  ia.busy = false; iaRender(); iaGrow();
+}
+function iaSend(text){
+  text = String(text || "").trim(); if (!text || ia.busy) return;
+  const body = { text, messages: ia.msgs };
+  if (ia.pending) { body.done = ia.pending.done; ia.view.push({ who:"ev", text:"Action abandonnée" }); ia.pending = null; }
+  ia.view.push({ who:"me", text });
+  const inp = $("#iaIn"); if (inp) { inp.value = ""; iaGrow(); }
+  iaCall(body, "Je consulte Odoo…");
+}
+function iaConfirm(approve){
+  const p = ia.pending; if (!p || ia.busy) return;
+  const n = p.actions.length, what = n > 1 ? `${n} actions` : (IA_ACT[p.actions[0].name]?.[0] || "Action");
+  ia.view.push({ who:"ev", ok: approve, text: approve ? `${what} validée${n > 1 ? "s" : ""}` : `${what} refusée${n > 1 ? "s" : ""}` });
+  ia.pending = null;
+  iaCall({ messages: ia.msgs, confirm: { approve, done: p.done } }, approve ? "J'exécute dans Odoo…" : "Je reprends…");
+}
+function iaReset(){ if (ia.busy) return; ia.msgs = []; ia.view = []; ia.pending = null; iaRender(); $("#iaIn")?.focus(); }
+
+function openOdooAssistant(){
+  if (legacy()) return showLogin("Connecte-toi pour utiliser l'assistant.");
+  $("#panel").innerHTML = `<div class="sheethead"><h3>Assistant Odoo<div class="sub">Lectures directes, écritures après validation</div></h3>
+      <button class="hbtn" id="iaReset" title="Nouvelle conversation">${ic("plus", 14)}<span class="lbl">Nouvelle conversation</span></button>
+      <button class="xbtn" aria-label="Fermer">${ic("x", 16)}</button></div>
+    <div class="iath" id="iaThread" aria-live="polite"></div>
+    <form class="actions foot iafoot" id="iaForm"><textarea id="iaIn" rows="1" placeholder="Demande quelque chose sur Odoo…" enterkeyhint="send" aria-label="Ta demande"></textarea>
+      <button class="primary" id="iaGo" type="submit" aria-label="Envoyer">${ic("send", 16)}<span class="lbl">Envoyer</span></button></form>`;
+  openSheet(); $("#panel").classList.add("ia");
+  $("#panel .xbtn").onclick = () => { ia.draft = $("#iaIn").value; closeSheet(); };
+  $("#iaReset").onclick = iaReset;
+  const inp = $("#iaIn"); inp.value = ia.draft; ia.draft = "";
+  inp.oninput = iaGrow;
+  inp.onkeydown = e => { if (e.key === "Enter" && !e.shiftKey && !e.isComposing) { e.preventDefault(); iaSend(inp.value); } };
+  $("#iaForm").onsubmit = e => { e.preventDefault(); iaSend(inp.value); };
+  iaRender(); iaGrow();
+  if (isWide()) inp.focus();
 }
 
 // ---------- Résumé ----------
@@ -2310,7 +2511,7 @@ async function loadKeys(){
   } catch(e){ $("#klist").innerHTML = `<p>${esc(e.message)}</p>`; }
 }
 
-function openSheet(){ $("#toast").classList.remove("on"); $("#sheet").classList.add("on"); polishSheet(); }
+function openSheet(){ $("#toast").classList.remove("on"); $("#panel").classList.remove("ia"); $("#sheet").classList.add("on"); polishSheet(); }
 let polishQueued = false;
 new MutationObserver(() => { if (polishQueued) return; polishQueued = true; queueMicrotask(() => { polishQueued = false; polishSheet(); }); }).observe($("#panel"), { childList: true });
 function polishSheet(){
@@ -2332,7 +2533,7 @@ function polishSheet(){
     if (!acts.querySelector(".sp")) { const sp = document.createElement("span"); sp.className = "sp"; const anchor = prim || acts.lastElementChild; acts.insertBefore(sp, anchor); }
   }
 }
-function closeSheet(){ $("#sheet").classList.remove("on"); $("#panel").classList.remove("read"); }
+function closeSheet(){ $("#sheet").classList.remove("on"); $("#panel").classList.remove("read", "ia"); }
 $("#sheet").onclick = e => { if (e.target.id === "sheet") { const re = $("#plist") || $("#fw"); closeSheet(); if (re) load(); } };
 
 // ---------- Glisser ----------
