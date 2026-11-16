@@ -1525,7 +1525,11 @@ const IA_ACT = {
 };
 const IA_FIELD = { model:"Sur", record_id:"Réf. Odoo", subject:"Sujet", activity_type:"Type", summary:"Résumé", date_deadline:"Échéance",
   name:"Nom", partner_name:"Client", contact_name:"Contact", email:"E-mail", phone:"Téléphone", project_id:"Projet", project:"Projet",
-  user:"Assigné à", user_id:"Assigné à", expected_revenue:"Montant", description:"Description", lang:"Langue", template_id:"Modèle", partner_ids:"Notifier" };
+  user:"Assigné à", user_id:"Assigné à", expected_revenue:"Montant", description:"Description", lang:"Langue", template_id:"Modèle", partner_ids:"Notifier",
+  parent_id:"Parent", stage_name:"Étape" };
+const IA_PROJECT = { 6:"Installation PV", 21:"Installation PV (FR)", 64:"Installation PV - Bdx", 29:"Installation BR", 68:"BESS - Batteries", 49:"Rénovations électriques",
+  20:"Distribution", 101:"We Cover - Projets", 27:"Schémas unifilaires", 48:"Schémas unifilaires (FR)", 28:"Procédures administratives", 16:"Interventions sur site",
+  15:"Interventions sur site (IDF)", 53:"Interventions sur site (Bdx)", 96:"SAV", 46:"Maintenance", 66:"Maintenance - IDF", 65:"Maintenance - Bdx", 106:"Armoire de découplage" };
 const IA_LONG = ["body", "note", "description", "body_html"];
 const IA_MODEL = { task:"Tâche", tache:"Tâche", "project.task":"Tâche", lead:"Opportunité", opportunite:"Opportunité", opportunity:"Opportunité", "crm.lead":"Opportunité",
   invoice:"Facture", facture:"Facture", "account.move":"Facture", sale:"Devis / BC", devis:"Devis / BC", bc:"Devis / BC", "sale.order":"Devis / BC",
@@ -1560,14 +1564,16 @@ function iaValue(k, v){
   if (k === "model") return IA_MODEL[String(v).toLowerCase()] || String(v);
   if (k === "activity_type") return IA_ACTIVITY[String(v).toLowerCase()] || String(v);
   if (k === "date_deadline" && /^\d{4}-\d{2}-\d{2}/.test(v)) return new Date(String(v).slice(0, 10) + "T12:00:00").toLocaleDateString("fr-BE", { weekday:"short", day:"numeric", month:"long" });
-  if (k === "record_id") return "#" + v;
+  if (k === "record_id" || k === "parent_id") return "Tâche #" + v;
+  if (k === "project_id" && IA_PROJECT[v]) return IA_PROJECT[v];
   if (Array.isArray(v)) return v.join(", ");
   if (typeof v === "object") return JSON.stringify(v);
   return String(v);
 }
 function iaActionHtml(a){
-  const [label, warn] = IA_ACT[a.name] || [a.name.replace(/^odoo_/, "").replace(/_/g, " "), ""];
   const inp = a.input || {};
+  let [label, warn] = IA_ACT[a.name] || [a.name.replace(/^odoo_/, "").replace(/_/g, " "), ""];
+  if (a.name === "odoo_create_task" && inp.parent_id) label = "Créer une sous-tâche";
   const rows = Object.keys(inp).filter(k => !IA_LONG.includes(k) && iaValue(k, inp[k]) !== "")
     .map(k => `<span class="pl">${esc(IA_FIELD[k] || k)}</span><span class="pv">${esc(noDash(iaValue(k, inp[k])))}</span>`).join("");
   const long = IA_LONG.filter(k => inp[k]).map(k => `<span class="pl">${k === "body" || k === "body_html" ? "Contenu" : IA_FIELD[k] || "Note"}</span><span class="pv"><div class="pbody">${esc(noDash(stripHtml(inp[k])))}</div></span>`).join("");
