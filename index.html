@@ -648,6 +648,7 @@ nav.tabs{scroll-padding-right:16px;padding-right:4px}
 .iapend .pbm b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .iapend .pbm span{font-size:13px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .iapend .pba{flex:none;font-variant-numeric:tabular-nums}
+.iapend .pbm span.wrap{white-space:normal}
 .iapend .props .pv{font-size:14px;display:block;overflow-wrap:anywhere}
 .iapend .pbody{white-space:pre-wrap;background:var(--bg);border-radius:10px;padding:8px 10px;font-size:14px;max-height:180px;overflow:auto}
 .iapend .pb{display:flex;justify-content:flex-end;gap:8px;margin-top:12px}
@@ -1530,6 +1531,7 @@ const IA_ACT = {
   odoo_create_or_update_email_template: ["Modèle d'e-mail", "Modifie Odoo"],
   odoo_set_template_translation: ["Traduction de modèle d'e-mail", "Modifie Odoo"],
   odoo_pay_vendor_bills: ["Mettre en paiement", "Paiement SEPA"],
+  odoo_link_invoice_tasks: ["Rattacher des factures aux chantiers", ""],
 };
 const IA_FIELD = { model:"Sur", record_id:"Réf. Odoo", subject:"Sujet", activity_type:"Type", summary:"Résumé", date_deadline:"Échéance",
   name:"Nom", partner_name:"Client", contact_name:"Contact", email:"E-mail", phone:"Téléphone", project_id:"Projet", project:"Projet",
@@ -1581,12 +1583,25 @@ function iaValue(k, v){
 function iaActionHtml(a){
   const inp = a.input || {};
   if (a.name === "odoo_pay_vendor_bills") return iaPayHtml(inp);
+  if (a.name === "odoo_link_invoice_tasks") return iaLinkHtml(inp);
   let [label, warn] = IA_ACT[a.name] || [a.name.replace(/^odoo_/, "").replace(/_/g, " "), ""];
   if (a.name === "odoo_create_task" && inp.parent_id) label = "Créer une sous-tâche";
   const rows = Object.keys(inp).filter(k => !IA_LONG.includes(k) && iaValue(k, inp[k]) !== "")
     .map(k => `<span class="pl">${esc(IA_FIELD[k] || k)}</span><span class="pv">${esc(noDash(iaValue(k, inp[k])))}</span>`).join("");
   const long = IA_LONG.filter(k => inp[k]).map(k => `<span class="pl">${k === "body" || k === "body_html" ? "Contenu" : IA_FIELD[k] || "Note"}</span><span class="pv"><div class="pbody">${esc(noDash(stripHtml(inp[k])))}</div></span>`).join("");
   return `<div class="pa"><div class="pt">${esc(label)}${warn ? `<span class="pw">${esc(warn)}</span>` : ""}</div>${rows || long ? `<div class="props">${rows}${long}</div>` : ""}</div>`;
+}
+
+// Carte de rattachement : facture fournisseur vers tâche du chantier
+function iaLinkHtml(inp){
+  const money = n => n == null || n === "" ? "" : (Number(n) || 0).toLocaleString("fr-BE", { style: "currency", currency: "EUR" });
+  const links = Array.isArray(inp.links) ? inp.links : [];
+  const shown = links.slice(0, 30);
+  const rows = shown.map(l => `<div class="pbill"><div class="pbm"><b>${esc(noDash(l.invoice || "Ligne " + l.line_id))}</b><span class="wrap">Vers ${esc(noDash(l.task || "Tâche #" + l.task_id))}</span></div><b class="pba">${esc(money(l.amount))}</b></div>`).join("");
+  const more = links.length > shown.length ? `<div class="pbill"><span class="pbm"><span>… et ${links.length - shown.length} autre(s) ligne(s)</span></span></div>` : "";
+  return `<div class="pa"><div class="pt">Rattacher ${links.length} ligne${links.length > 1 ? "s" : ""} de facture aux chantiers</div>
+    <div class="pbills">${rows}${more}</div>
+    <div class="props"><span class="pl">Effet</span><span class="pv">Renseigne la tâche et le projet sur chaque ligne, pour la rentabilité et l'analytique.${inp.replace ? " Remplace les rattachements existants." : " Les lignes déjà rattachées ne changent pas."}</span></div></div>`;
 }
 
 // Carte de paiement : une ligne par facture, total, journal. Les montants sont revérifiés côté serveur.
