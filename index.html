@@ -649,6 +649,36 @@ nav.tabs{scroll-padding-right:16px;padding-right:4px}
 .iapend .pbm span{font-size:13px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .iapend .pba{flex:none;font-variant-numeric:tabular-nums}
 .iapend .pbm span.wrap{white-space:normal}
+.iapend .pw.bad{color:var(--danger);background:color-mix(in srgb, var(--danger) 12%, transparent)}
+.iapend .ptable{margin-top:10px;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.iapend .phead,.iapend .prow{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1.6fr) 160px 120px;column-gap:14px;align-items:start;padding:10px 14px}
+.iapend .phead{padding:8px 14px;font-size:12px;font-weight:600;color:var(--muted);background:var(--side);border-bottom:1px solid var(--line)}
+.iapend .phead span:last-child,.iapend .pc4{text-align:right}
+.iapend .prow + .prow{border-top:1px solid var(--line)}
+.iapend .pc1{display:flex;flex-direction:column;min-width:0}
+.iapend .pc1 span,.iapend .pc3{font-size:13px;color:var(--muted)}
+.iapend .pc2{font-size:13.5px;line-height:1.35;min-width:0}
+.iapend .pc3{font-variant-numeric:tabular-nums;white-space:nowrap}
+.iapend .pc4{font-variant-numeric:tabular-nums;white-space:nowrap}
+.iapend .plbl{display:none}
+.iapend .pproj{display:block}
+@media (min-width:980px){.panel.ia.wide{max-width:1040px}}
+.iapend .pchks{grid-column:1/-1;display:flex;flex-direction:column;gap:4px;margin-top:8px}
+.iapend .pchk{display:flex;gap:8px;align-items:baseline;font-size:12.5px;line-height:1.4;color:var(--muted)}
+.iapend .pchk b{font-weight:600}
+.iapend .pdot{flex:none;width:7px;height:7px;border-radius:50%;background:var(--muted);transform:translateY(-1px)}
+.iapend .pchk.ok .pdot{background:var(--accent)} .iapend .pchk.ok b{color:var(--accent)}
+.iapend .pchk.bad .pdot{background:var(--danger)} .iapend .pchk.bad b{color:var(--danger)}
+.iapend .pchk.warn .pdot{background:var(--warn)} .iapend .pchk.warn b{color:var(--warn)}
+.iapend .ptot{display:flex;justify-content:space-between;padding:10px 14px;border-top:1px solid var(--line);background:var(--side)}
+.iapend .ptot b{font-variant-numeric:tabular-nums}
+@media (max-width:700px){
+  .iapend .phead{display:none}
+  .iapend .prow{grid-template-columns:minmax(0,1fr) auto;row-gap:4px}
+  .iapend .pc1{grid-column:1}.iapend .pc4{grid-column:2;grid-row:1}
+  .iapend .pc2,.iapend .pc3{grid-column:1/-1;font-size:13px}
+  .iapend .plbl{display:inline;color:var(--muted);margin-right:6px}
+}
 .iapend .props .pv{font-size:14px;display:block;overflow-wrap:anywhere}
 .iapend .pbody{white-space:pre-wrap;background:var(--bg);border-radius:10px;padding:8px 10px;font-size:14px;max-height:180px;overflow:auto}
 .iapend .pb{display:flex;justify-content:flex-end;gap:8px;margin-top:12px}
@@ -1608,17 +1638,31 @@ function iaLinkHtml(inp){
 function iaPayHtml(inp){
   const money = n => (Number(n) || 0).toLocaleString("fr-BE", { style: "currency", currency: "EUR" });
   const bills = Array.isArray(inp.bills) ? inp.bills : [];
-  const rows = bills.map(b => `<div class="pbill"><div class="pbm"><b>${esc(noDash(b.supplier || ""))}</b><span>Facture ${esc(noDash(b.ref || ""))}</span><span>Vers ${esc(b.iban || "")}</span></div><b class="pba">${esc(money(b.amount))}</b></div>`).join("");
-  return `<div class="pa"><div class="pt">Mettre en paiement${bills.length > 1 ? ` (${bills.length} factures)` : ""}<span class="pw">Paiement SEPA</span></div>
-    <div class="pbills">${rows}</div>
-    <div class="props"><span class="pl">Total</span><span class="pv"><b>${esc(money(inp.total))}</b></span>
-    <span class="pl">Journal</span><span class="pv">${esc(noDash(inp.journal || ""))}</span>
-    <span class="pl">Ensuite</span><span class="pv">Activité « à valider » clôturée. Le virement part avec le lot SEPA chargé dans CBC Business.</span></div></div>`;
+  const checks = Array.isArray(inp.checks) ? inp.checks : [];
+  const LV = { ok: ["ok", "Budget OK"], danger: ["bad", "Hors budget"], warning: ["warn", "À vérifier"], info: ["info", "Info"] };
+  const nAlert = checks.filter(c => c.level === "danger").length;
+  const rows = bills.map(b => {
+    const cs = checks.filter(c => c.bill === b.id);
+    const chk = cs.map(c => { const [cl, lb] = LV[c.level] || LV.info;
+      const fig = c.budget != null ? ` · réel ${money(c.real)} / budget ${money(c.budget)}` : "";
+      if (c.level === "info") return `<div class="pchk info"><span class="pdot"></span><span>${esc(noDash(c.poste || ""))} : ${esc(noDash(c.note || ""))}</span></div>`;
+      return `<div class="pchk ${cl}"><span class="pdot"></span><span><b>${esc(lb)}</b> ${esc(noDash(c.poste || ""))}${cs.length > 1 && c.task ? ` (${esc(noDash(c.task))})` : ""}${esc(fig)}${c.level !== "ok" && c.note ? ` · ${esc(noDash(c.note))}` : ""}</span></div>`; }).join("");
+    return `<div class="prow"><div class="pc1"><b>${esc(noDash(b.supplier || ""))}</b><span>Facture ${esc(noDash(b.ref || ""))}${b.company ? ` · ${esc(noDash(b.company))}` : ""}</span></div>
+      <div class="pc2"><span class="plbl">Chantier</span>${String(b.projects || "Non indiqué").split(" | ").map(x => `<span class="pproj">${esc(noDash(x))}</span>`).join("")}</div>
+      <div class="pc3"><span class="plbl">Vers</span>${esc(b.iban || "")}</div>
+      <b class="pc4">${esc(money(b.amount))}</b>${chk ? `<div class="pchks">${chk}</div>` : ""}</div>`;
+  }).join("");
+  return `<div class="pa ppay"><div class="pt">Mettre en paiement ${bills.length} facture${bills.length > 1 ? "s" : ""}<span class="pw">Paiement SEPA</span>${nAlert ? `<span class="pw bad">${nAlert} alerte${nAlert > 1 ? "s" : ""} budget</span>` : ""}</div>
+    <div class="ptable"><div class="phead"><span>Fournisseur</span><span>Chantier</span><span>Compte</span><span>Montant</span></div>${rows}
+      <div class="ptot"><span>Total</span><b>${esc(money(inp.total))}</b></div></div>
+    <div class="props"><span class="pl">Journal</span><span class="pv">${esc(noDash(inp.journal || ""))}</span>
+    <span class="pl">Ensuite</span><span class="pv">Activité « à valider » clôturée et chantier noté sur chaque facture. Les virements partent avec le lot SEPA chargé dans CBC Business.</span></div></div>`;
 }
 
 function iaRender(){
   const th = $("#iaThread"); if (!th) return;
   const p = ia.pending;
+  $("#panel")?.classList.toggle("wide", !!p && p.actions.some(x => x.name === "odoo_pay_vendor_bills" || x.name === "odoo_link_invoice_tasks"));
   th.innerHTML = !ia.view.length && !ia.busy ? `<div class="iaempty"><b>Que veux-tu faire dans Odoo ?</b>
       <p>Je cherche, je croise et je prépare les actions. Rien n'est modifié dans Odoo sans ta validation.</p>
       <div class="iasugg">${IA_SUGG.map(([s, go], i) => `<button data-i="${i}">${esc(s.trim())}${go ? "" : "…"}</button>`).join("")}</div></div>`
