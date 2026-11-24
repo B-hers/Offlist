@@ -641,6 +641,13 @@ nav.tabs{scroll-padding-right:16px;padding-right:4px}
 .iapend .pt{font-weight:600;font-size:15px}
 .iapend .pw{display:inline-block;margin-left:6px;font-size:12px;font-weight:600;color:var(--warn);background:var(--warn-soft);border-radius:999px;padding:2px 8px;vertical-align:1px}
 .iapend .props{margin:8px 0 0;padding:8px 0 0;border-bottom:0;row-gap:6px;align-items:start}
+.iapend .pbills{margin-top:8px;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.iapend .pbill{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 12px}
+.iapend .pbill + .pbill{border-top:1px solid var(--line)}
+.iapend .pbm{display:flex;flex-direction:column;min-width:0}
+.iapend .pbm b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.iapend .pbm span{font-size:13px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.iapend .pba{flex:none;font-variant-numeric:tabular-nums}
 .iapend .props .pv{font-size:14px;display:block;overflow-wrap:anywhere}
 .iapend .pbody{white-space:pre-wrap;background:var(--bg);border-radius:10px;padding:8px 10px;font-size:14px;max-height:180px;overflow:auto}
 .iapend .pb{display:flex;justify-content:flex-end;gap:8px;margin-top:12px}
@@ -1522,6 +1529,7 @@ const IA_ACT = {
   odoo_create_lead: ["Créer une opportunité", ""],
   odoo_create_or_update_email_template: ["Modèle d'e-mail", "Modifie Odoo"],
   odoo_set_template_translation: ["Traduction de modèle d'e-mail", "Modifie Odoo"],
+  odoo_pay_vendor_bills: ["Mettre en paiement", "Paiement SEPA"],
 };
 const IA_FIELD = { model:"Sur", record_id:"Réf. Odoo", subject:"Sujet", activity_type:"Type", summary:"Résumé", date_deadline:"Échéance",
   name:"Nom", partner_name:"Client", contact_name:"Contact", email:"E-mail", phone:"Téléphone", project_id:"Projet", project:"Projet",
@@ -1572,12 +1580,25 @@ function iaValue(k, v){
 }
 function iaActionHtml(a){
   const inp = a.input || {};
+  if (a.name === "odoo_pay_vendor_bills") return iaPayHtml(inp);
   let [label, warn] = IA_ACT[a.name] || [a.name.replace(/^odoo_/, "").replace(/_/g, " "), ""];
   if (a.name === "odoo_create_task" && inp.parent_id) label = "Créer une sous-tâche";
   const rows = Object.keys(inp).filter(k => !IA_LONG.includes(k) && iaValue(k, inp[k]) !== "")
     .map(k => `<span class="pl">${esc(IA_FIELD[k] || k)}</span><span class="pv">${esc(noDash(iaValue(k, inp[k])))}</span>`).join("");
   const long = IA_LONG.filter(k => inp[k]).map(k => `<span class="pl">${k === "body" || k === "body_html" ? "Contenu" : IA_FIELD[k] || "Note"}</span><span class="pv"><div class="pbody">${esc(noDash(stripHtml(inp[k])))}</div></span>`).join("");
   return `<div class="pa"><div class="pt">${esc(label)}${warn ? `<span class="pw">${esc(warn)}</span>` : ""}</div>${rows || long ? `<div class="props">${rows}${long}</div>` : ""}</div>`;
+}
+
+// Carte de paiement : une ligne par facture, total, journal. Les montants sont revérifiés côté serveur.
+function iaPayHtml(inp){
+  const money = n => (Number(n) || 0).toLocaleString("fr-BE", { style: "currency", currency: "EUR" });
+  const bills = Array.isArray(inp.bills) ? inp.bills : [];
+  const rows = bills.map(b => `<div class="pbill"><div class="pbm"><b>${esc(noDash(b.supplier || ""))}</b><span>Facture ${esc(noDash(b.ref || ""))}</span><span>Vers ${esc(b.iban || "")}</span></div><b class="pba">${esc(money(b.amount))}</b></div>`).join("");
+  return `<div class="pa"><div class="pt">Mettre en paiement${bills.length > 1 ? ` (${bills.length} factures)` : ""}<span class="pw">Paiement SEPA</span></div>
+    <div class="pbills">${rows}</div>
+    <div class="props"><span class="pl">Total</span><span class="pv"><b>${esc(money(inp.total))}</b></span>
+    <span class="pl">Journal</span><span class="pv">${esc(noDash(inp.journal || ""))}</span>
+    <span class="pl">Ensuite</span><span class="pv">Activité « à valider » clôturée. Le virement part avec le lot SEPA chargé dans CBC Business.</span></div></div>`;
 }
 
 function iaRender(){
