@@ -662,6 +662,7 @@ nav.tabs{scroll-padding-right:16px;padding-right:4px}
 .iapend .pc4{font-variant-numeric:tabular-nums;white-space:nowrap}
 .iapend .plbl{display:none}
 .iapend .pproj{display:block}
+.iapend .pproj.nop{color:var(--warn);font-weight:600}
 @media (min-width:980px){.panel.ia.wide{max-width:1040px}}
 .iapend .pchks{grid-column:1/-1;display:flex;flex-direction:column;gap:4px;margin-top:8px}
 .iapend .pchk{display:flex;gap:8px;align-items:baseline;font-size:12.5px;line-height:1.4;color:var(--muted)}
@@ -1648,7 +1649,7 @@ function iaPayHtml(inp){
       if (c.level === "info") return `<div class="pchk info"><span class="pdot"></span><span>${esc(noDash(c.poste || ""))} : ${esc(noDash(c.note || ""))}</span></div>`;
       return `<div class="pchk ${cl}"><span class="pdot"></span><span><b>${esc(lb)}</b> ${esc(noDash(c.poste || ""))}${cs.length > 1 && c.task ? ` (${esc(noDash(c.task))})` : ""}${esc(fig)}${c.level !== "ok" && c.note ? ` · ${esc(noDash(c.note))}` : ""}</span></div>`; }).join("");
     return `<div class="prow"><div class="pc1"><b>${esc(noDash(b.supplier || ""))}</b><span>Facture ${esc(noDash(b.ref || ""))}${b.company ? ` · ${esc(noDash(b.company))}` : ""}</span></div>
-      <div class="pc2"><span class="plbl">Chantier</span>${String(b.projects || "Non indiqué").split(" | ").map(x => `<span class="pproj">${esc(noDash(x))}</span>`).join("")}</div>
+      <div class="pc2"><span class="plbl">Chantier</span>${String(b.projects || "Non indiqué").split(" | ").map(x => `<span class="pproj${/^Sans chantier/.test(x) ? " nop" : ""}">${esc(noDash(x))}</span>`).join("")}</div>
       <div class="pc3"><span class="plbl">Vers</span>${esc(b.iban || "")}</div>
       <b class="pc4">${esc(money(b.amount))}</b>${chk ? `<div class="pchks">${chk}</div>` : ""}</div>`;
   }).join("");
