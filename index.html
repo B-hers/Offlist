@@ -626,6 +626,36 @@ nav.tabs{scroll-padding-right:16px;padding-right:4px}
 .icdel{flex:none;width:34px;height:34px;border:0;background:none;color:var(--muted);border-radius:8px;cursor:pointer;display:grid;place-items:center;margin-right:4px}
 .icdel:hover{color:var(--danger);background:var(--hover)}
 .lnk{border:0;background:none;color:var(--accent);font:inherit;font-size:13px;cursor:pointer;padding:0}
+/* Partage de l'assistant par lien */
+.iashare{margin-top:4px;text-align:left;display:flex;flex-direction:column;gap:16px}
+.iashare .shint{font-size:13.5px;color:var(--muted);line-height:1.5;margin:0}
+.iashare form{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.iashare form{flex-wrap:nowrap}
+.panel .iashare form input{flex:1 1 auto;min-width:0;width:auto;max-width:320px;border-radius:999px;padding:8px 14px}
+.shbtn{flex:none;display:inline-flex;align-items:center;gap:6px;border:1px solid var(--accent);background:var(--accent);color:#fff;border-radius:999px;padding:8px 16px;font:inherit;font-size:14px;font-weight:600;cursor:pointer;min-height:38px}
+.shbtn:disabled{opacity:.6;cursor:default}
+.shnew{background:var(--accent-soft);border-radius:14px;padding:12px;display:flex;flex-direction:column;gap:8px;font-size:14px}
+.shnew .shurl{display:flex;gap:8px;align-items:center}
+.panel .shnew .shurl input{flex:1;min-width:0;font-size:13px;background:var(--card);border-radius:10px;padding:8px 10px}
+.shcopy{flex:none;border:1px solid var(--accent);background:var(--card);color:var(--accent);border-radius:999px;padding:7px 14px;font:inherit;font-size:13.5px;font-weight:600;cursor:pointer}
+.shnew small{font-size:12.5px;color:var(--muted);line-height:1.45}
+.iashare .irh{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:2px;font-size:14px}
+.iashare .muted{color:var(--muted);font-size:13.5px}
+.shrow{display:flex;align-items:center;gap:10px;padding:10px 4px}
+.shrow + .shrow{border-top:1px solid var(--line)}
+.shrow .shm{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.shrow .shm b{font-weight:500;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.shrow .shm span{font-size:12.5px;color:var(--muted)}
+.shrev{flex:none;border:0;background:none;color:var(--danger);font:inherit;font-size:13.5px;cursor:pointer;padding:6px 10px;border-radius:8px}
+.shrev:hover{background:var(--hover)}
+.shrev.sure{background:var(--late-soft);font-weight:600}
+/* Page ouverte par un lien partagé : l'assistant seul */
+.sheet.solo{background:var(--bg)}
+.sheet.solo .panel.ia{height:100dvh;max-height:100dvh;border-radius:0}
+@media (min-width:980px){.sheet.solo .panel.ia{height:min(880px,94dvh);border-radius:18px;box-shadow:var(--shadow)}}
+.solomsg{max-width:420px;margin:22vh auto 0;padding:0 16px;text-align:center;line-height:1.5}
+.solomsg b{display:block;font-size:18px;margin-bottom:6px}
+.solomsg p{color:var(--muted);margin:0}
 .iahist .muted{color:var(--muted)}.iahist .small{font-size:12.5px;margin-top:14px}
 .panel.ia .sheethead .hbtn{white-space:nowrap;display:inline-flex;align-items:center;gap:6px;min-height:34px}
 .iath{flex:1;min-height:0;overflow-y:auto;margin:0 -16px;padding:4px 16px 12px;display:flex;flex-direction:column;gap:12px;overscroll-behavior:contain}
@@ -730,6 +760,8 @@ const store = {
   del(k){ try{ localStorage.removeItem(k) }catch{} },
 };
 let token = store.get("todo_token");
+// Lien de partage de l'assistant (#ia=shr_...) : page assistant seule, sans compte Klaar
+let shareToken = null, shareInfo = null;
 let meInfo = null;
 let view = store.get("todo_view") || "today";
 if (view === "later") view = "today";
@@ -755,7 +787,8 @@ async function api(path, opts = {}){
   if (token) headers.Authorization = "Bearer " + token;
   const r = await fetch((opts.base || API) + path, { ...opts, headers });
   const data = await r.json().catch(() => ({}));
-  if (r.status === 401 && token && !path.startsWith("/auth/")) { token = null; store.del("todo_token"); meInfo = null; showLogin("Session expirée, reconnecte-toi."); }
+  if (r.status === 401 && shareToken) shareGone();
+  else if (r.status === 401 && token && !path.startsWith("/auth/")) { token = null; store.del("todo_token"); meInfo = null; showLogin("Session expirée, reconnecte-toi."); }
   if (!r.ok) throw Object.assign(new Error(data.error || "Erreur réseau"), { status: r.status, data });
   return data;
 }
@@ -786,6 +819,8 @@ function fmtAgo(ts){
 // ---------- Connexion ----------
 function readHash(){
   const h = new URLSearchParams(location.hash.slice(1));
+  // Le lien de partage reste dans l'adresse pour pouvoir être rouvert ou mis en favori
+  if (/^shr_[A-Za-z0-9_-]{20,}$/.test(h.get("ia") || "")) { shareToken = h.get("ia"); return {}; }
   const msg = {};
   if (h.get("session")) { token = h.get("session"); store.set("todo_token", token); }
   if (h.get("auth_error")) msg.auth = h.get("auth_error");
@@ -1563,7 +1598,7 @@ function openProposals(texte, props){
 // ---------- Assistant Odoo ----------
 // L'assistant cherche et prépare. Toute action qui écrit dans Odoo passe par une carte de validation.
 const IAPI = "https://rorwnacthttwxyqemkgv.supabase.co/functions/v1/todo-ask";
-const ia = { msgs: [], view: [], pending: null, busy: false, draft: "", id: null, convs: null, history: false };
+const ia = { msgs: [], view: [], pending: null, busy: false, draft: "", id: null, convs: null, history: false, shareView: false, shares: null, newLink: null };
 const IA_SUGG = [
   ["Retrouve le projet PV de Marie Hers", true],
   ["Quelles factures clients sont encore ouvertes ?", true],
@@ -1720,13 +1755,74 @@ function iaHistoryHtml(){
   const list = ia.convs || [];
   return `<div class="iahist"><div class="irh"><b>Conversations récentes</b><span class="muted">${list.length ? `${list.length} dernière${list.length > 1 ? "s" : ""}` : ""}</span></div>
     ${ia.convs == null ? `<p class="muted">Chargement…</p>` : list.length ? list.map(c => iaConvRow(c, true)).join("") : `<p class="muted">Aucune conversation enregistrée pour l'instant.</p>`}
-    <p class="muted small">Les conversations sont enregistrées pour ton compte et visibles sur ordinateur et sur téléphone.</p></div>`;
+    <p class="muted small">${shareToken ? "Les conversations sont enregistrées pour ce lien. Celles du compte Klaar qui l'a partagé n'y apparaissent pas." : "Les conversations sont enregistrées pour ton compte et visibles sur ordinateur et sur téléphone."}</p></div>`;
+}
+
+// ---------- Partage de l'assistant par lien (sans compte Klaar) ----------
+function iaWhen(d){ const a = iaAgo(d); return /^\d/.test(a) ? "le " + a : a; }
+function iaShareHtml(){
+  const list = ia.shares, nl = ia.newLink;
+  return `<div class="iashare">
+    <p class="shint">Le lien ouvre cet assistant sans compte Klaar : lectures dans Odoo et écritures après validation, jamais de mise en paiement. Chaque lien a son propre historique et se révoque à tout moment.</p>
+    <form id="shForm"><input id="shName" maxlength="60" placeholder="Nom de la personne" autocomplete="off" aria-label="Nom de la personne">
+      <button class="shbtn" id="shGo" type="submit">${ic("link", 14)}Créer le lien</button></form>
+    ${nl ? `<div class="shnew"><b>Lien pour ${esc(noDash(nl.label))}</b>
+      <div class="shurl"><input id="shUrl" readonly value="${esc(nl.url)}" aria-label="Lien de partage"><button type="button" class="shcopy" id="shCopy">Copier</button></div>
+      <small>Copie-le maintenant : pour des raisons de sécurité, il ne sera plus affiché. Si tu le perds, révoque-le et crée un nouveau lien.</small></div>` : ""}
+    <div><div class="irh"><b>Liens actifs</b><span class="muted">${list?.length || ""}</span></div>
+    ${list == null ? `<p class="muted">Chargement…</p>` : list.length ? list.map(s => `<div class="shrow"><div class="shm"><b>${esc(noDash(s.label))}</b>
+      <span>Créé ${esc(iaWhen(s.created_at))} · ${s.last_used_at ? "utilisé " + esc(iaWhen(s.last_used_at)) : "jamais utilisé"}</span></div>
+      <button type="button" class="shrev" data-rev="${esc(s.id)}">Révoquer</button></div>`).join("") : `<p class="muted">Aucun lien actif.</p>`}</div></div>`;
+}
+async function iaLoadShares(){
+  try { const r = await api("?shares=1", { base: IAPI }); ia.shares = r.shares || []; } catch(e){ ia.shares = ia.shares || []; toast(noDash(e.message)); }
+  if (!ia.busy) iaRender();
+}
+function iaBindShare(){
+  const f = $("#shForm");
+  if (f) f.onsubmit = async e => {
+    e.preventDefault();
+    const label = $("#shName").value.trim(); if (!label) return $("#shName").focus();
+    const b = $("#shGo"); b.disabled = true;
+    try {
+      const r = await api("", { method: "POST", base: IAPI, body: JSON.stringify({ share_create: { label } }) });
+      ia.newLink = { label: r.share.label, url: APP + "#ia=" + r.token };
+      ia.shares = [r.share, ...(ia.shares || [])];
+    } catch(err){ toast(noDash(err.message)); b.disabled = false; return; }
+    iaRender(); $("#shUrl")?.select();
+  };
+  const c = $("#shCopy");
+  if (c) c.onclick = async () => {
+    try { await navigator.clipboard.writeText(ia.newLink.url); } catch { $("#shUrl").select(); document.execCommand("copy"); }
+    c.textContent = "Copié"; toast("Lien copié");
+  };
+  $$("#iaThread .shrev").forEach(b => b.onclick = async () => {
+    if (b.dataset.sure !== "1") { b.dataset.sure = "1"; b.textContent = "Confirmer"; b.classList.add("sure"); return; }
+    try { await api("?share=" + encodeURIComponent(b.dataset.rev), { method: "DELETE", base: IAPI }); } catch(e){ return toast(noDash(e.message)); }
+    ia.shares = (ia.shares || []).filter(s => s.id !== b.dataset.rev);
+    if (ia.newLink && !ia.shares.length) ia.newLink = null;
+    toast("Lien révoqué"); iaRender();
+  });
+}
+// Page ouverte par un lien partagé : l'assistant seul, en plein écran
+async function bootShare(){
+  token = shareToken;
+  document.title = "Assistant Odoo · We Green";
+  $("#app").innerHTML = "";
+  try { shareInfo = await api("?whoami=1", { base: IAPI }); }
+  catch(e){ if (e.status !== 401) shareGone("L'assistant est momentanément injoignable. Réessaie dans un instant."); return; }
+  openOdooAssistant();
+}
+function shareGone(msg){
+  $("#sheet").classList.remove("on", "solo"); $("#panel").classList.remove("ia");
+  $("#app").innerHTML = `<div class="solomsg"><b>Lien indisponible</b><p>${esc(msg || "Ce lien de partage a été révoqué ou n'est pas valide. Demande un nouveau lien à la personne qui te l'a envoyé.")}</p></div>`;
 }
 // Sous-titre : la conversation ouverte, sinon le rappel du fonctionnement
 function iaSub(){
   const sub = $("#panel .sheethead .sub"); if (!sub) return;
   const c = ia.id && (ia.convs || []).find(x => x.id === ia.id);
-  sub.textContent = ia.history ? "Historique" : c ? noDash(c.title) : "Lectures directes, écritures après validation";
+  const base = shareInfo?.shared ? `Partagé par ${noDash(String(shareInfo.owner || "").split(/\s+/)[0])} · écritures après validation` : "Lectures directes, écritures après validation";
+  sub.textContent = ia.shareView ? "Partager par un lien" : ia.history ? "Historique" : c ? noDash(c.title) : base;
   sub.title = sub.textContent;
 }
 function iaBindConvs(){
@@ -1738,6 +1834,14 @@ function iaBindConvs(){
 function iaRender(){
   const th = $("#iaThread"); if (!th) return;
   const hb = $("#iaHist"); if (hb) { hb.classList.toggle("on", ia.history); hb.setAttribute("aria-pressed", ia.history ? "true" : "false"); }
+  const sb = $("#iaShare"); if (sb) { sb.classList.toggle("on", ia.shareView); sb.setAttribute("aria-pressed", ia.shareView ? "true" : "false"); }
+  if (ia.shareView) {
+    $("#panel")?.classList.remove("wide");
+    th.innerHTML = iaShareHtml(); iaBindShare(); th.scrollTop = 0;
+    $("#iaReset").style.display = "";
+    iaSub();
+    return;
+  }
   if (ia.history) {
     $("#panel")?.classList.remove("wide");
     th.innerHTML = iaHistoryHtml(); iaBindConvs(); th.scrollTop = 0;
@@ -1747,9 +1851,10 @@ function iaRender(){
   }
   const p = ia.pending;
   $("#panel")?.classList.toggle("wide", !!p && p.actions.some(x => x.name === "odoo_pay_vendor_bills" || x.name === "odoo_link_invoice_tasks"));
-  th.innerHTML = !ia.view.length && !ia.busy ? `<div class="iaempty"><b>Que veux-tu faire dans Odoo ?</b>
+  const hello = shareInfo?.shared ? `Bonjour ${noDash(String(shareInfo.label).split(/\s+/)[0])}, que veux-tu faire dans Odoo ?` : "Que veux-tu faire dans Odoo ?";
+  th.innerHTML = !ia.view.length && !ia.busy ? `<div class="iaempty"><b>${esc(hello)}</b>
       <p>Je cherche, je croise et je prépare les actions. Rien n'est modifié dans Odoo sans ta validation.</p>
-      <div class="iasugg">${IA_SUGG.map(([s, go], i) => `<button data-i="${i}">${esc(s.trim())}${go ? "" : "…"}</button>`).join("")}</div>
+      <div class="iasugg">${IA_SUGG.map(([s, go], i) => shareInfo?.shared && i === 0 ? "" : `<button data-i="${i}">${esc(s.trim())}${go ? "" : "…"}</button>`).join("")}</div>
       ${iaRecentHtml(3)}</div>`
     : ia.view.map(v =>
       v.who === "me" ? `<div class="iamsg me">${esc(v.text)}</div>`
@@ -1791,7 +1896,7 @@ function iaSend(text){
   text = String(text || "").trim(); if (!text || ia.busy) return;
   const body = { text, messages: ia.msgs };
   if (ia.pending) { body.done = ia.pending.done; ia.view.push({ who:"ev", text:"Action abandonnée" }); ia.pending = null; }
-  ia.history = false;
+  ia.history = false; ia.shareView = false;
   ia.view.push({ who:"me", text });
   const inp = $("#iaIn"); if (inp) { inp.value = ""; iaGrow(); }
   iaCall(body, "Je consulte Odoo…");
@@ -1803,21 +1908,25 @@ function iaConfirm(approve){
   ia.pending = null;
   iaCall({ messages: ia.msgs, confirm: { approve, done: p.done } }, approve ? "J'exécute dans Odoo…" : "Je reprends…");
 }
-function iaReset(){ if (ia.busy) return; ia.msgs = []; ia.view = []; ia.pending = null; ia.id = null; ia.history = false; iaRender(); $("#iaIn")?.focus(); }
+function iaReset(){ if (ia.busy) return; ia.msgs = []; ia.view = []; ia.pending = null; ia.id = null; ia.history = false; ia.shareView = false; iaRender(); $("#iaIn")?.focus(); }
 
 function openOdooAssistant(){
   if (legacy()) return showLogin("Connecte-toi pour utiliser l'assistant.");
-  $("#panel").innerHTML = `<div class="sheethead"><h3>Assistant Odoo<div class="sub">Lectures directes, écritures après validation</div></h3>
+  const solo = !!shareToken;
+  $("#panel").innerHTML = `<div class="sheethead"><h3>${solo ? "Assistant Odoo We Green" : "Assistant Odoo"}<div class="sub">Lectures directes, écritures après validation</div></h3>
+      ${solo ? "" : `<button class="hbtn" id="iaShare" title="Partager l'assistant par un lien" aria-pressed="false">${ic("link", 14)}<span class="lbl">Partager</span></button>`}
       <button class="hbtn" id="iaHist" title="Historique des conversations" aria-pressed="false">${ic("clock", 14)}<span class="lbl">Historique</span></button>
       <button class="hbtn" id="iaReset" title="Nouvelle conversation">${ic("plus", 14)}<span class="lbl">Nouvelle conversation</span></button>
-      <button class="xbtn" aria-label="Fermer">${ic("x", 16)}</button></div>
+      ${solo ? "" : `<button class="xbtn" aria-label="Fermer">${ic("x", 16)}</button>`}</div>
     <div class="iath" id="iaThread" aria-live="polite"></div>
     <form class="actions foot iafoot" id="iaForm"><textarea id="iaIn" rows="1" placeholder="Demande quelque chose sur Odoo…" enterkeyhint="send" aria-label="Ta demande"></textarea>
       <button class="primary" id="iaGo" type="submit" aria-label="Envoyer">${ic("send", 16)}<span class="lbl">Envoyer</span></button></form>`;
   openSheet(); $("#panel").classList.add("ia");
-  $("#panel .xbtn").onclick = () => { ia.draft = $("#iaIn").value; closeSheet(); };
+  if (solo) $("#sheet").classList.add("solo");
+  else $("#panel .xbtn").onclick = () => { ia.draft = $("#iaIn").value; closeSheet(); };
   $("#iaReset").onclick = iaReset;
-  $("#iaHist").onclick = () => { if (ia.busy) return; ia.history = !ia.history; iaRender(); if (ia.history) iaLoadConvs(); };
+  $("#iaHist").onclick = () => { if (ia.busy) return; ia.history = !ia.history; ia.shareView = false; iaRender(); if (ia.history) iaLoadConvs(); };
+  if ($("#iaShare")) $("#iaShare").onclick = () => { if (ia.busy) return; ia.shareView = !ia.shareView; ia.history = false; ia.newLink = null; iaRender(); if (ia.shareView) iaLoadShares(); };
   iaLoadConvs();
   const inp = $("#iaIn"); inp.value = ia.draft; ia.draft = "";
   inp.oninput = iaGrow;
@@ -2712,7 +2821,7 @@ function polishSheet(){
     if (!acts.querySelector(".sp")) { const sp = document.createElement("span"); sp.className = "sp"; const anchor = prim || acts.lastElementChild; acts.insertBefore(sp, anchor); }
   }
 }
-function closeSheet(){ $("#sheet").classList.remove("on"); $("#panel").classList.remove("read", "ia"); }
+function closeSheet(){ if ($("#sheet").classList.contains("solo")) return; $("#sheet").classList.remove("on"); $("#panel").classList.remove("read", "ia"); }
 $("#sheet").onclick = e => { if (e.target.id === "sheet") { const re = $("#plist") || $("#fw"); closeSheet(); if (re) load(); } };
 
 // ---------- Glisser ----------
@@ -2750,6 +2859,7 @@ matchMedia("(min-width:980px)").addEventListener?.("change", () => meInfo && $("
 
 async function boot(){
   const msg = readHash();
+  if (shareToken) return bootShare();
   store.del("todo_key");
   try { meInfo = await api("/me"); }
   catch(e){ meInfo = null; return showLogin(msg.auth || ""); }
